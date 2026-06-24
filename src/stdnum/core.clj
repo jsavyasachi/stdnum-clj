@@ -553,6 +553,44 @@
     (let [k (dec (count n))
           r (mod (long (reduce + (map * (reverse (digits-of (subs n 0 k))) co-nit-weights))) 11)]
       (= (if (< r 2) r (- 11 r)) (- (int (.charAt n k)) 48)))))
+(defn- pe-ruc? [^String n]                            ; Peru RUC: weighted mod 11 (10->0, 11->1)
+  (and (re-matches #"\d{11}" n)
+       (let [d (digits-of n)
+             c (- 11 (mod (long (reduce + (map * (subvec d 0 10) [5 4 3 2 7 6 5 4 3 2]))) 11))]
+         (= (cond (= c 11) 1 (= c 10) 0 :else c) (d 10)))))
+
+;; Ireland PPS: 7 digits + check letter + optional 2nd letter (folded in as value*9),
+;; check letter from a mod-23 table whose index 0 is 'W'.
+(def ^:private ^String ie-pps-letters "WABCDEFGHIJKLMNOPQRSTUV")
+(defn- ie-pps? [^String n]
+  (when (re-matches #"\d{7}[A-W][A-IW]?" n)
+    (let [extra (if (= 9 (count n)) (* 9 (- (int (.charAt n 8)) 64)) 0)
+          s (+ (long (reduce + (map * (digits-of (subs n 0 7)) [8 7 6 5 4 3 2]))) (long extra))]
+      (= (.charAt ie-pps-letters (int (mod s 23))) (.charAt n 7)))))
+
+;; Estonia isikukood: weighted mod 11, reweighting once when the remainder is 10.
+(defn- ee-ik? [^String n]
+  (and (re-matches #"\d{11}" n)
+       (let [d (digits-of n)
+             w (fn [ws] (mod (long (reduce + (map * (subvec d 0 10) ws))) 11))
+             r (w [1 2 3 4 5 6 7 8 9 1])
+             r (if (= r 10) (w [3 4 5 6 7 8 9 1 2 3]) r)]
+         (= (if (= r 10) 0 r) (d 10)))))
+
+;; JMBG: the shared ex-Yugoslav (RS/BA/ME/MK/SI/HR) 13-digit number, weighted mod 11.
+(defn- jmbg? [^String n]
+  (and (re-matches #"\d{13}" n)
+       (let [d (digits-of n)
+             m (- 11 (mod (long (reduce + (map * (subvec d 0 12) [7 6 5 4 3 2 7 6 5 4 3 2]))) 11))]
+         (= (if (>= m 10) 0 m) (d 12)))))
+
+;; Ecuador cédula: 10 digits, province 01-24, Luhn-like coefficients mod 10.
+(defn- ec-ced? [^String n]
+  (and (re-matches #"\d{10}" n)
+       (<= 1 (Integer/parseInt (subs n 0 2)) 24)
+       (let [s (reduce + (map (fn [x c] (let [p (* (long x) (long c))] (if (> p 9) (- p 9) p)))
+                              (digits-of (subs n 0 9)) [2 1 2 1 2 1 2 1 2]))]
+         (= (mod (- 10 (mod (long s) 10)) 10) (- (int (.charAt n 9)) 48)))))
 
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
@@ -634,7 +672,12 @@
    :pl-pesel    {:validate pesel?}
    :ar-cuit     {:validate ar-cuit?}
    :cl-rut      {:validate cl-rut?}
-   :co-nit      {:validate co-nit?}})
+   :co-nit      {:validate co-nit?}
+   :pe-ruc      {:validate pe-ruc?}
+   :ie-pps      {:validate ie-pps?}
+   :ee-ik       {:validate ee-ik?}
+   :jmbg        {:validate jmbg?}
+   :ec-ced      {:validate ec-ced?}})
 
 (def types
   "The set of identifier-type keywords this library understands."

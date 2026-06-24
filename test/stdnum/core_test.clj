@@ -352,6 +352,26 @@
     (is (stdnum/valid? :co-nit "8909039388"))
     (is (not (stdnum/valid? :co-nit "8909039389")))))
 
+(deftest more-national-ids-2
+  (testing "Peru RUC (weighted mod 11) - BCP"
+    (is (stdnum/valid? :pe-ruc "20100070970"))
+    (is (not (stdnum/valid? :pe-ruc "20100070971"))))
+  (testing "Ireland PPS (mod-23 check letter, optional 2nd letter)"
+    (is (stdnum/valid? :ie-pps "6433435F"))
+    (is (stdnum/valid? :ie-pps "6433435OA"))             ; 2nd letter folded into the check
+    (is (not (stdnum/valid? :ie-pps "6433435FA")))       ; wrong check given the 2nd letter
+    (is (not (stdnum/valid? :ie-pps "6433435G"))))
+  (testing "Estonia isikukood (weighted mod 11, reweight on remainder 10)"
+    (is (stdnum/valid? :ee-ik "37605030299"))
+    (is (not (stdnum/valid? :ee-ik "37605030298"))))
+  (testing "JMBG (shared ex-Yugoslav 13-digit number)"
+    (is (stdnum/valid? :jmbg "0101006500006"))
+    (is (not (stdnum/valid? :jmbg "0101006500007"))))
+  (testing "Ecuador cedula (province 01-24, Luhn-like)"
+    (is (stdnum/valid? :ec-ced "1710034065"))
+    (is (not (stdnum/valid? :ec-ced "1710034066")))
+    (is (not (stdnum/valid? :ec-ced "9910034065")))))    ; province 99 out of range
+
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"
     (is (some #{:credit-card} (stdnum/detect "4111111111111111")))
