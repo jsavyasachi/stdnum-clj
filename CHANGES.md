@@ -4,6 +4,15 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-06-23
+
+### Added
+- Securities identifiers (engine-backed check digits): `:cusip` (US/Canada), `:sedol` (UK/Ireland) -
+  rounding out the `:isin`/`:lei` set.
+- US national numbers, clean-room from the public structural rules: `:us-ssn` (area/group/serial
+  rules + the SSA's reserved advertising numbers, with `format`) and `:us-ein` (IRS campus prefix
+  validation, with `format`).
+
 ## [0.2.0] - 2026-06-23
 
 ### Added
@@ -29,5 +38,6 @@ Initial release.
 - Idiomatic facade over Apache Commons Validator 1.10.1 and iban4j 3.2.11 - no algorithm
   reimplementation. Bad input data never throws; only an unknown identifier type does.
 
+[0.3.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.3.0
 [0.2.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.2.0
 [0.1.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.1.0

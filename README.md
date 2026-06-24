@@ -32,13 +32,13 @@ implemented clean-room and kept under this library's EPL license.
 Leiningen / Boot:
 
 ```clojure
-[net.clojars.savya/stdnum-clj "0.2.0"]
+[net.clojars.savya/stdnum-clj "0.3.0"]
 ```
 
 deps.edn:
 
 ```clojure
-net.clojars.savya/stdnum-clj {:mvn/version "0.2.0"}
+net.clojars.savya/stdnum-clj {:mvn/version "0.3.0"}
 ```
 
 ## Usage
@@ -77,7 +77,7 @@ net.clojars.savya/stdnum-clj {:mvn/version "0.2.0"}
 ;; convenience
 (stdnum/card-network "6011111111111117")  ;=> :discover
 stdnum/types  ;=> #{:credit-card :iban :bic :isbn :issn :isin :aba :imei :luhn
-              ;     :lei :br-cpf :br-cnpj}
+              ;     :lei :cusip :sedol :br-cpf :br-cnpj :us-ssn :us-ein}
 ```
 
 `valid?`, `parse`, and `format` throw `IllegalArgumentException` only on an **unknown
@@ -98,8 +98,12 @@ identifier type** (a programming bug). Bad *data* never throws: `valid?` returns
 | `:imei` | Mobile device IMEI (Luhn over 15 digits) | Commons Validator |
 | `:luhn` | Raw Luhn (mod-10) check | Commons Validator |
 | `:lei` | Legal Entity Identifier (ISO 17442) | clean-room |
+| `:cusip` | CUSIP securities identifier (US/Canada) | Commons Validator |
+| `:sedol` | SEDOL securities identifier (UK/Ireland) | Commons Validator |
 | `:br-cpf` | Brazil individual taxpayer registry (CPF) | clean-room |
 | `:br-cnpj` | Brazil company registry (CNPJ) | clean-room |
+| `:us-ssn` | US Social Security Number (structural rules) | clean-room |
+| `:us-ein` | US Employer Identification Number | clean-room |
 
 Global and national identifiers whose algorithms are public, well-documented standards are
 implemented clean-room (no third-party port) and stay under this library's EPL license.

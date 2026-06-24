@@ -84,6 +84,30 @@
     (is (not (stdnum/valid? :br-cnpj "11111111111111")))     ; repeated-digit
     (is (= "11.222.333/0001-81" (stdnum/format :br-cnpj "11222333000181")))))
 
+(deftest securities-and-us
+  (testing "CUSIP (engine check digit)"
+    (is (stdnum/valid? :cusip "037833100"))                  ; Apple
+    (is (stdnum/valid? :cusip "38259P508"))                  ; Alphabet
+    (is (not (stdnum/valid? :cusip "037833108"))))           ; bad check
+  (testing "SEDOL"
+    (is (stdnum/valid? :sedol "0263494"))
+    (is (stdnum/valid? :sedol "B0YBKJ7"))
+    (is (not (stdnum/valid? :sedol "0263495"))))
+  (testing "US SSN structural rules"
+    (is (stdnum/valid? :us-ssn "123-45-6789"))
+    (is (= "123-45-6789" (stdnum/format :us-ssn "123456789")))
+    (is (not (stdnum/valid? :us-ssn "000-12-3456")))         ; area 000
+    (is (not (stdnum/valid? :us-ssn "666-12-3456")))         ; area 666
+    (is (not (stdnum/valid? :us-ssn "900-12-3456")))         ; area 9xx
+    (is (not (stdnum/valid? :us-ssn "123-00-6789")))         ; group 00
+    (is (not (stdnum/valid? :us-ssn "123-45-0000")))         ; serial 0000
+    (is (not (stdnum/valid? :us-ssn "078-05-1120"))))        ; SSA promo number
+  (testing "US EIN prefix rules"
+    (is (stdnum/valid? :us-ein "12-3456789"))
+    (is (= "12-3456789" (stdnum/format :us-ein "123456789")))
+    (is (not (stdnum/valid? :us-ein "07-0000000")))          ; 07 not an IRS prefix
+    (is (not (stdnum/valid? :us-ein "00-0000000")))))
+
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"
     (is (some #{:credit-card} (stdnum/detect "4111111111111111")))

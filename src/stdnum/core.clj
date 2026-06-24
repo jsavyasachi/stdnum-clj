@@ -20,7 +20,7 @@
   (:import [org.apache.commons.validator.routines
             CreditCardValidator IBANValidator ISBNValidator ISSNValidator ISINValidator]
            [org.apache.commons.validator.routines.checkdigit
-            LuhnCheckDigit ABANumberCheckDigit]
+            LuhnCheckDigit ABANumberCheckDigit CUSIPCheckDigit SedolCheckDigit]
            [org.iban4j Iban Bic]))
 
 (defn- norm ^String [s]
@@ -111,6 +111,37 @@
 (defn- cnpj-format [^String n]
   (str (subs n 0 2) "." (subs n 2 5) "." (subs n 5 8) "/" (subs n 8 12) "-" (subs n 12)))
 
+;; securities identifiers (engine-backed check digits) ------------------------
+(def ^:private ^CUSIPCheckDigit cusip-cd (CUSIPCheckDigit.))
+(def ^:private ^SedolCheckDigit sedol-cd (SedolCheckDigit.))
+(defn- cusip-valid? [^String n] (and (re-matches #"[0-9A-Z]{9}" n) (.isValid cusip-cd n)))
+(defn- sedol-valid? [^String n] (and (re-matches #"[0-9A-Z]{7}" n) (.isValid sedol-cd n)))
+
+;; US national numbers (clean-room from the public structural rules) ----------
+;; SSN: AAA-GG-SSSS. Area not 000/666/900-999; group not 00; serial not 0000;
+;; plus the SSA's reserved advertising/promo numbers.
+(defn- ssn-valid? [^String n]
+  (boolean
+   (and (re-matches #"\d{9}" n)
+        (let [a (subs n 0 3)]
+          (and (not (#{"000" "666"} a))
+               (not= \9 (.charAt a 0))
+               (not= "00" (subs n 3 5))
+               (not= "0000" (subs n 5 9))
+               (not= "078051120" n)
+               (not (re-matches #"98765432\d" n)))))))
+(defn- ssn-format [^String n] (str (subs n 0 3) "-" (subs n 3 5) "-" (subs n 5 9)))
+
+;; EIN: NN-NNNNNNN, valid when the two-digit prefix is an IRS campus code.
+(def ^:private ein-prefixes
+  #{"01" "02" "03" "04" "05" "06" "10" "11" "12" "13" "14" "15" "16" "20" "21" "22" "23" "24" "25"
+    "26" "27" "30" "31" "32" "33" "34" "35" "36" "37" "38" "39" "40" "41" "42" "43" "44" "45" "46"
+    "47" "48" "50" "51" "52" "53" "54" "55" "56" "57" "58" "59" "60" "61" "62" "63" "64" "65" "66"
+    "67" "68" "71" "72" "73" "74" "75" "76" "77" "80" "81" "82" "83" "84" "85" "86" "87" "88" "90"
+    "91" "92" "93" "94" "95" "98" "99"})
+(defn- ein-valid? [^String n] (and (re-matches #"\d{9}" n) (contains? ein-prefixes (subs n 0 2))))
+(defn- ein-format [^String n] (str (subs n 0 2) "-" (subs n 2 9)))
+
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
    :iban        {:validate iban-valid? :parse iban-parse :format iban-format}
@@ -122,8 +153,12 @@
    :imei        {:validate imei-valid?}
    :luhn        {:validate luhn-valid?}
    :lei         {:validate lei-valid?}
+   :cusip       {:validate cusip-valid?}
+   :sedol       {:validate sedol-valid?}
    :br-cpf      {:validate cpf-valid? :format cpf-format}
-   :br-cnpj     {:validate cnpj-valid? :format cnpj-format}})
+   :br-cnpj     {:validate cnpj-valid? :format cnpj-format}
+   :us-ssn      {:validate ssn-valid? :format ssn-format}
+   :us-ein      {:validate ein-valid? :format ein-format}})
 
 (def types
   "The set of identifier-type keywords this library understands."
