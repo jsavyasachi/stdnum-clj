@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] - 2026-06-23
+
+### Added
+- Three new identifier types, implemented clean-room from their public standards (no
+  third-party port; stays EPL):
+  - `:lei` - Legal Entity Identifier (ISO 17442, ISO 7064 mod-97-10).
+  - `:br-cpf` - Brazil individual taxpayer registry, with `format`.
+  - `:br-cnpj` - Brazil company registry, with `format`.
+- `compact`/`format` now also strip `/` (used by the CNPJ written form).
+
+Country-specific identifiers are keyed by an ISO-3166 prefix (e.g. `:br-cpf`).
+
 ## [0.1.0] - 2026-06-23
 
 Initial release.
@@ -17,4 +29,5 @@ Initial release.
 - Idiomatic facade over Apache Commons Validator 1.10.1 and iban4j 3.2.11 - no algorithm
   reimplementation. Bad input data never throws; only an unknown identifier type does.
 
+[0.2.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.2.0
 [0.1.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.1.0

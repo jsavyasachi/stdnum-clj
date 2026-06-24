@@ -20,23 +20,25 @@ check, behind one small API.
 Clojure has plenty of *one-identifier* libraries (an IBAN parser here, a Luhn checker there),
 most of them tiny and unmaintained, each with its own API. There was no single library that
 validates the common, checksummable identifiers under one consistent interface - the way
-Python's `python-stdnum` does. `stdnum-clj` is that facade. It does **not** reimplement the
-algorithms: it wraps the maintained [Apache Commons Validator](https://commons.apache.org/proper/commons-validator/)
-and [iban4j](https://github.com/arturmkrtchyan/iban4j) engines, so the checks are as correct
-as those libraries and stay correct as they're updated.
+Python's `python-stdnum` does. `stdnum-clj` is that facade. For the international identifiers it
+wraps the maintained [Apache Commons Validator](https://commons.apache.org/proper/commons-validator/)
+and [iban4j](https://github.com/arturmkrtchyan/iban4j) engines rather than reinventing them, so
+those checks are as correct as those libraries and stay correct as they're updated. A few global
+and national standards with public, well-documented algorithms (LEI, Brazil CPF/CNPJ) are
+implemented clean-room and kept under this library's EPL license.
 
 ## Install
 
 Leiningen / Boot:
 
 ```clojure
-[net.clojars.savya/stdnum-clj "0.1.0"]
+[net.clojars.savya/stdnum-clj "0.2.0"]
 ```
 
 deps.edn:
 
 ```clojure
-net.clojars.savya/stdnum-clj {:mvn/version "0.1.0"}
+net.clojars.savya/stdnum-clj {:mvn/version "0.2.0"}
 ```
 
 ## Usage
@@ -67,9 +69,15 @@ net.clojars.savya/stdnum-clj {:mvn/version "0.1.0"}
 (stdnum/detect "4111111111111111")  ;=> [:credit-card :luhn]
 (stdnum/detect "nonsense")          ;=> []
 
+;; global / national identifiers (LEI, Brazil CPF/CNPJ, ...)
+(stdnum/valid? :lei "5493001KJTIIGC8Y1R12")  ;=> true
+(stdnum/valid? :br-cpf "111.444.777-35")     ;=> true
+(stdnum/format :br-cnpj "11222333000181")    ;=> "11.222.333/0001-81"
+
 ;; convenience
 (stdnum/card-network "6011111111111117")  ;=> :discover
-stdnum/types  ;=> #{:credit-card :iban :bic :isbn :issn :isin :aba :imei :luhn}
+stdnum/types  ;=> #{:credit-card :iban :bic :isbn :issn :isin :aba :imei :luhn
+              ;     :lei :br-cpf :br-cnpj}
 ```
 
 `valid?`, `parse`, and `format` throw `IllegalArgumentException` only on an **unknown
@@ -89,9 +97,14 @@ identifier type** (a programming bug). Bad *data* never throws: `valid?` returns
 | `:aba` | US bank routing number (ABA) | Commons Validator |
 | `:imei` | Mobile device IMEI (Luhn over 15 digits) | Commons Validator |
 | `:luhn` | Raw Luhn (mod-10) check | Commons Validator |
+| `:lei` | Legal Entity Identifier (ISO 17442) | clean-room |
+| `:br-cpf` | Brazil individual taxpayer registry (CPF) | clean-room |
+| `:br-cnpj` | Brazil company registry (CNPJ) | clean-room |
 
-National identifier formats (per-country tax/VAT/company IDs, à la `python-stdnum`) are
-intentionally out of scope for this core artifact; they are a possible future companion.
+Global and national identifiers whose algorithms are public, well-documented standards are
+implemented clean-room (no third-party port) and stay under this library's EPL license.
+Country-specific formats are keyed by an ISO-3166 prefix (e.g. `:br-cpf`). More are added on
+demand - open an issue for an identifier you need.
 
 ## License
 

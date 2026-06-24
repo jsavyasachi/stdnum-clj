@@ -65,6 +65,25 @@
     (is (stdnum/valid? :luhn "79927398713"))
     (is (not (stdnum/valid? :luhn "79927398714")))))
 
+(deftest global-and-national-ids
+  (testing "LEI (ISO 17442, mod-97-10) - real GLEIF values"
+    (is (stdnum/valid? :lei "5493001KJTIIGC8Y1R12"))
+    (is (stdnum/valid? :lei "HWUPKR0MPOU8FGXBT394"))
+    (is (not (stdnum/valid? :lei "5493001KJTIIGC8Y1R13")))   ; bad check
+    (is (not (stdnum/valid? :lei "5493001KJTIIGC8Y1R1"))))   ; too short
+  (testing "Brazil CPF"
+    (is (stdnum/valid? :br-cpf "111.444.777-35"))
+    (is (stdnum/valid? :br-cpf "11144477735"))
+    (is (not (stdnum/valid? :br-cpf "11144477736")))         ; bad check
+    (is (not (stdnum/valid? :br-cpf "11111111111")))         ; repeated-digit
+    (is (= "111.444.777-35" (stdnum/format :br-cpf "11144477735"))))
+  (testing "Brazil CNPJ"
+    (is (stdnum/valid? :br-cnpj "11.222.333/0001-81"))
+    (is (stdnum/valid? :br-cnpj "00000000000191"))           ; Banco do Brasil
+    (is (not (stdnum/valid? :br-cnpj "11222333000182")))     ; bad check
+    (is (not (stdnum/valid? :br-cnpj "11111111111111")))     ; repeated-digit
+    (is (= "11.222.333/0001-81" (stdnum/format :br-cnpj "11222333000181")))))
+
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"
     (is (some #{:credit-card} (stdnum/detect "4111111111111111")))

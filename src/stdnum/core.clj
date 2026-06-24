@@ -24,7 +24,7 @@
            [org.iban4j Iban Bic]))
 
 (defn- norm ^String [s]
-  (if s (-> (str s) (str/replace #"[\s.\-]" "") str/upper-case) ""))
+  (if s (-> (str s) (str/replace #"[\s.\-/]" "") str/upper-case) ""))
 
 ;; --- credit cards -------------------------------------------------------------
 ;; The default CreditCardValidator omits Diners, so build one spanning every
@@ -75,6 +75,42 @@
 (defn- aba-valid?  [^String n] (and (re-matches #"\d{9}" n) (.isValid aba-cd n)))
 (defn- imei-valid? [^String n] (and (re-matches #"\d{15}" n) (.isValid luhn-cd n)))
 
+;; --- global / national entity & person identifiers (clean-room from public specs) ---
+
+;; LEI (ISO 17442): 20 chars [A-Z0-9], ISO 7064 MOD 97-10 over the whole string
+;; (letters A-Z -> 10-35), valid when the running remainder is 1.
+(defn- lei-mod97 ^long [^String s]
+  (reduce (fn [^long acc c]
+            (let [d (if (Character/isDigit ^char c) (- (int c) 48) (+ 10 (- (int c) 65)))]
+              (mod (+ (* acc (if (>= d 10) 100 10)) d) 97)))
+          0 s))
+(defn- lei-valid? [^String n] (and (re-matches #"[A-Z0-9]{20}" n) (= 1 (lei-mod97 n))))
+
+;; Brazilian CPF / CNPJ: weighted mod-11 dual check digits; sequences of one
+;; repeated digit pass the arithmetic but are not valid documents, so reject them.
+(defn- check-digit ^long [digits weights]
+  (let [r (mod (long (reduce + (map * digits weights))) 11)] (if (< r 2) 0 (- 11 r))))
+(defn- digits-of [^String n] (mapv #(- (int %) 48) n))
+(defn- repdigit? [^String n] (apply = (seq n)))
+
+(defn- cpf-valid? [^String n]
+  (and (re-matches #"\d{11}" n) (not (repdigit? n))
+       (let [d (digits-of n)]
+         (and (= (check-digit (subvec d 0 9) (range 10 1 -1)) (d 9))
+              (= (check-digit (subvec d 0 10) (range 11 1 -1)) (d 10))))))
+(defn- cpf-format [^String n]
+  (str (subs n 0 3) "." (subs n 3 6) "." (subs n 6 9) "-" (subs n 9)))
+
+(def ^:private cnpj-w1 [5 4 3 2 9 8 7 6 5 4 3 2])
+(def ^:private cnpj-w2 [6 5 4 3 2 9 8 7 6 5 4 3 2])
+(defn- cnpj-valid? [^String n]
+  (and (re-matches #"\d{14}" n) (not (repdigit? n))
+       (let [d (digits-of n)]
+         (and (= (check-digit (subvec d 0 12) cnpj-w1) (d 12))
+              (= (check-digit (subvec d 0 13) cnpj-w2) (d 13))))))
+(defn- cnpj-format [^String n]
+  (str (subs n 0 2) "." (subs n 2 5) "." (subs n 5 8) "/" (subs n 8 12) "-" (subs n 12)))
+
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
    :iban        {:validate iban-valid? :parse iban-parse :format iban-format}
@@ -84,7 +120,10 @@
    :isin        {:validate isin-valid?}
    :aba         {:validate aba-valid?}
    :imei        {:validate imei-valid?}
-   :luhn        {:validate luhn-valid?}})
+   :luhn        {:validate luhn-valid?}
+   :lei         {:validate lei-valid?}
+   :br-cpf      {:validate cpf-valid? :format cpf-format}
+   :br-cnpj     {:validate cnpj-valid? :format cnpj-format}})
 
 (def types
   "The set of identifier-type keywords this library understands."
