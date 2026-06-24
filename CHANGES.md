@@ -4,16 +4,16 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.5.0] - 2026-06-24
+
+Coverage expansion: 40 -> 54 identifier types, spanning ~24 countries. Every checksum clean-room
+from the public standard and verified against published example numbers.
 
 ### Added
-- `:gr-vat` (Greece AFM), `:pt-nif` (Portugal), `:cz-ico` (Czech company number),
-  `:jp-cn` (Japan corporate number). Clean-room, verified against published numbers.
-- `:au-tfn` (Australia Tax File Number), `:lu-vat` (Luxembourg), `:si-vat` (Slovenia),
-  `:in-gstin` (India GST registration, base-36 check char).
-- `:ee-vat` (Estonia), `:hu-vat` (Hungary), `:hr-oib` (Croatia OIB, ISO 7064 MOD 11,10).
-- `:it-cf` (Italy codice fiscale, mod-26 check letter), `:ch-uid` (Switzerland business id),
-  `:ch-ahv` (Switzerland social security).
+- More VAT/GST: `:gr-vat` `:lu-vat` `:si-vat` `:ee-vat` `:hu-vat` `:in-gstin` (India GST, base-36
+  check char).
+- More tax & national IDs: `:pt-nif` `:cz-ico` `:jp-cn` `:au-tfn` `:hr-oib` (Croatia OIB),
+  `:it-cf` (Italy codice fiscale, mod-26 check letter), `:ch-uid` `:ch-ahv` (Switzerland).
 
 ## [0.4.0] - 2026-06-23
 
@@ -65,6 +65,7 @@ Initial release.
 - Idiomatic facade over Apache Commons Validator 1.10.1 and iban4j 3.2.11 - no algorithm
   reimplementation. Bad input data never throws; only an unknown identifier type does.
 
+[0.5.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.5.0
 [0.4.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.4.0
 [0.3.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.3.0
 [0.2.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.2.0
