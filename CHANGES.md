@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-06-24
+
+Coverage expansion: 71 -> 90 identifier types. Adds LatAm tax IDs (Nubank/MercadoLibre audience),
+more EU national/person IDs, research IDs (ORCID/ISNI), and the longer GS1 keys. Every new checksum
+is clean-room from the public standard (or engine-backed) and verified against a real published
+number.
+
 ### Added
 - More commerce / industry identifiers: `:ean8` (EAN-8/GTIN-8), `:ismn` (sheet-music ISMN),
   `:cas` (CAS Registry Number for chemicals), `:imo` (IMO ship number). Clean-room / engine-backed,
@@ -100,6 +107,7 @@ Initial release.
 - Idiomatic facade over Apache Commons Validator 1.10.1 and iban4j 3.2.11 - no algorithm
   reimplementation. Bad input data never throws; only an unknown identifier type does.
 
+[0.7.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.7.0
 [0.6.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.6.0
 [0.5.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.5.0
 [0.4.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.4.0
