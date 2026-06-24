@@ -6,6 +6,10 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- `:gln` (GS1 Global Location Number) and `:mx-curp` (Mexico CURP). Clean-room / engine-backed,
+  each verified against a published example.
+
 ## [0.7.0] - 2026-06-24
 
 Coverage expansion: 71 -> 90 identifier types. Adds LatAm tax IDs (Nubank/MercadoLibre audience),

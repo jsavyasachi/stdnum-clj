@@ -613,6 +613,14 @@
     (= (mod (- 10 (mod (long s) 10)) 10) (d k))))
 (defn- gtin14? [^String n] (and (re-matches #"\d{14}" n) (gtin-mod10? n)))
 (defn- sscc?  [^String n] (and (re-matches #"\d{18}" n) (gtin-mod10? n)))
+(defn- gln?   [^String n] (and (re-matches #"\d{13}" n) (.isValid ean13-cd n)))  ; GS1 location number
+
+;; Mexico CURP: 18 chars, weighted base-37 sum (with Ñ in the alphabet), mod-10 check.
+(def ^:private curp-val (zipmap "0123456789ABCDEFGHIJKLMNÑOPQRSTUVWXYZ" (range)))
+(defn- mx-curp? [^String n]
+  (and (re-matches #"[A-Z]{4}\d{6}[HM][A-Z]{5}[0-9A-Z]\d" n)
+       (let [s (reduce + (map-indexed (fn [i c] (* (long (curp-val c)) (long (- 18 i)))) (subs n 0 17)))]
+         (= (mod (- 10 (mod (long s) 10)) 10) (- (int (.charAt n 17)) 48)))))
 
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
@@ -704,7 +712,9 @@
    :orcid       {:validate orcid?}
    :isni        {:validate orcid?}
    :gtin14      {:validate gtin14?}
-   :sscc        {:validate sscc?}})
+   :sscc        {:validate sscc?}
+   :gln         {:validate gln?}
+   :mx-curp     {:validate mx-curp?}})
 
 (def types
   "The set of identifier-type keywords this library understands."

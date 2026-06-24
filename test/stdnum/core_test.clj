@@ -388,7 +388,13 @@
     (is (not (stdnum/valid? :gtin14 "10614141000416"))))
   (testing "SSCC (18-digit GS1 logistics) - GS1 worked example"
     (is (stdnum/valid? :sscc "001234560000000018"))
-    (is (not (stdnum/valid? :sscc "001234560000000019")))))
+    (is (not (stdnum/valid? :sscc "001234560000000019"))))
+  (testing "GLN (GS1 Global Location Number) - GS1 example"
+    (is (stdnum/valid? :gln "0614141000005"))
+    (is (not (stdnum/valid? :gln "0614141000006"))))
+  (testing "Mexico CURP - government worked example"
+    (is (stdnum/valid? :mx-curp "HEGG560427MVZRRL04"))
+    (is (not (stdnum/valid? :mx-curp "HEGG560427MVZRRL05")))))
 
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"
