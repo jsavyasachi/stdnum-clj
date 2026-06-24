@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- EU/UK VAT numbers, clean-room from each country's published checksum, with the ISO country
+  prefix optional on input: `:de-vat`, `:fr-vat`, `:it-vat`, `:be-vat`, `:pl-vat`, `:gb-vat`.
+- `:gb-nino` - UK National Insurance Number (structural rules).
+
 ## [0.3.0] - 2026-06-23
 
 ### Added

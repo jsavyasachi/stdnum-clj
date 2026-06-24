@@ -142,6 +142,61 @@
 (defn- ein-valid? [^String n] (and (re-matches #"\d{9}" n) (contains? ein-prefixes (subs n 0 2))))
 (defn- ein-format [^String n] (str (subs n 0 2) "-" (subs n 2 9)))
 
+;; EU / UK VAT numbers + UK NINO (clean-room from the public specs). VAT numbers
+;; carry an optional leading ISO country code; strip it before checking digits.
+(defn- strip-cc ^String [^String n ^String cc]
+  (if (str/starts-with? n cc) (subs n (count cc)) n))
+
+(defn- de-vat? [^String n]                         ; ISO 7064 MOD 11,10 over 9 digits
+  (let [n (strip-cc n "DE")]
+    (and (re-matches #"\d{9}" n)
+         (let [d (digits-of n)
+               p (reduce (fn [p dig]
+                           (let [m (mod (+ (long dig) (long p)) 10) m (if (zero? m) 10 m)]
+                             (mod (* m 2) 11)))
+                         10 (subvec d 0 8))]
+           (= (mod (- 11 (long p)) 10) (d 8))))))
+
+(defn- fr-vat? [^String n]                          ; 2-digit key over a Luhn-valid SIREN
+  (let [n (strip-cc n "FR")]
+    (and (re-matches #"\d{11}" n)
+         (let [k (Integer/parseInt (subs n 0 2)) siren (subs n 2)]
+           (and (.isValid luhn-cd siren)
+                (= k (mod (+ 12 (* 3 (mod (Long/parseLong siren) 97))) 97)))))))
+
+(defn- it-vat? [^String n]                          ; Partita IVA: 11-digit Luhn
+  (let [n (strip-cc n "IT")] (boolean (and (re-matches #"\d{11}" n) (.isValid luhn-cd n)))))
+
+(defn- be-vat? [^String n]                          ; 97 - (first 8 mod 97) == last 2
+  (let [n (strip-cc n "BE")]
+    (and (re-matches #"[01]\d{9}" n)
+         (= (- 97 (mod (Long/parseLong (subs n 0 8)) 97)) (Integer/parseInt (subs n 8))))))
+
+(defn- pl-vat? [^String n]                          ; NIP: weighted mod 11
+  (let [n (strip-cc n "PL")]
+    (and (re-matches #"\d{10}" n)
+         (let [d (digits-of n)
+               r (mod (long (reduce + (map * (subvec d 0 9) [6 5 7 2 3 4 5 6 7]))) 11)]
+           (and (not= r 10) (= r (d 9)))))))
+
+(defn- gb-vat? [^String n]                          ; weighted mod 97 (old and 9755 variants)
+  (let [n (strip-cc n "GB")]
+    (and (re-matches #"\d{9}" n)
+         (let [d (digits-of n)
+               ws (long (reduce + (map * (subvec d 0 7) [8 7 6 5 4 3 2])))
+               t (+ ws (Integer/parseInt (subs n 7)))]
+           (or (zero? (mod t 97)) (zero? (mod (+ t 55) 97)))))))
+
+(def ^:private nino-bad-first #{"D" "F" "I" "Q" "U" "V"})
+(def ^:private nino-bad-second #{"D" "F" "I" "O" "Q" "U" "V"})
+(def ^:private nino-bad-prefix #{"BG" "GB" "NK" "KN" "TN" "NT" "ZZ"})
+(defn- nino? [^String n]                            ; UK National Insurance Number (structural)
+  (boolean
+   (and (re-matches #"[A-Z]{2}\d{6}[A-D]?" n)
+        (not (nino-bad-first (subs n 0 1)))
+        (not (nino-bad-second (subs n 1 2)))
+        (not (nino-bad-prefix (subs n 0 2))))))
+
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
    :iban        {:validate iban-valid? :parse iban-parse :format iban-format}
@@ -158,7 +213,14 @@
    :br-cpf      {:validate cpf-valid? :format cpf-format}
    :br-cnpj     {:validate cnpj-valid? :format cnpj-format}
    :us-ssn      {:validate ssn-valid? :format ssn-format}
-   :us-ein      {:validate ein-valid? :format ein-format}})
+   :us-ein      {:validate ein-valid? :format ein-format}
+   :de-vat      {:validate de-vat?}
+   :fr-vat      {:validate fr-vat?}
+   :it-vat      {:validate it-vat?}
+   :be-vat      {:validate be-vat?}
+   :pl-vat      {:validate pl-vat?}
+   :gb-vat      {:validate gb-vat?}
+   :gb-nino     {:validate nino?}})
 
 (def types
   "The set of identifier-type keywords this library understands."

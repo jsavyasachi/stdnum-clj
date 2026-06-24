@@ -108,6 +108,28 @@
     (is (not (stdnum/valid? :us-ein "07-0000000")))          ; 07 not an IRS prefix
     (is (not (stdnum/valid? :us-ein "00-0000000")))))
 
+(deftest eu-uk-vat-and-nino
+  (testing "VAT numbers validate with and without the country prefix (real published values)"
+    (is (stdnum/valid? :de-vat "DE136695976"))
+    (is (stdnum/valid? :de-vat "136695976"))
+    (is (not (stdnum/valid? :de-vat "136695977")))
+    (is (stdnum/valid? :fr-vat "FR40303265045"))
+    (is (not (stdnum/valid? :fr-vat "FR41303265045")))
+    (is (stdnum/valid? :it-vat "IT00743110157"))
+    (is (not (stdnum/valid? :it-vat "00743110158")))
+    (is (stdnum/valid? :be-vat "BE0417497106"))
+    (is (not (stdnum/valid? :be-vat "0417497107")))
+    (is (stdnum/valid? :pl-vat "PL5260001246"))
+    (is (not (stdnum/valid? :pl-vat "5260001247")))
+    (is (stdnum/valid? :gb-vat "GB980780684"))
+    (is (not (stdnum/valid? :gb-vat "980780685"))))
+  (testing "UK NINO structural rules"
+    (is (stdnum/valid? :gb-nino "AB123456C"))
+    (is (stdnum/valid? :gb-nino "AB123456"))             ; suffix optional
+    (is (not (stdnum/valid? :gb-nino "QQ123456C")))      ; Q not allowed
+    (is (not (stdnum/valid? :gb-nino "GB123456C")))      ; disallowed prefix
+    (is (not (stdnum/valid? :gb-nino "AO123456C")))))    ; O not allowed as 2nd letter
+
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"
     (is (some #{:credit-card} (stdnum/detect "4111111111111111")))

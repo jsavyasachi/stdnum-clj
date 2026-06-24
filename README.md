@@ -76,8 +76,10 @@ net.clojars.savya/stdnum-clj {:mvn/version "0.3.0"}
 
 ;; convenience
 (stdnum/card-network "6011111111111117")  ;=> :discover
-stdnum/types  ;=> #{:credit-card :iban :bic :isbn :issn :isin :aba :imei :luhn
-              ;     :lei :cusip :sedol :br-cpf :br-cnpj :us-ssn :us-ein}
+;; VAT numbers - country prefix optional
+(stdnum/valid? :de-vat "DE136695976")  ;=> true
+(stdnum/valid? :gb-vat "980780684")    ;=> true
+(stdnum/valid? :gb-nino "AB123456C")   ;=> true
 ```
 
 `valid?`, `parse`, and `format` throw `IllegalArgumentException` only on an **unknown
@@ -104,6 +106,8 @@ identifier type** (a programming bug). Bad *data* never throws: `valid?` returns
 | `:br-cnpj` | Brazil company registry (CNPJ) | clean-room |
 | `:us-ssn` | US Social Security Number (structural rules) | clean-room |
 | `:us-ein` | US Employer Identification Number | clean-room |
+| `:de-vat` `:fr-vat` `:it-vat` `:be-vat` `:pl-vat` `:gb-vat` | EU/UK VAT numbers (country code optional) | clean-room |
+| `:gb-nino` | UK National Insurance Number | clean-room |
 
 Global and national identifiers whose algorithms are public, well-documented standards are
 implemented clean-room (no third-party port) and stay under this library's EPL license.
