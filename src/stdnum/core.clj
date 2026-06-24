@@ -279,6 +279,31 @@
 (defn- se-vat? [^String n]                           ; Sweden: 10-digit Luhn org number + "01"
   (let [n (strip-cc n "SE")]
     (boolean (and (re-matches #"\d{12}" n) (= "01" (subs n 10)) (.isValid luhn-cd (subs n 0 10))))))
+(defn- gr-vat? [^String n]                            ; Greece AFM: powers-of-two weights, mod 11 mod 10
+  (let [n (strip-cc (strip-cc n "EL") "GR")]
+    (and (re-matches #"\d{9}" n)
+         (let [d (digits-of n)]
+           (= (mod (mod (long (reduce + (map * (subvec d 0 8) [256 128 64 32 16 8 4 2]))) 11) 10)
+              (d 8))))))
+
+;; more national / company identifiers (clean-room) ---------------------------
+(defn- pt-nif? [^String n]                            ; Portugal NIF: weighted mod 11
+  (let [n (strip-cc n "PT")]
+    (and (re-matches #"\d{9}" n)
+         (let [d (digits-of n)
+               c (- 11 (mod (long (reduce + (map * (subvec d 0 8) [9 8 7 6 5 4 3 2]))) 11))]
+           (= (if (>= c 10) 0 c) (d 8))))))
+(defn- cz-ico? [^String n]                            ; Czech IČO: weighted mod 11
+  (let [n (strip-cc n "CZ")]
+    (and (re-matches #"\d{8}" n)
+         (let [d (digits-of n)
+               r (mod (long (reduce + (map * (subvec d 0 7) [8 7 6 5 4 3 2]))) 11)]
+           (= (mod (- 11 r) 10) (d 7))))))
+(defn- jp-cn? [^String n]                             ; Japan corporate number: leading check digit
+  (and (re-matches #"\d{13}" n)
+       (let [d (vec (reverse (digits-of (subs n 1))))
+             s (reduce + (map-indexed (fn [i x] (* (long x) (if (even? i) 1 2))) d))]
+         (= (- 9 (mod (long s) 9)) (- (int (.charAt n 0)) 48)))))
 
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
@@ -320,7 +345,11 @@
    :at-vat      {:validate at-vat?}
    :dk-vat      {:validate dk-vat?}
    :fi-vat      {:validate fi-vat?}
-   :se-vat      {:validate se-vat?}})
+   :se-vat      {:validate se-vat?}
+   :gr-vat      {:validate gr-vat?}
+   :pt-nif      {:validate pt-nif?}
+   :cz-ico      {:validate cz-ico?}
+   :jp-cn       {:validate jp-cn?}})
 
 (def types
   "The set of identifier-type keywords this library understands."

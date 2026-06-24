@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- `:gr-vat` (Greece AFM), `:pt-nif` (Portugal), `:cz-ico` (Czech company number),
+  `:jp-cn` (Japan corporate number). Clean-room, verified against published numbers.
+
 ## [0.4.0] - 2026-06-23
 
 Big coverage expansion: 13 -> 40 identifier types. Every new checksum is clean-room from the

@@ -193,6 +193,20 @@
     (is (not (stdnum/valid? :se-vat "556293998101")))   ; wrong suffix
     (is (not (stdnum/valid? :se-vat "556293998202")))))  ; bad check
 
+(deftest more-tax-and-company-ids
+  (testing "Greece VAT (AFM), EL prefix optional"
+    (is (stdnum/valid? :gr-vat "EL094014249"))
+    (is (not (stdnum/valid? :gr-vat "094014248"))))
+  (testing "Portugal NIF"
+    (is (stdnum/valid? :pt-nif "501964843"))
+    (is (not (stdnum/valid? :pt-nif "501964844"))))
+  (testing "Czech IČO"
+    (is (stdnum/valid? :cz-ico "00006947"))
+    (is (not (stdnum/valid? :cz-ico "00006948"))))
+  (testing "Japan corporate number"
+    (is (stdnum/valid? :jp-cn "7000012050002"))
+    (is (not (stdnum/valid? :jp-cn "7000012050003")))))
+
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"
     (is (some #{:credit-card} (stdnum/detect "4111111111111111")))
