@@ -177,6 +177,22 @@
     (is (not (stdnum/valid? :tr-tc "10000000147")))
     (is (not (stdnum/valid? :tr-tc "01000000146")))))   ; first digit 0
 
+(deftest more-eu-vat
+  (testing "Austria ATU (prefix optional)"
+    (is (stdnum/valid? :at-vat "ATU13585627"))
+    (is (stdnum/valid? :at-vat "13585627"))
+    (is (not (stdnum/valid? :at-vat "ATU13585628"))))
+  (testing "Denmark VAT"
+    (is (stdnum/valid? :dk-vat "DK13585628"))
+    (is (not (stdnum/valid? :dk-vat "13585629"))))
+  (testing "Finland VAT"
+    (is (stdnum/valid? :fi-vat "FI20774740"))
+    (is (not (stdnum/valid? :fi-vat "20774741"))))
+  (testing "Sweden VAT (Luhn org number + 01 suffix)"
+    (is (stdnum/valid? :se-vat "SE556293998201"))
+    (is (not (stdnum/valid? :se-vat "556293998101")))   ; wrong suffix
+    (is (not (stdnum/valid? :se-vat "556293998202")))))  ; bad check
+
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"
     (is (some #{:credit-card} (stdnum/detect "4111111111111111")))

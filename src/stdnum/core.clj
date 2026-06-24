@@ -259,6 +259,27 @@
          (and (= (mod (- (* (long odd) 7) (long even)) 10) (d 9))
               (= (mod (long (reduce + (subvec d 0 10))) 10) (d 10))))))
 
+;; more EU VAT (clean-room) ----------------------------------------------------
+(defn- at-vat? [^String n]                           ; Austria ATU: cross-sum, check = (96-sum) mod 10
+  (let [n (strip-cc (strip-cc n "ATU") "AT")]
+    (and (re-matches #"\d{8}" n)
+         (let [d (digits-of n)
+               s (reduce + (map (fn [x w] (let [p (* (long x) (long w))] (+ (quot p 10) (mod p 10))))
+                                (subvec d 0 7) [1 2 1 2 1 2 1]))]
+           (= (mod (- 96 (long s)) 10) (d 7))))))
+(defn- dk-vat? [^String n]                           ; Denmark: weighted sum mod 11 == 0
+  (let [n (strip-cc n "DK")]
+    (and (re-matches #"\d{8}" n)
+         (zero? (mod (long (reduce + (map * (digits-of n) [2 7 6 5 4 3 2 1]))) 11)))))
+(defn- fi-vat? [^String n]                           ; Finland: weighted mod 11
+  (let [n (strip-cc n "FI")]
+    (and (re-matches #"\d{8}" n)
+         (let [d (digits-of n) r (mod (long (reduce + (map * (subvec d 0 7) [7 9 10 5 8 4 2]))) 11)]
+           (cond (= r 0) (zero? (long (d 7))) (= r 1) false :else (= (- 11 r) (d 7)))))))
+(defn- se-vat? [^String n]                           ; Sweden: 10-digit Luhn org number + "01"
+  (let [n (strip-cc n "SE")]
+    (boolean (and (re-matches #"\d{12}" n) (= "01" (subs n 10)) (.isValid luhn-cd (subs n 0 10))))))
+
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
    :iban        {:validate iban-valid? :parse iban-parse :format iban-format}
@@ -295,7 +316,11 @@
    :mx-clabe    {:validate mx-clabe?}
    :za-id       {:validate za-id?}
    :no-org      {:validate no-org?}
-   :tr-tc       {:validate tr-tc?}})
+   :tr-tc       {:validate tr-tc?}
+   :at-vat      {:validate at-vat?}
+   :dk-vat      {:validate dk-vat?}
+   :fi-vat      {:validate fi-vat?}
+   :se-vat      {:validate se-vat?}})
 
 (def types
   "The set of identifier-type keywords this library understands."

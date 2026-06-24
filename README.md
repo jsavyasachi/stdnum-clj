@@ -32,13 +32,13 @@ implemented clean-room and kept under this library's EPL license.
 Leiningen / Boot:
 
 ```clojure
-[net.clojars.savya/stdnum-clj "0.3.0"]
+[net.clojars.savya/stdnum-clj "0.4.0"]
 ```
 
 deps.edn:
 
 ```clojure
-net.clojars.savya/stdnum-clj {:mvn/version "0.3.0"}
+net.clojars.savya/stdnum-clj {:mvn/version "0.4.0"}
 ```
 
 ## Usage
@@ -78,7 +78,7 @@ identifier type** (a programming bug). Bad *data* never throws: `valid?` returns
 (`:br-cpf`, `:us-ssn`, `:de-vat`); full descriptions are on [cljdoc](https://cljdoc.org/d/net.clojars.savya/stdnum-clj).
 
 <details>
-<summary><b>All 36 types, by category</b></summary>
+<summary><b>All 40 types, by category</b></summary>
 
 | Category | Types |
 |----------|-------|
@@ -86,7 +86,7 @@ identifier type** (a programming bug). Bad *data* never throws: `valid?` returns
 | **Securities** | `:isin` · `:lei` · `:cusip` · `:sedol` |
 | **Publishing / device** | `:isbn` · `:issn` · `:imei` · `:luhn` |
 | **Tax & national IDs** | `:us-ssn` · `:us-ein` · `:gb-nino` · `:br-cpf` · `:br-cnpj` · `:ca-sin` · `:au-abn` · `:in-pan` · `:in-aadhaar` · `:es-dni` · `:es-nie` · `:nl-bsn` · `:cn-ric` · `:se-pnr` · `:za-id` · `:no-org` · `:tr-tc` |
-| **VAT** | `:de-vat` · `:fr-vat` · `:it-vat` · `:be-vat` · `:pl-vat` · `:gb-vat` |
+| **VAT** | `:de-vat` · `:fr-vat` · `:it-vat` · `:be-vat` · `:pl-vat` · `:gb-vat` · `:at-vat` · `:dk-vat` · `:fi-vat` · `:se-vat` |
 
 </details>
 

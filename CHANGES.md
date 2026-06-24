@@ -4,22 +4,21 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.4.0] - 2026-06-23
+
+Big coverage expansion: 13 -> 40 identifier types. Every new checksum is clean-room from the
+public standard and verified against published example numbers (no third-party port; stays EPL).
 
 ### Added
-- EU/UK VAT numbers, clean-room from each country's published checksum, with the ISO country
-  prefix optional on input: `:de-vat`, `:fr-vat`, `:it-vat`, `:be-vat`, `:pl-vat`, `:gb-vat`.
-- `:gb-nino` - UK National Insurance Number (structural rules).
-- More national identifiers: `:ca-sin` (Canada, Luhn), `:au-abn` (Australia, weighted mod 89),
-  `:in-pan` (India, structural), `:in-aadhaar` (India, Verhoeff).
-- Major-economy national IDs: `:es-dni`/`:es-nie` (Spain, mod-23), `:nl-bsn` (Netherlands,
-  elfproef), `:cn-ric` (China resident ID, ISO 7064 MOD 11-2), `:se-pnr` (Sweden, Luhn).
-- `:mx-clabe` (Mexico bank account, weighted mod 10), `:za-id` (South Africa, Luhn),
-  `:no-org` (Norway organisasjonsnummer, mod 11), `:tr-tc` (Turkey TC Kimlik No).
+- VAT numbers, country prefix optional on input: `:de-vat` `:fr-vat` `:it-vat` `:be-vat`
+  `:pl-vat` `:gb-vat` `:at-vat` `:dk-vat` `:fi-vat` `:se-vat`.
+- National IDs: `:gb-nino`, `:ca-sin`, `:au-abn`, `:in-pan`, `:in-aadhaar`, `:es-dni`, `:es-nie`,
+  `:nl-bsn`, `:cn-ric`, `:se-pnr`, `:za-id`, `:no-org`, `:tr-tc`.
+- Banking: `:mx-clabe` (Mexico CLABE bank account).
 
 ### Changed
-- README: trimmed Usage to the core API and grouped the (now 27) identifier types by category
-  in a collapsible block, so the page stays scannable as the set grows.
+- README: trimmed Usage to the core API and grouped the identifier types by category in a
+  collapsible block, so the page stays scannable as the set grows.
 
 ## [0.3.0] - 2026-06-23
 
@@ -55,6 +54,7 @@ Initial release.
 - Idiomatic facade over Apache Commons Validator 1.10.1 and iban4j 3.2.11 - no algorithm
   reimplementation. Bad input data never throws; only an unknown identifier type does.
 
+[0.4.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.4.0
 [0.3.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.3.0
 [0.2.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.2.0
 [0.1.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.1.0
