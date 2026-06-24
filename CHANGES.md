@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-06-24
+
+Coverage expansion: 54 -> 71 identifier types, adding a commerce/vehicle/health category and
+APAC business IDs. Every new checksum is clean-room from the public standard (or engine-backed)
+and verified against a real published number.
+
 ### Added
 - `:nz-ird` (New Zealand IRD), `:be-nn` (Belgium national number), `:fi-hetu` (Finland HETU).
   Clean-room, verified against published numbers.
@@ -81,6 +87,7 @@ Initial release.
 - Idiomatic facade over Apache Commons Validator 1.10.1 and iban4j 3.2.11 - no algorithm
   reimplementation. Bad input data never throws; only an unknown identifier type does.
 
+[0.6.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.6.0
 [0.5.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.5.0
 [0.4.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.4.0
 [0.3.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.3.0
