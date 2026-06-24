@@ -527,6 +527,33 @@
          (let [d (digits-of n)]
            (= (mod (long (reduce + (map * (subvec d 0 6) [7 6 5 4 3 2]))) 10) (d 6))))))
 
+;; more national tax / person identifiers (clean-room) ------------------------
+(defn- fr-nir? [^String n]                            ; France NIR: key = 97 - (first 13 mod 97)
+  (and (re-matches #"\d{15}" n)
+       (= (- 97 (mod (Long/parseLong (subs n 0 13)) 97)) (Integer/parseInt (subs n 13)))))
+(defn- pesel? [^String n]                             ; Poland PESEL: weighted mod 10
+  (and (re-matches #"\d{11}" n)
+       (let [d (digits-of n)]
+         (= (mod (- 10 (mod (long (reduce + (map * (subvec d 0 10) [1 3 7 9 1 3 7 9 1 3]))) 10)) 10)
+            (d 10)))))
+(defn- ar-cuit? [^String n]                           ; Argentina CUIT: weighted mod 11
+  (and (re-matches #"\d{11}" n)
+       (let [d (digits-of n)
+             c (- 11 (mod (long (reduce + (map * (subvec d 0 10) [5 4 3 2 7 6 5 4 3 2]))) 11))]
+         (= (cond (= c 11) 0 (= c 10) -1 :else c) (d 10)))))
+(defn- cl-rut? [^String n]                            ; Chile RUT: reverse * 2..7 cycle, mod 11 (K=10)
+  (when (re-matches #"\d{7,8}[0-9K]" n)
+    (let [k (dec (count n))
+          s (reduce + (map * (reverse (digits-of (subs n 0 k))) (cycle [2 3 4 5 6 7])))
+          c (- 11 (mod (long s) 11))]
+      (= (cond (= c 11) 48 (= c 10) 75 :else (+ 48 c)) (int (.charAt n k))))))  ; 48=\0 75=\K
+(def ^:private co-nit-weights [3 7 13 17 19 23 29 37 41 43 47 53 59 67 71])
+(defn- co-nit? [^String n]                            ; Colombia NIT: weights-from-right, mod 11
+  (when (re-matches #"\d{8,16}" n)
+    (let [k (dec (count n))
+          r (mod (long (reduce + (map * (reverse (digits-of (subs n 0 k))) co-nit-weights))) 11)]
+      (= (if (< r 2) r (- 11 r)) (- (int (.charAt n k)) 48)))))
+
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
    :iban        {:validate iban-valid? :parse iban-parse :format iban-format}
@@ -602,7 +629,12 @@
    :ean8        {:validate ean8?}
    :ismn        {:validate ismn?}
    :cas         {:validate cas?}
-   :imo         {:validate imo?}})
+   :imo         {:validate imo?}
+   :fr-nir      {:validate fr-nir?}
+   :pl-pesel    {:validate pesel?}
+   :ar-cuit     {:validate ar-cuit?}
+   :cl-rut      {:validate cl-rut?}
+   :co-nit      {:validate co-nit?}})
 
 (def types
   "The set of identifier-type keywords this library understands."

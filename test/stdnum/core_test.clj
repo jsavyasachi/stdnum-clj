@@ -332,6 +332,26 @@
     (is (stdnum/valid? :imo "9074729"))
     (is (not (stdnum/valid? :imo "9074728")))))
 
+(deftest national-tax-ids
+  (testing "France NIR (social security, mod 97 key) - INSEE worked example"
+    (is (stdnum/valid? :fr-nir "255081416802538"))
+    (is (not (stdnum/valid? :fr-nir "255081416802539"))))
+  (testing "Poland PESEL (weighted mod 10)"
+    (is (stdnum/valid? :pl-pesel "44051401359"))
+    (is (not (stdnum/valid? :pl-pesel "44051401358"))))
+  (testing "Argentina CUIT (weighted mod 11) - MercadoLibre"
+    (is (stdnum/valid? :ar-cuit "30-70308853-4"))        ; separators tolerated
+    (is (stdnum/valid? :ar-cuit "30703088534"))
+    (is (not (stdnum/valid? :ar-cuit "30703088535"))))
+  (testing "Chile RUT (mod 11, K check) - Banco de Chile"
+    (is (stdnum/valid? :cl-rut "97.004.000-5"))
+    (is (stdnum/valid? :cl-rut "970040005"))
+    (is (not (stdnum/valid? :cl-rut "970040006"))))
+  (testing "Colombia NIT (weighted mod 11) - Bancolombia"
+    (is (stdnum/valid? :co-nit "890.903.938-8"))
+    (is (stdnum/valid? :co-nit "8909039388"))
+    (is (not (stdnum/valid? :co-nit "8909039389")))))
+
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"
     (is (some #{:credit-card} (stdnum/detect "4111111111111111")))

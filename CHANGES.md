@@ -10,6 +10,9 @@ All notable changes to this project are documented here. The format follows
 - More commerce / industry identifiers: `:ean8` (EAN-8/GTIN-8), `:ismn` (sheet-music ISMN),
   `:cas` (CAS Registry Number for chemicals), `:imo` (IMO ship number). Clean-room / engine-backed,
   each verified against a real published number.
+- National tax / person IDs: `:fr-nir` (France social security), `:pl-pesel` (Poland), `:ar-cuit`
+  (Argentina), `:cl-rut` (Chile), `:co-nit` (Colombia). Clean-room, each verified against a real
+  published number.
 
 ## [0.6.0] - 2026-06-24
 
