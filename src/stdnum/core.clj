@@ -506,6 +506,27 @@
 (defn- npi? [^String n]
   (boolean (and (re-matches #"[12]\d{9}" n) (.isValid luhn-cd (str "80840" n)))))
 
+(defn- ean8? [^String n]                              ; EAN-8 / GTIN-8: 3-1 weighted mod 10
+  (and (re-matches #"\d{8}" n)
+       (let [d (digits-of n)]
+         (= (mod (- 10 (mod (long (reduce + (map * (subvec d 0 7) [3 1 3 1 3 1 3]))) 10)) 10) (d 7)))))
+(defn- ismn? [^String n]                              ; ISMN: 979-0 prefixed 13-digit EAN
+  (and (re-matches #"9790\d{9}" n) (.isValid ean13-cd n)))
+
+;; CAS Registry Number (chemicals): check = sum of digit*(position from right) mod 10.
+(defn- cas? [^String n]
+  (and (re-matches #"\d{5,10}" n)
+       (let [d (digits-of n) k (dec (count d))
+             s (reduce + (map-indexed (fn [i x] (* (long x) (inc (long i)))) (reverse (subvec d 0 k))))]
+         (= (mod (long s) 10) (d k)))))
+
+;; IMO ship number: "IMO" + 7 digits, weights 7..2 over the first 6, mod 10.
+(defn- imo? [^String n]
+  (let [n (strip-cc n "IMO")]
+    (and (re-matches #"\d{7}" n)
+         (let [d (digits-of n)]
+           (= (mod (long (reduce + (map * (subvec d 0 6) [7 6 5 4 3 2]))) 10) (d 6))))))
+
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
    :iban        {:validate iban-valid? :parse iban-parse :format iban-format}
@@ -577,7 +598,11 @@
    :upc         {:validate upc?}
    :vin         {:validate vin?}
    :nhs         {:validate nhs?}
-   :npi         {:validate npi?}})
+   :npi         {:validate npi?}
+   :ean8        {:validate ean8?}
+   :ismn        {:validate ismn?}
+   :cas         {:validate cas?}
+   :imo         {:validate imo?}})
 
 (def types
   "The set of identifier-type keywords this library understands."

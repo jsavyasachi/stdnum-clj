@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- More commerce / industry identifiers: `:ean8` (EAN-8/GTIN-8), `:ismn` (sheet-music ISMN),
+  `:cas` (CAS Registry Number for chemicals), `:imo` (IMO ship number). Clean-room / engine-backed,
+  each verified against a real published number.
+
 ## [0.6.0] - 2026-06-24
 
 Coverage expansion: 54 -> 71 identifier types, adding a commerce/vehicle/health category and

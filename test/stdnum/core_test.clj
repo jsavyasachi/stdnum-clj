@@ -314,7 +314,23 @@
   (testing "US NPI (Luhn over the 80840 issuer prefix) - CMS example"
     (is (stdnum/valid? :npi "1234567893"))
     (is (not (stdnum/valid? :npi "1234567890")))
-    (is (not (stdnum/valid? :npi "3234567890")))))        ; must begin 1 or 2
+    (is (not (stdnum/valid? :npi "3234567890"))))         ; must begin 1 or 2
+  (testing "EAN-8 / GTIN-8 (3-1 weighted)"
+    (is (stdnum/valid? :ean8 "96385074"))
+    (is (not (stdnum/valid? :ean8 "96385075"))))
+  (testing "ISMN (979-0 prefixed EAN-13) - real published ISMN"
+    (is (stdnum/valid? :ismn "9790001148412"))
+    (is (stdnum/valid? :ismn "979-0-001-14841-2"))         ; separators tolerated
+    (is (not (stdnum/valid? :ismn "9790001148413")))
+    (is (not (stdnum/valid? :ismn "9780001148412"))))      ; 978 is ISBN, not ISMN
+  (testing "CAS Registry Number (chemicals)"
+    (is (stdnum/valid? :cas "7732-18-5"))                  ; water
+    (is (stdnum/valid? :cas "50-00-0"))                    ; formaldehyde
+    (is (not (stdnum/valid? :cas "7732-18-6"))))
+  (testing "IMO ship number (weighted mod 10)"
+    (is (stdnum/valid? :imo "IMO 9074729"))
+    (is (stdnum/valid? :imo "9074729"))
+    (is (not (stdnum/valid? :imo "9074728")))))
 
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"
