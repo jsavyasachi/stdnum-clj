@@ -9,6 +9,12 @@ All notable changes to this project are documented here. The format follows
 ### Added
 - `:gln` (GS1 Global Location Number) and `:mx-curp` (Mexico CURP). Clean-room / engine-backed,
   each verified against a published example.
+- `parse` now extracts the structured data embedded in several IDs (not just `{:valid? true}`):
+  - `:mx-curp` -> `:birth-date` `:gender` `:state` `:state-name`
+  - `:ee-ik` (Estonia), `:jmbg` (ex-Yugoslav) -> `:birth-date` `:gender` (+ `:region` for JMBG)
+  - `:za-id` (South Africa) -> `:gender` `:citizen` `:birth-date`
+  - `:iban` -> now also `:bank-code` `:branch-code` `:account-number` (where the country's BBAN
+    defines them), via iban4j.
 
 ## [0.7.0] - 2026-06-24
 

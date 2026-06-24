@@ -55,7 +55,14 @@ net.clojars.savya/stdnum-clj {:mvn/version "0.7.0"}
 ;; parse - validity plus extracted fields where they exist
 (stdnum/parse :credit-card "378282246310005")   ;=> {:valid? true, :network :amex}
 (stdnum/parse :iban "GB82WEST12345698765432")
-;=> {:valid? true, :country "GB", :bban "WEST12345698765432", :formatted "GB82 WEST ..."}
+;=> {:valid? true, :country "GB", :bban "WEST12345698765432",
+;    :bank-code "WEST", :branch-code "123456", :account-number "98765432", :formatted "GB82 WEST ..."}
+
+;; some national IDs embed structured data - parse pulls it out
+(stdnum/parse :mx-curp "HEGG560427MVZRRL04")
+;=> {:valid? true, :birth-date "1956-04-27", :gender :female, :state "VZ", :state-name "Veracruz"}
+(stdnum/parse :za-id "8001015009087")
+;=> {:valid? true, :gender :male, :citizen true, :birth-date "1980-01-01"}
 
 ;; format - canonical human form, or nil if invalid
 (stdnum/format :br-cnpj "11222333000181")  ;=> "11.222.333/0001-81"

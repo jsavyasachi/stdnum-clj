@@ -32,7 +32,10 @@
     (let [p (stdnum/parse :iban "GB82WEST12345698765432")]
       (is (:valid? p))
       (is (= "GB" (:country p)))
-      (is (= "WEST12345698765432" (:bban p)))))
+      (is (= "WEST12345698765432" (:bban p)))
+      (is (= "WEST" (:bank-code p)))
+      (is (= "123456" (:branch-code p)))
+      (is (= "98765432" (:account-number p)))))
   (testing "IBAN format groups in fours"
     (is (= "GB82 WEST 1234 5698 7654 32" (stdnum/format :iban "GB82WEST12345698765432"))))
   (testing "BIC"
@@ -395,6 +398,30 @@
   (testing "Mexico CURP - government worked example"
     (is (stdnum/valid? :mx-curp "HEGG560427MVZRRL04"))
     (is (not (stdnum/valid? :mx-curp "HEGG560427MVZRRL05")))))
+
+(deftest parse-extraction
+  (testing "Mexico CURP extracts birth date, gender, and issuing state"
+    (let [p (stdnum/parse :mx-curp "HEGG560427MVZRRL04")]
+      (is (= "1956-04-27" (:birth-date p)))
+      (is (= :female (:gender p)))
+      (is (= "VZ" (:state p)))
+      (is (= "Veracruz" (:state-name p)))))
+  (testing "Estonia isikukood extracts birth date and gender"
+    (let [p (stdnum/parse :ee-ik "37605030299")]
+      (is (= "1976-05-03" (:birth-date p)))
+      (is (= :male (:gender p)))))
+  (testing "JMBG extracts birth date and gender"
+    (let [p (stdnum/parse :jmbg "0101006500006")]
+      (is (= "2006-01-01" (:birth-date p)))
+      (is (= :male (:gender p)))))
+  (testing "South Africa ID extracts gender, citizenship, birth date"
+    (let [p (stdnum/parse :za-id "8001015009087")]
+      (is (= :male (:gender p)))
+      (is (true? (:citizen p)))
+      (is (= "1980-01-01" (:birth-date p)))))
+  (testing "parse on an invalid value still returns {:valid? false} with no fields"
+    (is (= {:valid? false} (stdnum/parse :mx-curp "HEGG560427MVZRRL05")))
+    (is (= {:valid? false} (stdnum/parse :ee-ik "37605030298")))))
 
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"

@@ -51,12 +51,16 @@
 ;; --- IBAN / BIC (iban4j for the rich parse/format, CV for the check) ----------
 (def ^:private ^IBANValidator iban-validator (IBANValidator/getInstance))
 (defn- iban-valid? [^String n] (.isValid iban-validator n))
+(defn- iban-field [f] (try (f) (catch Exception _ nil)))  ; iban4j throws when a BBAN lacks a field
 (defn- iban-parse [^String n]
   (let [i (Iban/valueOf n)]
-    {:valid?    true
-     :country   (str (.getCountryCode i))
-     :bban      (.getBban i)
-     :formatted (.toFormattedString i)}))
+    (cond-> {:valid?    true
+             :country   (str (.getCountryCode i))
+             :bban      (.getBban i)
+             :formatted (.toFormattedString i)}
+      (iban-field #(.getBankCode i))      (assoc :bank-code (iban-field #(.getBankCode i)))
+      (iban-field #(.getBranchCode i))    (assoc :branch-code (iban-field #(.getBranchCode i)))
+      (iban-field #(.getAccountNumber i)) (assoc :account-number (iban-field #(.getAccountNumber i))))))
 (defn- iban-format [^String n] (.toFormattedString (Iban/valueOf n)))
 (defn- bic-valid? [^String n] (boolean (Bic/valueOf n))) ; throws on invalid; caught upstream
 
@@ -622,6 +626,52 @@
        (let [s (reduce + (map-indexed (fn [i c] (* (long (curp-val c)) (long (- 18 i)))) (subs n 0 17)))]
          (= (mod (- 10 (mod (long s) 10)) 10) (- (int (.charAt n 17)) 48)))))
 
+;; --- field extraction (parse) for IDs that embed structured data -------------
+;; Each runs only after the type's validator has passed, so the input shape is
+;; already guaranteed. Birth dates are returned as ISO "YYYY-MM-DD" strings.
+
+(def ^:private curp-states
+  {"AS" "Aguascalientes" "BC" "Baja California" "BS" "Baja California Sur" "CC" "Campeche"
+   "CL" "Coahuila" "CM" "Colima" "CS" "Chiapas" "CH" "Chihuahua" "DF" "Ciudad de México"
+   "DG" "Durango" "GT" "Guanajuato" "GR" "Guerrero" "HG" "Hidalgo" "JC" "Jalisco"
+   "MC" "México" "MN" "Michoacán" "MS" "Morelos" "NT" "Nayarit" "NL" "Nuevo León"
+   "OC" "Oaxaca" "PL" "Puebla" "QT" "Querétaro" "QR" "Quintana Roo" "SP" "San Luis Potosí"
+   "SL" "Sinaloa" "SR" "Sonora" "TC" "Tabasco" "TL" "Tlaxcala" "TS" "Tamaulipas"
+   "VZ" "Veracruz" "YN" "Yucatán" "ZS" "Zacatecas" "NE" "Nacido en el Extranjero"})
+(defn- curp-parse [^String n]
+  (let [yy (subs n 4 6) mm (subs n 6 8) dd (subs n 8 10)
+        century (if (Character/isDigit (.charAt n 16)) "19" "20")
+        state (subs n 11 13)]
+    {:valid?     true
+     :birth-date (str century yy "-" mm "-" dd)
+     :gender     (if (= \H (.charAt n 10)) :male :female)
+     :state      state
+     :state-name (curp-states state)}))
+
+(defn- ee-ik-parse [^String n]
+  (let [c0 (- (int (.charAt n 0)) 48)
+        century (nth ["18" "18" "19" "19" "20" "20" "21" "21"] (dec c0))]
+    {:valid?     true
+     :birth-date (str century (subs n 1 3) "-" (subs n 3 5) "-" (subs n 5 7))
+     :gender     (if (odd? c0) :male :female)}))
+
+(defn- jmbg-parse [^String n]
+  (let [yyy (Integer/parseInt (subs n 4 7))
+        year (if (>= yyy 900) (+ 1000 yyy) (+ 2000 yyy))
+        seq-num (Integer/parseInt (subs n 9 12))]
+    {:valid?     true
+     :birth-date (str year "-" (subs n 2 4) "-" (subs n 0 2))
+     :gender     (if (< seq-num 500) :male :female)
+     :region     (subs n 7 9)}))
+
+(defn- za-id-parse [^String n]
+  (let [yy (Integer/parseInt (subs n 0 2))
+        century (if (<= yy 26) "20" "19")]                ; pivot at the current 2-digit year
+    {:valid?     true
+     :birth-date (str century (subs n 0 2) "-" (subs n 2 4) "-" (subs n 4 6))
+     :gender     (if (>= (Integer/parseInt (subs n 6 10)) 5000) :male :female)
+     :citizen    (= \0 (.charAt n 10))}))
+
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
    :iban        {:validate iban-valid? :parse iban-parse :format iban-format}
@@ -656,7 +706,7 @@
    :cn-ric      {:validate cn-ric?}
    :se-pnr      {:validate se-pnr?}
    :mx-clabe    {:validate mx-clabe?}
-   :za-id       {:validate za-id?}
+   :za-id       {:validate za-id? :parse za-id-parse}
    :no-org      {:validate no-org?}
    :tr-tc       {:validate tr-tc?}
    :at-vat      {:validate at-vat?}
@@ -705,8 +755,8 @@
    :co-nit      {:validate co-nit?}
    :pe-ruc      {:validate pe-ruc?}
    :ie-pps      {:validate ie-pps?}
-   :ee-ik       {:validate ee-ik?}
-   :jmbg        {:validate jmbg?}
+   :ee-ik       {:validate ee-ik? :parse ee-ik-parse}
+   :jmbg        {:validate jmbg? :parse jmbg-parse}
    :ec-ced      {:validate ec-ced?}
    :bg-egn      {:validate bg-egn?}
    :orcid       {:validate orcid?}
@@ -714,7 +764,7 @@
    :gtin14      {:validate gtin14?}
    :sscc        {:validate sscc?}
    :gln         {:validate gln?}
-   :mx-curp     {:validate mx-curp?}})
+   :mx-curp     {:validate mx-curp? :parse curp-parse}})
 
 (def types
   "The set of identifier-type keywords this library understands."
