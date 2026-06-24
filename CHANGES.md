@@ -12,6 +12,8 @@ All notable changes to this project are documented here. The format follows
 - `:au-tfn` (Australia Tax File Number), `:lu-vat` (Luxembourg), `:si-vat` (Slovenia),
   `:in-gstin` (India GST registration, base-36 check char).
 - `:ee-vat` (Estonia), `:hu-vat` (Hungary), `:hr-oib` (Croatia OIB, ISO 7064 MOD 11,10).
+- `:it-cf` (Italy codice fiscale, mod-26 check letter), `:ch-uid` (Switzerland business id),
+  `:ch-ahv` (Switzerland social security).
 
 ## [0.4.0] - 2026-06-23
 

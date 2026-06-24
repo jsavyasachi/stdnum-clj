@@ -232,6 +232,18 @@
     (is (stdnum/valid? :hr-oib "69435151530"))
     (is (not (stdnum/valid? :hr-oib "69435151531")))))
 
+(deftest codice-fiscale-and-swiss
+  (testing "Italy codice fiscale (mod-26 check letter)"
+    (is (stdnum/valid? :it-cf "RSSMRA80A01H501U"))
+    (is (stdnum/valid? :it-cf "MRTMTT25D09F205Z"))
+    (is (not (stdnum/valid? :it-cf "RSSMRA80A01H501A"))))
+  (testing "Switzerland UID (CHE prefix optional)"
+    (is (stdnum/valid? :ch-uid "CHE-116.281.710"))
+    (is (not (stdnum/valid? :ch-uid "116281711"))))
+  (testing "Switzerland AHV"
+    (is (stdnum/valid? :ch-ahv "756.9217.0769.85"))
+    (is (not (stdnum/valid? :ch-ahv "7569217076986")))))
+
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"
     (is (some #{:credit-card} (stdnum/detect "4111111111111111")))

@@ -346,6 +346,30 @@
              chkc (if (< chk 10) (char (+ 48 chk)) (char (+ 65 (- chk 10))))]
          (= chkc (.charAt n 14)))))
 
+;; Italy codice fiscale: 16 chars, position-dependent value tables, mod-26 check letter
+(def ^:private it-cf-odd
+  [1 0 5 7 9 13 15 17 19 21 1 0 5 7 9 13 15 17 19 21 2 4 18 20 11 3 6 8 12 14 16 10 22 25 24 23])
+(defn- it-cf-even ^long [^Character c]
+  (if (Character/isDigit c) (- (int c) 48) (- (int c) 65)))
+(defn- it-cf? [^String n]
+  (and (re-matches #"[A-Z0-9]{16}" n)
+       (let [s (reduce + (map-indexed (fn [i c] (if (even? i) (nth it-cf-odd (int (code36 c))) (it-cf-even c)))
+                                      (subs n 0 15)))]
+         (= (char (+ 65 (mod (long s) 26))) (.charAt n 15)))))
+
+;; Switzerland UID (business id) + AHV (social security)
+(defn- ch-uid? [^String n]                            ; CHE + 9 digits, weighted mod 11
+  (let [n (strip-cc n "CHE")]
+    (and (re-matches #"\d{9}" n)
+         (let [d (digits-of n)
+               c (- 11 (mod (long (reduce + (map * (subvec d 0 8) [5 4 3 2 7 6 5 4]))) 11))]
+           (cond (= c 10) false (= c 11) (zero? (long (d 8))) :else (= c (d 8)))))))
+(defn- ch-ahv? [^String n]                            ; 756 + 10 digits, EAN-13 check
+  (and (re-matches #"756\d{10}" n)
+       (let [d (digits-of n)
+             s (reduce + (map-indexed (fn [i x] (* (long x) (long (if (even? i) 1 3)))) (subvec d 0 12)))]
+         (= (mod (- 10 (mod (long s) 10)) 10) (d 12)))))
+
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
    :iban        {:validate iban-valid? :parse iban-parse :format iban-format}
@@ -397,7 +421,10 @@
    :in-gstin    {:validate in-gstin?}
    :ee-vat      {:validate ee-vat?}
    :hu-vat      {:validate hu-vat?}
-   :hr-oib      {:validate hr-oib?}})
+   :hr-oib      {:validate hr-oib?}
+   :it-cf       {:validate it-cf?}
+   :ch-uid      {:validate ch-uid?}
+   :ch-ahv      {:validate ch-ahv?}})
 
 (def types
   "The set of identifier-type keywords this library understands."
