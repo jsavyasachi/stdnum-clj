@@ -221,6 +221,17 @@
     (is (stdnum/valid? :in-gstin "27AAPFU0939F1ZV"))
     (is (not (stdnum/valid? :in-gstin "27AAPFU0939F1ZX")))))
 
+(deftest more-eu-coverage
+  (testing "Estonia VAT"
+    (is (stdnum/valid? :ee-vat "EE100207415"))
+    (is (not (stdnum/valid? :ee-vat "100207416"))))
+  (testing "Hungary VAT"
+    (is (stdnum/valid? :hu-vat "HU10597190"))
+    (is (not (stdnum/valid? :hu-vat "10597191"))))
+  (testing "Croatia OIB (ISO 7064 MOD 11,10)"
+    (is (stdnum/valid? :hr-oib "69435151530"))
+    (is (not (stdnum/valid? :hr-oib "69435151531")))))
+
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"
     (is (some #{:credit-card} (stdnum/detect "4111111111111111")))

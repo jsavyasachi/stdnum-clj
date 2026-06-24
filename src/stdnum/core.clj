@@ -319,6 +319,24 @@
            (cond (= c 10) false (= c 11) (zero? (long (d 7))) :else (= c (d 7)))))))
 (defn- code36 ^long [^Character c]                    ; 0-9 -> 0-9, A-Z -> 10-35
   (if (Character/isDigit c) (- (int c) 48) (+ 10 (- (int c) 65))))
+(defn- ee-vat? [^String n]                            ; Estonia VAT: weighted mod 10
+  (let [n (strip-cc n "EE")]
+    (and (re-matches #"\d{9}" n)
+         (let [d (digits-of n)]
+           (= (mod (- 10 (mod (long (reduce + (map * (subvec d 0 8) [3 7 1 3 7 1 3 7]))) 10)) 10) (d 8))))))
+(defn- hu-vat? [^String n]                            ; Hungary VAT: weighted mod 10
+  (let [n (strip-cc n "HU")]
+    (and (re-matches #"\d{8}" n)
+         (let [d (digits-of n)]
+           (= (mod (- 10 (mod (long (reduce + (map * (subvec d 0 7) [9 7 3 1 9 7 3]))) 10)) 10) (d 7))))))
+(defn- hr-oib? [^String n]                            ; Croatia OIB: ISO 7064 MOD 11,10
+  (let [n (strip-cc n "HR")]
+    (and (re-matches #"\d{11}" n)
+         (let [d (digits-of n)
+               a (reduce (fn [a dig]
+                           (let [a (mod (+ (long a) (long dig)) 10) a (if (zero? a) 10 a)] (mod (* a 2) 11)))
+                         10 (subvec d 0 10))]
+           (= (mod (- 11 (long a)) 10) (d 10))))))
 (defn- in-gstin? [^String n]                          ; India GSTIN: base-36 mod-36 check char
   (and (re-matches #"\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]" n)
        (let [s (reduce + (map-indexed (fn [i c] (let [p (* (code36 c) (long (if (odd? i) 2 1)))]
@@ -376,7 +394,10 @@
    :au-tfn      {:validate au-tfn?}
    :lu-vat      {:validate lu-vat?}
    :si-vat      {:validate si-vat?}
-   :in-gstin    {:validate in-gstin?}})
+   :in-gstin    {:validate in-gstin?}
+   :ee-vat      {:validate ee-vat?}
+   :hu-vat      {:validate hu-vat?}
+   :hr-oib      {:validate hr-oib?}})
 
 (def types
   "The set of identifier-type keywords this library understands."
