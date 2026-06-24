@@ -591,6 +591,28 @@
        (let [s (reduce + (map (fn [x c] (let [p (* (long x) (long c))] (if (> p 9) (- p 9) p)))
                               (digits-of (subs n 0 9)) [2 1 2 1 2 1 2 1 2]))]
          (= (mod (- 10 (mod (long s) 10)) 10) (- (int (.charAt n 9)) 48)))))
+(defn- bg-egn? [^String n]                            ; Bulgaria EGN: weighted mod 11 (10 -> 0)
+  (and (re-matches #"\d{10}" n)
+       (let [d (digits-of n)
+             r (mod (long (reduce + (map * (subvec d 0 9) [2 4 8 5 10 9 7 3 6]))) 11)]
+         (= (if (= r 10) 0 r) (d 9)))))
+
+;; ORCID and ISNI: 16 chars, ISO 7064 MOD 11-2 check (last char may be X). Same
+;; algorithm and shape; kept as distinct types for intent.
+(defn- mod11-2-code ^long [^String fifteen]           ; -> ASCII code of the check char
+  (let [t (reduce (fn [^long acc c] (* (+ acc (- (int c) 48)) 2)) 0 fifteen)
+        res (mod (- 12 (mod t 11)) 11)]
+    (if (= res 10) 88 (+ 48 res))))                   ; 88 = \X
+(defn- orcid? [^String n]
+  (and (re-matches #"\d{15}[0-9X]" n) (= (mod11-2-code (subs n 0 15)) (int (.charAt n 15)))))
+
+;; GTIN-14 and SSCC: the longer GS1 keys, same alternating 3-1 mod-10 check.
+(defn- gtin-mod10? [^String n]
+  (let [d (digits-of n) k (dec (count d))
+        s (reduce + (map * (reverse (subvec d 0 k)) (cycle [3 1])))]
+    (= (mod (- 10 (mod (long s) 10)) 10) (d k))))
+(defn- gtin14? [^String n] (and (re-matches #"\d{14}" n) (gtin-mod10? n)))
+(defn- sscc?  [^String n] (and (re-matches #"\d{18}" n) (gtin-mod10? n)))
 
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
@@ -677,7 +699,12 @@
    :ie-pps      {:validate ie-pps?}
    :ee-ik       {:validate ee-ik?}
    :jmbg        {:validate jmbg?}
-   :ec-ced      {:validate ec-ced?}})
+   :ec-ced      {:validate ec-ced?}
+   :bg-egn      {:validate bg-egn?}
+   :orcid       {:validate orcid?}
+   :isni        {:validate orcid?}
+   :gtin14      {:validate gtin14?}
+   :sscc        {:validate sscc?}})
 
 (def types
   "The set of identifier-type keywords this library understands."

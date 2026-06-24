@@ -372,6 +372,24 @@
     (is (not (stdnum/valid? :ec-ced "1710034066")))
     (is (not (stdnum/valid? :ec-ced "9910034065")))))    ; province 99 out of range
 
+(deftest research-and-gs1
+  (testing "Bulgaria EGN (weighted mod 11)"
+    (is (stdnum/valid? :bg-egn "7523169263"))
+    (is (not (stdnum/valid? :bg-egn "7523169264"))))
+  (testing "ORCID (ISO 7064 MOD 11-2) - Josiah Carberry"
+    (is (stdnum/valid? :orcid "0000-0002-1825-0097"))    ; separators tolerated
+    (is (stdnum/valid? :orcid "0000000218250097"))
+    (is (not (stdnum/valid? :orcid "0000000218250098"))))
+  (testing "ISNI (same MOD 11-2) - real ISNI"
+    (is (stdnum/valid? :isni "0000000121032683"))
+    (is (not (stdnum/valid? :isni "0000000121032684"))))
+  (testing "GTIN-14 (GS1 logistics) - GS1 worked example"
+    (is (stdnum/valid? :gtin14 "10614141000415"))
+    (is (not (stdnum/valid? :gtin14 "10614141000416"))))
+  (testing "SSCC (18-digit GS1 logistics) - GS1 worked example"
+    (is (stdnum/valid? :sscc "001234560000000018"))
+    (is (not (stdnum/valid? :sscc "001234560000000019")))))
+
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"
     (is (some #{:credit-card} (stdnum/detect "4111111111111111")))

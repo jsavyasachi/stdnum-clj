@@ -16,6 +16,8 @@ All notable changes to this project are documented here. The format follows
 - More national IDs: `:pe-ruc` (Peru), `:ie-pps` (Ireland PPS), `:ee-ik` (Estonia isikukood),
   `:jmbg` (shared ex-Yugoslav number: RS/BA/ME/MK/SI/HR), `:ec-ced` (Ecuador cedula). Clean-room,
   each verified against a real published number.
+- `:bg-egn` (Bulgaria), `:orcid` and `:isni` (researcher / name IDs, ISO 7064 MOD 11-2), and the
+  longer GS1 keys `:gtin14` and `:sscc`. Clean-room, each verified against a real published number.
 
 ## [0.6.0] - 2026-06-24
 
