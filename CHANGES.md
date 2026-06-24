@@ -10,6 +10,12 @@ All notable changes to this project are documented here. The format follows
 - EU/UK VAT numbers, clean-room from each country's published checksum, with the ISO country
   prefix optional on input: `:de-vat`, `:fr-vat`, `:it-vat`, `:be-vat`, `:pl-vat`, `:gb-vat`.
 - `:gb-nino` - UK National Insurance Number (structural rules).
+- More national identifiers: `:ca-sin` (Canada, Luhn), `:au-abn` (Australia, weighted mod 89),
+  `:in-pan` (India, structural), `:in-aadhaar` (India, Verhoeff).
+
+### Changed
+- README: trimmed Usage to the core API and grouped the (now 27) identifier types by category
+  in a collapsible block, so the page stays scannable as the set grows.
 
 ## [0.3.0] - 2026-06-23
 

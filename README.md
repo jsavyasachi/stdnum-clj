@@ -46,40 +46,26 @@ net.clojars.savya/stdnum-clj {:mvn/version "0.3.0"}
 ```clojure
 (require '[stdnum.core :as stdnum])
 
-;; valid? - dispatch on an identifier-type keyword
-(stdnum/valid? :iban "GB82 WEST 1234 5698 7654 32")  ;=> true
-(stdnum/valid? :credit-card "4111 1111 1111 1111")   ;=> true (spaces/hyphens tolerated)
-(stdnum/valid? :isbn "978-0-306-40615-7")            ;=> true
-(stdnum/valid? :iban "GB82 WEST 1234 5698 7654 33")  ;=> false (bad check digit)
+;; valid? - dispatch on an identifier-type keyword (any of `stdnum/types`)
+(stdnum/valid? :iban        "GB82 WEST 1234 5698 7654 32")  ;=> true
+(stdnum/valid? :credit-card "4111 1111 1111 1111")          ;=> true  (separators tolerated)
+(stdnum/valid? :de-vat      "DE136695976")                  ;=> true  (country prefix optional)
+(stdnum/valid? :iban        "GB82 WEST 1234 5698 7654 33")  ;=> false (bad check digit)
 
-;; parse - validity plus the useful extracted fields
-(stdnum/parse :credit-card "378282246310005")
-;=> {:valid? true, :network :amex}
+;; parse - validity plus extracted fields where they exist
+(stdnum/parse :credit-card "378282246310005")   ;=> {:valid? true, :network :amex}
 (stdnum/parse :iban "GB82WEST12345698765432")
-;=> {:valid? true, :country "GB", :bban "WEST12345698765432",
-;    :formatted "GB82 WEST 1234 5698 7654 32"}
-(stdnum/parse :isin "US0378331004")
-;=> {:valid? false}
+;=> {:valid? true, :country "GB", :bban "WEST12345698765432", :formatted "GB82 WEST ..."}
 
-;; format - canonical human form (nil if invalid)
-(stdnum/format :iban "GB82WEST12345698765432")  ;=> "GB82 WEST 1234 5698 7654 32"
-(stdnum/format :credit-card "4111111111111111")  ;=> "4111 1111 1111 1111"
+;; format - canonical human form, or nil if invalid
+(stdnum/format :br-cnpj "11222333000181")  ;=> "11.222.333/0001-81"
 
-;; detect - which types consider this value valid
+;; detect - which types consider a value valid
 (stdnum/detect "4111111111111111")  ;=> [:credit-card :luhn]
-(stdnum/detect "nonsense")          ;=> []
 
-;; global / national identifiers (LEI, Brazil CPF/CNPJ, ...)
-(stdnum/valid? :lei "5493001KJTIIGC8Y1R12")  ;=> true
-(stdnum/valid? :br-cpf "111.444.777-35")     ;=> true
-(stdnum/format :br-cnpj "11222333000181")    ;=> "11.222.333/0001-81"
-
-;; convenience
+;; helpers
 (stdnum/card-network "6011111111111117")  ;=> :discover
-;; VAT numbers - country prefix optional
-(stdnum/valid? :de-vat "DE136695976")  ;=> true
-(stdnum/valid? :gb-vat "980780684")    ;=> true
-(stdnum/valid? :gb-nino "AB123456C")   ;=> true
+stdnum/types                              ;=> #{:iban :credit-card :de-vat ...} (the full set)
 ```
 
 `valid?`, `parse`, and `format` throw `IllegalArgumentException` only on an **unknown
@@ -88,31 +74,26 @@ identifier type** (a programming bug). Bad *data* never throws: `valid?` returns
 
 ## Supported identifiers
 
-| Type | Meaning | Engine |
-|------|---------|--------|
-| `:credit-card` | Card number + network (Visa/Mastercard/Amex/Discover/Diners) | Commons Validator |
-| `:iban` | International Bank Account Number (+ country/BBAN) | iban4j |
-| `:bic` | Bank Identifier Code (SWIFT) | iban4j |
-| `:isbn` | ISBN-10 and ISBN-13 | Commons Validator |
-| `:issn` | International Standard Serial Number | Commons Validator |
-| `:isin` | International Securities Identification Number | Commons Validator |
-| `:aba` | US bank routing number (ABA) | Commons Validator |
-| `:imei` | Mobile device IMEI (Luhn over 15 digits) | Commons Validator |
-| `:luhn` | Raw Luhn (mod-10) check | Commons Validator |
-| `:lei` | Legal Entity Identifier (ISO 17442) | clean-room |
-| `:cusip` | CUSIP securities identifier (US/Canada) | Commons Validator |
-| `:sedol` | SEDOL securities identifier (UK/Ireland) | Commons Validator |
-| `:br-cpf` | Brazil individual taxpayer registry (CPF) | clean-room |
-| `:br-cnpj` | Brazil company registry (CNPJ) | clean-room |
-| `:us-ssn` | US Social Security Number (structural rules) | clean-room |
-| `:us-ein` | US Employer Identification Number | clean-room |
-| `:de-vat` `:fr-vat` `:it-vat` `:be-vat` `:pl-vat` `:gb-vat` | EU/UK VAT numbers (country code optional) | clean-room |
-| `:gb-nino` | UK National Insurance Number | clean-room |
+`stdnum/types` is the authoritative set. National identifiers are keyed by an ISO-3166 prefix
+(`:br-cpf`, `:us-ssn`, `:de-vat`); full descriptions are on [cljdoc](https://cljdoc.org/d/net.clojars.savya/stdnum-clj).
 
-Global and national identifiers whose algorithms are public, well-documented standards are
-implemented clean-room (no third-party port) and stay under this library's EPL license.
-Country-specific formats are keyed by an ISO-3166 prefix (e.g. `:br-cpf`). More are added on
-demand - open an issue for an identifier you need.
+<details>
+<summary><b>All 27 types, by category</b></summary>
+
+| Category | Types |
+|----------|-------|
+| **Banking & cards** | `:credit-card` (+ network) · `:iban` · `:bic` · `:aba` |
+| **Securities** | `:isin` · `:lei` · `:cusip` · `:sedol` |
+| **Publishing / device** | `:isbn` · `:issn` · `:imei` · `:luhn` |
+| **Tax & national IDs** | `:us-ssn` · `:us-ein` · `:gb-nino` · `:br-cpf` · `:br-cnpj` · `:ca-sin` · `:au-abn` · `:in-pan` · `:in-aadhaar` |
+| **VAT** | `:de-vat` · `:fr-vat` · `:it-vat` · `:be-vat` · `:pl-vat` · `:gb-vat` |
+
+</details>
+
+International identifiers are wrapped from Commons Validator / iban4j; global and national
+standards with public, well-documented algorithms (LEI, VAT, CPF/CNPJ, SSN, …) are implemented
+clean-room and stay under this library's EPL license. More are added on demand - open an issue
+for an identifier you need.
 
 ## License
 
