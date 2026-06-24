@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-06-24
+
+Two new types (90 -> 92) plus a depth pass: `parse` now extracts the structured data embedded in
+several identifiers, matching the most-used part of python-stdnum's per-type richness. Everything
+verified against published example numbers; stays EPL.
+
 ### Added
 - `:gln` (GS1 Global Location Number) and `:mx-curp` (Mexico CURP). Clean-room / engine-backed,
   each verified against a published example.
@@ -120,6 +126,7 @@ Initial release.
 - Idiomatic facade over Apache Commons Validator 1.10.1 and iban4j 3.2.11 - no algorithm
   reimplementation. Bad input data never throws; only an unknown identifier type does.
 
+[0.8.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.8.0
 [0.7.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.7.0
 [0.6.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.6.0
 [0.5.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.5.0
