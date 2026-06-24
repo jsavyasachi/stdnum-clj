@@ -672,6 +672,34 @@
      :gender     (if (>= (Integer/parseInt (subs n 6 10)) 5000) :male :female)
      :citizen    (= \0 (.charAt n 10))}))
 
+;; VIN: WMI (mfr) / VDS / VIS; model year from the position-10 code, disambiguated
+;; to the post-2010 cycle when position 7 is a letter (the NHTSA rule).
+(def ^:private vin-year-codes
+  {\A 1980 \B 1981 \C 1982 \D 1983 \E 1984 \F 1985 \G 1986 \H 1987 \J 1988 \K 1989
+   \L 1990 \M 1991 \N 1992 \P 1993 \R 1994 \S 1995 \T 1996 \V 1997 \W 1998 \X 1999 \Y 2000
+   \1 2001 \2 2002 \3 2003 \4 2004 \5 2005 \6 2006 \7 2007 \8 2008 \9 2009})
+(defn- vin-parse [^String n]
+  (let [base (long (vin-year-codes (.charAt n 9)))]
+    {:valid?     true
+     :wmi        (subs n 0 3)
+     :vds        (subs n 3 9)
+     :vis        (subs n 9 17)
+     :model-year (if (Character/isLetter (.charAt n 6)) (+ base 30) base)
+     :plant      (subs n 10 11)
+     :serial     (subs n 11 17)}))
+
+;; Italy codice fiscale: gender + birth day/month + comune. The century is not
+;; encoded in a CF, so the 2-digit year is returned as-is (no guessed ISO date).
+(def ^:private it-cf-months {\A 1 \B 2 \C 3 \D 4 \E 5 \H 6 \L 7 \M 8 \P 9 \R 10 \S 11 \T 12})
+(defn- it-cf-parse [^String n]
+  (let [day (Integer/parseInt (subs n 9 11)) female (> day 40)]
+    {:valid?      true
+     :gender      (if female :female :male)
+     :birth-day   (if female (- day 40) day)
+     :birth-month (it-cf-months (.charAt n 8))
+     :birth-year  (Integer/parseInt (subs n 6 8))
+     :comune-code (subs n 11 15)}))
+
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
    :iban        {:validate iban-valid? :parse iban-parse :format iban-format}
@@ -724,7 +752,7 @@
    :ee-vat      {:validate ee-vat?}
    :hu-vat      {:validate hu-vat?}
    :hr-oib      {:validate hr-oib?}
-   :it-cf       {:validate it-cf?}
+   :it-cf       {:validate it-cf? :parse it-cf-parse}
    :ch-uid      {:validate ch-uid?}
    :ch-ahv      {:validate ch-ahv?}
    :nz-ird      {:validate nz-ird?}
@@ -741,7 +769,7 @@
    :kr-brn      {:validate kr-brn?}
    :ean13       {:validate ean13?}
    :upc         {:validate upc?}
-   :vin         {:validate vin?}
+   :vin         {:validate vin? :parse vin-parse}
    :nhs         {:validate nhs?}
    :npi         {:validate npi?}
    :ean8        {:validate ean8?}

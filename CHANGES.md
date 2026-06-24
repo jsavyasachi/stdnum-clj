@@ -13,6 +13,9 @@ All notable changes to this project are documented here. The format follows
   - `:mx-curp` -> `:birth-date` `:gender` `:state` `:state-name`
   - `:ee-ik` (Estonia), `:jmbg` (ex-Yugoslav) -> `:birth-date` `:gender` (+ `:region` for JMBG)
   - `:za-id` (South Africa) -> `:gender` `:citizen` `:birth-date`
+  - `:vin` -> `:wmi` `:vds` `:vis` `:model-year` `:plant` `:serial`
+  - `:it-cf` (Italy codice fiscale) -> `:gender` `:birth-day` `:birth-month` `:birth-year`
+    `:comune-code` (the century is not encoded in a CF, so the 2-digit year is returned as-is)
   - `:iban` -> now also `:bank-code` `:branch-code` `:account-number` (where the country's BBAN
     defines them), via iban4j.
 

@@ -419,6 +419,23 @@
       (is (= :male (:gender p)))
       (is (true? (:citizen p)))
       (is (= "1980-01-01" (:birth-date p)))))
+  (testing "VIN extracts WMI, model year, plant and serial"
+    (let [p (stdnum/parse :vin "1HGBH41JXMN109186")]
+      (is (= "1HG" (:wmi p)))
+      (is (= 1991 (:model-year p)))                       ; char 7 numeric -> pre-2010 cycle
+      (is (= "N" (:plant p)))
+      (is (= "109186" (:serial p)))))
+  (testing "Italy codice fiscale extracts gender, birth day/month/year, comune"
+    (let [p (stdnum/parse :it-cf "RSSMRA80A01H501U")]
+      (is (= :male (:gender p)))
+      (is (= 1 (:birth-day p)))
+      (is (= 1 (:birth-month p)))
+      (is (= 80 (:birth-year p)))
+      (is (= "H501" (:comune-code p))))
+    (let [p (stdnum/parse :it-cf "BNCMRA85T41H501W")]      ; female: day encoded as +40
+      (is (= :female (:gender p)))
+      (is (= 1 (:birth-day p)))
+      (is (= 12 (:birth-month p)))))
   (testing "parse on an invalid value still returns {:valid? false} with no fields"
     (is (= {:valid? false} (stdnum/parse :mx-curp "HEGG560427MVZRRL05")))
     (is (= {:valid? false} (stdnum/parse :ee-ik "37605030298")))))
