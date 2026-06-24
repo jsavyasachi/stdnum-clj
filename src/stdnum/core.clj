@@ -304,6 +304,29 @@
        (let [d (vec (reverse (digits-of (subs n 1))))
              s (reduce + (map-indexed (fn [i x] (* (long x) (if (even? i) 1 2))) d))]
          (= (- 9 (mod (long s) 9)) (- (int (.charAt n 0)) 48)))))
+(defn- au-tfn? [^String n]                            ; Australia Tax File Number: weighted mod 11
+  (and (re-matches #"\d{9}" n)
+       (zero? (mod (long (reduce + (map * (digits-of n) [1 4 3 7 5 8 6 9 10]))) 11))))
+(defn- lu-vat? [^String n]                            ; Luxembourg VAT: first 6 mod 89 == last 2
+  (let [n (strip-cc n "LU")]
+    (and (re-matches #"\d{8}" n)
+         (= (mod (Long/parseLong (subs n 0 6)) 89) (Integer/parseInt (subs n 6))))))
+(defn- si-vat? [^String n]                            ; Slovenia VAT: weighted mod 11
+  (let [n (strip-cc n "SI")]
+    (and (re-matches #"\d{8}" n)
+         (let [d (digits-of n)
+               c (- 11 (mod (long (reduce + (map * (subvec d 0 7) [8 7 6 5 4 3 2]))) 11))]
+           (cond (= c 10) false (= c 11) (zero? (long (d 7))) :else (= c (d 7)))))))
+(defn- code36 ^long [^Character c]                    ; 0-9 -> 0-9, A-Z -> 10-35
+  (if (Character/isDigit c) (- (int c) 48) (+ 10 (- (int c) 65))))
+(defn- in-gstin? [^String n]                          ; India GSTIN: base-36 mod-36 check char
+  (and (re-matches #"\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]" n)
+       (let [s (reduce + (map-indexed (fn [i c] (let [p (* (code36 c) (long (if (odd? i) 2 1)))]
+                                                  (+ (quot p 36) (mod p 36))))
+                                      (subs n 0 14)))
+             chk (mod (- 36 (mod (long s) 36)) 36)
+             chkc (if (< chk 10) (char (+ 48 chk)) (char (+ 65 (- chk 10))))]
+         (= chkc (.charAt n 14)))))
 
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
@@ -349,7 +372,11 @@
    :gr-vat      {:validate gr-vat?}
    :pt-nif      {:validate pt-nif?}
    :cz-ico      {:validate cz-ico?}
-   :jp-cn       {:validate jp-cn?}})
+   :jp-cn       {:validate jp-cn?}
+   :au-tfn      {:validate au-tfn?}
+   :lu-vat      {:validate lu-vat?}
+   :si-vat      {:validate si-vat?}
+   :in-gstin    {:validate in-gstin?}})
 
 (def types
   "The set of identifier-type keywords this library understands."

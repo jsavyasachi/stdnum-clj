@@ -207,6 +207,20 @@
     (is (stdnum/valid? :jp-cn "7000012050002"))
     (is (not (stdnum/valid? :jp-cn "7000012050003")))))
 
+(deftest tfn-vat-gstin
+  (testing "Australia TFN"
+    (is (stdnum/valid? :au-tfn "123456782"))
+    (is (not (stdnum/valid? :au-tfn "123456789"))))
+  (testing "Luxembourg VAT"
+    (is (stdnum/valid? :lu-vat "LU26375245"))
+    (is (not (stdnum/valid? :lu-vat "26375246"))))
+  (testing "Slovenia VAT"
+    (is (stdnum/valid? :si-vat "SI50223054"))
+    (is (not (stdnum/valid? :si-vat "50223055"))))
+  (testing "India GSTIN (base-36 check char)"
+    (is (stdnum/valid? :in-gstin "27AAPFU0939F1ZV"))
+    (is (not (stdnum/valid? :in-gstin "27AAPFU0939F1ZX")))))
+
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"
     (is (some #{:credit-card} (stdnum/detect "4111111111111111")))

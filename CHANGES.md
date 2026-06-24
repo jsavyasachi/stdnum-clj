@@ -9,6 +9,8 @@ All notable changes to this project are documented here. The format follows
 ### Added
 - `:gr-vat` (Greece AFM), `:pt-nif` (Portugal), `:cz-ico` (Czech company number),
   `:jp-cn` (Japan corporate number). Clean-room, verified against published numbers.
+- `:au-tfn` (Australia Tax File Number), `:lu-vat` (Luxembourg), `:si-vat` (Slovenia),
+  `:in-gstin` (India GST registration, base-36 check char).
 
 ## [0.4.0] - 2026-06-23
 
