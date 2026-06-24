@@ -161,6 +161,22 @@
     (is (stdnum/valid? :se-pnr "811218-9876"))            ; separator tolerated
     (is (not (stdnum/valid? :se-pnr "8112189877")))))
 
+(deftest banking-and-more-national-ids
+  (testing "Mexico CLABE bank account (weighted mod 10)"
+    (is (stdnum/valid? :mx-clabe "002010077777777771"))
+    (is (stdnum/valid? :mx-clabe "032180000118359719"))
+    (is (not (stdnum/valid? :mx-clabe "002010077777777772"))))
+  (testing "South Africa ID (Luhn)"
+    (is (stdnum/valid? :za-id "8001015009087"))
+    (is (not (stdnum/valid? :za-id "8001015009088"))))
+  (testing "Norway organisasjonsnummer (mod 11)"
+    (is (stdnum/valid? :no-org "974760673"))
+    (is (not (stdnum/valid? :no-org "974760674"))))
+  (testing "Turkey TC Kimlik No"
+    (is (stdnum/valid? :tr-tc "10000000146"))
+    (is (not (stdnum/valid? :tr-tc "10000000147")))
+    (is (not (stdnum/valid? :tr-tc "01000000146")))))   ; first digit 0
+
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"
     (is (some #{:credit-card} (stdnum/detect "4111111111111111")))

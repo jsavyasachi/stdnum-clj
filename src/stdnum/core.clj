@@ -237,6 +237,28 @@
 (defn- se-pnr? [^String n]                           ; Sweden personnummer: 10-digit Luhn
   (boolean (and (re-matches #"\d{10}" n) (.isValid luhn-cd n))))
 
+(def ^:private clabe-weights (vec (take 17 (cycle [3 7 1]))))
+(defn- mx-clabe? [^String n]                         ; Mexico CLABE bank account: weighted mod 10
+  (and (re-matches #"\d{18}" n)
+       (let [d (digits-of n)
+             s (reduce + (map (fn [x w] (mod (* (long x) (long w)) 10)) (subvec d 0 17) clabe-weights))]
+         (= (mod (- 10 (mod (long s) 10)) 10) (d 17)))))
+(defn- za-id? [^String n]                            ; South Africa ID: 13-digit Luhn
+  (boolean (and (re-matches #"\d{13}" n) (.isValid luhn-cd n))))
+(def ^:private no-org-weights [3 2 7 6 5 4 3 2])
+(defn- no-org? [^String n]                           ; Norway organisasjonsnummer: mod 11
+  (and (re-matches #"\d{9}" n)
+       (let [d (digits-of n)
+             c (- 11 (mod (long (reduce + (map * (subvec d 0 8) no-org-weights))) 11))]
+         (cond (= c 11) (zero? (long (d 8))) (= c 10) false :else (= c (d 8))))))
+(defn- tr-tc? [^String n]                            ; Turkey TC Kimlik No: two check digits
+  (and (re-matches #"[1-9]\d{10}" n)
+       (let [d (digits-of n)
+             odd (+ (d 0) (d 2) (d 4) (d 6) (d 8))
+             even (+ (d 1) (d 3) (d 5) (d 7))]
+         (and (= (mod (- (* (long odd) 7) (long even)) 10) (d 9))
+              (= (mod (long (reduce + (subvec d 0 10))) 10) (d 10))))))
+
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
    :iban        {:validate iban-valid? :parse iban-parse :format iban-format}
@@ -269,7 +291,11 @@
    :es-nie      {:validate es-nie?}
    :nl-bsn      {:validate nl-bsn?}
    :cn-ric      {:validate cn-ric?}
-   :se-pnr      {:validate se-pnr?}})
+   :se-pnr      {:validate se-pnr?}
+   :mx-clabe    {:validate mx-clabe?}
+   :za-id       {:validate za-id?}
+   :no-org      {:validate no-org?}
+   :tr-tc       {:validate tr-tc?}})
 
 (def types
   "The set of identifier-type keywords this library understands."

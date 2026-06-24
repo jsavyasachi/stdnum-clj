@@ -14,6 +14,8 @@ All notable changes to this project are documented here. The format follows
   `:in-pan` (India, structural), `:in-aadhaar` (India, Verhoeff).
 - Major-economy national IDs: `:es-dni`/`:es-nie` (Spain, mod-23), `:nl-bsn` (Netherlands,
   elfproef), `:cn-ric` (China resident ID, ISO 7064 MOD 11-2), `:se-pnr` (Sweden, Luhn).
+- `:mx-clabe` (Mexico bank account, weighted mod 10), `:za-id` (South Africa, Luhn),
+  `:no-org` (Norway organisasjonsnummer, mod 11), `:tr-tc` (Turkey TC Kimlik No).
 
 ### Changed
 - README: trimmed Usage to the core API and grouped the (now 27) identifier types by category
