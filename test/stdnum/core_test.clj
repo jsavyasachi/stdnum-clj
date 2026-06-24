@@ -144,6 +144,23 @@
     (is (stdnum/valid? :in-aadhaar "234123412346"))
     (is (not (stdnum/valid? :in-aadhaar "234123412347")))))
 
+(deftest more-national-ids
+  (testing "Spain DNI / NIE (mod-23 control letter)"
+    (is (stdnum/valid? :es-dni "12345678Z"))
+    (is (not (stdnum/valid? :es-dni "12345678A")))
+    (is (stdnum/valid? :es-nie "X1234567L"))
+    (is (not (stdnum/valid? :es-nie "X1234567A"))))
+  (testing "Netherlands BSN (elfproef)"
+    (is (stdnum/valid? :nl-bsn "111222333"))
+    (is (not (stdnum/valid? :nl-bsn "111222334"))))
+  (testing "China resident ID (ISO 7064 MOD 11-2, X check)"
+    (is (stdnum/valid? :cn-ric "11010519491231002X"))
+    (is (stdnum/valid? :cn-ric "440524188001010014"))
+    (is (not (stdnum/valid? :cn-ric "11010519491231002Y"))))
+  (testing "Sweden personnummer (Luhn)"
+    (is (stdnum/valid? :se-pnr "811218-9876"))            ; separator tolerated
+    (is (not (stdnum/valid? :se-pnr "8112189877")))))
+
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"
     (is (some #{:credit-card} (stdnum/detect "4111111111111111")))

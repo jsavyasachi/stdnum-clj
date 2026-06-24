@@ -78,14 +78,14 @@ identifier type** (a programming bug). Bad *data* never throws: `valid?` returns
 (`:br-cpf`, `:us-ssn`, `:de-vat`); full descriptions are on [cljdoc](https://cljdoc.org/d/net.clojars.savya/stdnum-clj).
 
 <details>
-<summary><b>All 27 types, by category</b></summary>
+<summary><b>All 32 types, by category</b></summary>
 
 | Category | Types |
 |----------|-------|
 | **Banking & cards** | `:credit-card` (+ network) · `:iban` · `:bic` · `:aba` |
 | **Securities** | `:isin` · `:lei` · `:cusip` · `:sedol` |
 | **Publishing / device** | `:isbn` · `:issn` · `:imei` · `:luhn` |
-| **Tax & national IDs** | `:us-ssn` · `:us-ein` · `:gb-nino` · `:br-cpf` · `:br-cnpj` · `:ca-sin` · `:au-abn` · `:in-pan` · `:in-aadhaar` |
+| **Tax & national IDs** | `:us-ssn` · `:us-ein` · `:gb-nino` · `:br-cpf` · `:br-cnpj` · `:ca-sin` · `:au-abn` · `:in-pan` · `:in-aadhaar` · `:es-dni` · `:es-nie` · `:nl-bsn` · `:cn-ric` · `:se-pnr` |
 | **VAT** | `:de-vat` · `:fr-vat` · `:it-vat` · `:be-vat` · `:pl-vat` · `:gb-vat` |
 
 </details>

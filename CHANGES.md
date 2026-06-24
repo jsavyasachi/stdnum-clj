@@ -12,6 +12,8 @@ All notable changes to this project are documented here. The format follows
 - `:gb-nino` - UK National Insurance Number (structural rules).
 - More national identifiers: `:ca-sin` (Canada, Luhn), `:au-abn` (Australia, weighted mod 89),
   `:in-pan` (India, structural), `:in-aadhaar` (India, Verhoeff).
+- Major-economy national IDs: `:es-dni`/`:es-nie` (Spain, mod-23), `:nl-bsn` (Netherlands,
+  elfproef), `:cn-ric` (China resident ID, ISO 7064 MOD 11-2), `:se-pnr` (Sweden, Luhn).
 
 ### Changed
 - README: trimmed Usage to the core API and grouped the (now 27) identifier types by category

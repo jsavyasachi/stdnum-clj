@@ -212,6 +212,31 @@
 (defn- in-aadhaar? [^String n]                      ; India Aadhaar: 12 digits, Verhoeff, leads 2-9
   (boolean (and (re-matches #"[2-9]\d{11}" n) (.isValid verhoeff-cd n))))
 
+(def ^:private ^String dni-letters "TRWAGMYFPDXBNJZSQVHLCKE")
+(defn- es-dni? [^String n]                          ; Spain DNI: 8 digits + mod-23 control letter
+  (boolean (and (re-matches #"\d{8}[A-Z]" n)
+                (= (.charAt dni-letters (int (mod (Long/parseLong (subs n 0 8)) 23)))
+                   (.charAt n 8)))))
+(defn- es-nie? [^String n]                          ; Spain NIE: X/Y/Z + 7 digits + control letter
+  (boolean (and (re-matches #"[XYZ]\d{7}[A-Z]" n)
+                (let [p (case (.charAt n 0) \X "0" \Y "1" \Z "2")
+                      v (Long/parseLong (str p (subs n 1 8)))]
+                  (= (.charAt dni-letters (int (mod v 23))) (.charAt n 8))))))
+(def ^:private bsn-weights [9 8 7 6 5 4 3 2 -1])
+(defn- nl-bsn? [^String n]                           ; Netherlands BSN: 11-test (elfproef)
+  (and (re-matches #"\d{8,9}" n)
+       (let [s (if (= 8 (count n)) (str "0" n) n)]
+         (and (zero? (mod (long (reduce + (map * (digits-of s) bsn-weights))) 11))
+              (not (zero? (Long/parseLong s)))))))
+(def ^:private cn-weights [7 9 10 5 8 4 2 1 6 3 7 9 10 5 8 4 2])
+(def ^:private ^String cn-check "10X98765432")
+(defn- cn-ric? [^String n]                           ; China resident ID: ISO 7064 MOD 11-2
+  (boolean (and (re-matches #"\d{17}[0-9X]" n)
+                (= (.charAt cn-check (int (mod (long (reduce + (map * (digits-of (subs n 0 17)) cn-weights))) 11)))
+                   (.charAt n 17)))))
+(defn- se-pnr? [^String n]                           ; Sweden personnummer: 10-digit Luhn
+  (boolean (and (re-matches #"\d{10}" n) (.isValid luhn-cd n))))
+
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
    :iban        {:validate iban-valid? :parse iban-parse :format iban-format}
@@ -239,7 +264,12 @@
    :ca-sin      {:validate ca-sin?}
    :au-abn      {:validate au-abn?}
    :in-pan      {:validate in-pan?}
-   :in-aadhaar  {:validate in-aadhaar?}})
+   :in-aadhaar  {:validate in-aadhaar?}
+   :es-dni      {:validate es-dni?}
+   :es-nie      {:validate es-nie?}
+   :nl-bsn      {:validate nl-bsn?}
+   :cn-ric      {:validate cn-ric?}
+   :se-pnr      {:validate se-pnr?}})
 
 (def types
   "The set of identifier-type keywords this library understands."
