@@ -370,6 +370,27 @@
              s (reduce + (map-indexed (fn [i x] (* (long x) (long (if (even? i) 1 3)))) (subvec d 0 12)))]
          (= (mod (- 10 (mod (long s) 10)) 10) (d 12)))))
 
+(def ^:private nz-w1 [3 2 7 6 5 4 3 2])
+(def ^:private nz-w2 [7 4 3 2 5 2 7 6])
+(defn- nz-ird? [^String n]                            ; New Zealand IRD: weighted mod 11, two passes
+  (and (re-matches #"\d{8,9}" n)
+       (<= 10000000 (Long/parseLong n) 150000000)
+       (let [s (if (= 8 (count n)) (str "0" n) n)
+             d (digits-of s) base (subvec d 0 8) chk (d 8)
+             cd (fn [w] (let [r (mod (long (reduce + (map * base w))) 11)] (if (zero? r) 0 (- 11 r))))
+             c1 (cd nz-w1)]
+         (if (= c1 10) (let [c2 (cd nz-w2)] (and (not= c2 10) (= c2 chk))) (= c1 chk)))))
+(defn- be-nn? [^String n]                             ; Belgium national number: mod 97 (+2 prefix for >=2000)
+  (and (re-matches #"\d{11}" n)
+       (let [base (subs n 0 9) chk (Integer/parseInt (subs n 9))]
+         (or (= chk (- 97 (mod (Long/parseLong base) 97)))
+             (= chk (- 97 (mod (Long/parseLong (str "2" base)) 97)))))))
+(def ^:private ^String hetu-chk "0123456789ABCDEFHJKLMNPRSTUVWXY")
+(defn- fi-hetu? [^String n]                           ; Finland HETU: check char over date+serial mod 31
+  (when-let [[_ ddmmyy zzz c] (re-matches #"(\d{6})[-+A-FU-Y]?(\d{3})([0-9A-Y])" n)]
+    (= (.charAt hetu-chk (int (mod (Long/parseLong (str ddmmyy zzz)) 31)))
+       (.charAt ^String c 0))))
+
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
    :iban        {:validate iban-valid? :parse iban-parse :format iban-format}
@@ -424,7 +445,10 @@
    :hr-oib      {:validate hr-oib?}
    :it-cf       {:validate it-cf?}
    :ch-uid      {:validate ch-uid?}
-   :ch-ahv      {:validate ch-ahv?}})
+   :ch-ahv      {:validate ch-ahv?}
+   :nz-ird      {:validate nz-ird?}
+   :be-nn       {:validate be-nn?}
+   :fi-hetu     {:validate fi-hetu?}})
 
 (def types
   "The set of identifier-type keywords this library understands."

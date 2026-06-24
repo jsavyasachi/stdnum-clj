@@ -244,6 +244,19 @@
     (is (stdnum/valid? :ch-ahv "756.9217.0769.85"))
     (is (not (stdnum/valid? :ch-ahv "7569217076986")))))
 
+(deftest nz-be-fi
+  (testing "New Zealand IRD"
+    (is (stdnum/valid? :nz-ird "049098576"))
+    (is (stdnum/valid? :nz-ird "49091850"))
+    (is (not (stdnum/valid? :nz-ird "049098577"))))
+  (testing "Belgium national number"
+    (is (stdnum/valid? :be-nn "00012511148"))
+    (is (not (stdnum/valid? :be-nn "00012511149"))))
+  (testing "Finland HETU (century sign optional after normalization)"
+    (is (stdnum/valid? :fi-hetu "131052-308T"))
+    (is (stdnum/valid? :fi-hetu "010594Y9032"))
+    (is (not (stdnum/valid? :fi-hetu "131052-308U")))))
+
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"
     (is (some #{:credit-card} (stdnum/detect "4111111111111111")))

@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- `:nz-ird` (New Zealand IRD), `:be-nn` (Belgium national number), `:fi-hetu` (Finland HETU).
+  Clean-room, verified against published numbers.
+
 ## [0.5.0] - 2026-06-24
 
 Coverage expansion: 40 -> 54 identifier types, spanning ~24 countries. Every checksum clean-room
