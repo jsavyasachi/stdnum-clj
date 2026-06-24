@@ -297,6 +297,25 @@
     (is (stdnum/valid? :kr-brn "1248100998"))
     (is (not (stdnum/valid? :kr-brn "1248100999")))))
 
+(deftest commerce-vehicle-healthcare
+  (testing "EAN-13 / GTIN-13 barcode"
+    (is (stdnum/valid? :ean13 "4006381333931"))
+    (is (not (stdnum/valid? :ean13 "4006381333932"))))
+  (testing "UPC-A (12-digit GTIN)"
+    (is (stdnum/valid? :upc "036000291452"))
+    (is (not (stdnum/valid? :upc "036000291453"))))
+  (testing "VIN (ISO 3779 North-American check digit) - NHTSA worked example"
+    (is (stdnum/valid? :vin "1HGBH41JXMN109186"))
+    (is (not (stdnum/valid? :vin "1HGBH41J1MN109186")))   ; bad check digit
+    (is (not (stdnum/valid? :vin "1HGBH41JXMN10918I"))))  ; I is not a legal VIN char
+  (testing "UK NHS number (weighted mod 11)"
+    (is (stdnum/valid? :nhs "9434765919"))                ; standard NHS test number
+    (is (not (stdnum/valid? :nhs "9434765918"))))
+  (testing "US NPI (Luhn over the 80840 issuer prefix) - CMS example"
+    (is (stdnum/valid? :npi "1234567893"))
+    (is (not (stdnum/valid? :npi "1234567890")))
+    (is (not (stdnum/valid? :npi "3234567890")))))        ; must begin 1 or 2
+
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"
     (is (some #{:credit-card} (stdnum/detect "4111111111111111")))

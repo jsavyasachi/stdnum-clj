@@ -78,13 +78,14 @@ identifier type** (a programming bug). Bad *data* never throws: `valid?` returns
 (`:br-cpf`, `:us-ssn`, `:de-vat`); full descriptions are on [cljdoc](https://cljdoc.org/d/net.clojars.savya/stdnum-clj).
 
 <details>
-<summary><b>All 66 types, by category</b></summary>
+<summary><b>All 71 types, by category</b></summary>
 
 | Category | Types |
 |----------|-------|
 | **Banking & cards** | `:credit-card` (+ network) · `:iban` · `:bic` · `:aba` · `:mx-clabe` |
 | **Securities** | `:isin` · `:lei` · `:cusip` · `:sedol` · `:figi` |
 | **Publishing / device** | `:isbn` · `:issn` · `:imei` · `:luhn` |
+| **Commerce / vehicle / health** | `:ean13` · `:upc` · `:vin` · `:nhs` · `:npi` |
 | **Tax & national IDs** | `:us-ssn` · `:us-ein` · `:gb-nino` · `:br-cpf` · `:br-cnpj` · `:ca-sin` · `:au-abn` · `:au-tfn` · `:in-pan` · `:in-aadhaar` · `:es-dni` · `:es-nie` · `:nl-bsn` · `:cn-ric` · `:se-pnr` · `:za-id` · `:no-org` · `:tr-tc` · `:pt-nif` · `:cz-ico` · `:jp-cn` · `:hr-oib` · `:it-cf` · `:ch-uid` · `:ch-ahv` · `:nz-ird` · `:be-nn` · `:fi-hetu` · `:sg-nric` · `:hk-id` · `:kr-brn` |
 | **VAT / GST** | `:de-vat` · `:fr-vat` · `:it-vat` · `:be-vat` · `:pl-vat` · `:gb-vat` · `:at-vat` · `:dk-vat` · `:fi-vat` · `:se-vat` · `:gr-vat` · `:lu-vat` · `:si-vat` · `:ee-vat` · `:hu-vat` · `:in-gstin` · `:mt-vat` · `:sk-vat` · `:lt-vat` · `:cy-vat` · `:ro-vat` |
 

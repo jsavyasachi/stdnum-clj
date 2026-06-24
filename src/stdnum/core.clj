@@ -20,7 +20,8 @@
   (:import [org.apache.commons.validator.routines
             CreditCardValidator IBANValidator ISBNValidator ISSNValidator ISINValidator]
            [org.apache.commons.validator.routines.checkdigit
-            LuhnCheckDigit ABANumberCheckDigit CUSIPCheckDigit SedolCheckDigit VerhoeffCheckDigit]
+            LuhnCheckDigit ABANumberCheckDigit CUSIPCheckDigit SedolCheckDigit VerhoeffCheckDigit
+            EAN13CheckDigit]
            [org.iban4j Iban Bic]))
 
 (defn- norm ^String [s]
@@ -475,6 +476,36 @@
                   (quot (* (long (d 8)) 5) 10))]
          (= (mod (- 10 (mod s 10)) 10) (d 9)))))
 
+;; commerce / vehicle / healthcare identifiers (engine-backed + clean-room) ----
+(def ^:private ^EAN13CheckDigit ean13-cd (EAN13CheckDigit.))
+(defn- ean13? [^String n] (and (re-matches #"\d{13}" n) (.isValid ean13-cd n)))
+(defn- upc? [^String n]                               ; UPC-A: a 12-digit GTIN, pad to EAN-13
+  (and (re-matches #"\d{12}" n) (.isValid ean13-cd (str "0" n))))
+
+;; VIN (ISO 3779): 17 chars, transliterated, weighted mod 11, check char at pos 9.
+(def ^:private vin-tr
+  {\A 1 \B 2 \C 3 \D 4 \E 5 \F 6 \G 7 \H 8 \J 1 \K 2 \L 3 \M 4 \N 5
+   \P 7 \R 9 \S 2 \T 3 \U 4 \V 5 \W 6 \X 7 \Y 8 \Z 9
+   \0 0 \1 1 \2 2 \3 3 \4 4 \5 5 \6 6 \7 7 \8 8 \9 9})
+(def ^:private vin-weights [8 7 6 5 4 3 2 10 0 9 8 7 6 5 4 3 2])
+(defn- vin? [^String n]
+  (and (re-matches #"[A-HJ-NPR-Z0-9]{17}" n)
+       (let [s (reduce + (map (fn [c w] (* (long (vin-tr c)) (long w))) n vin-weights))
+             r (mod (long s) 11)]
+         (= (int (.charAt n 8)) (if (= r 10) 88 (+ 48 r))))))  ; 88 = \X
+
+;; UK NHS number: 10 digits, weighted mod 11 (remainder 10 is invalid).
+(defn- nhs? [^String n]
+  (and (re-matches #"\d{10}" n)
+       (let [d (digits-of n)
+             c (- 11 (mod (long (reduce + (map * (subvec d 0 9) [10 9 8 7 6 5 4 3 2]))) 11))
+             c (cond (= c 11) 0 (= c 10) -1 :else c)]
+         (and (>= c 0) (= c (d 9))))))
+
+;; US NPI: 10 digits beginning 1 or 2, Luhn over the "80840" issuer prefix.
+(defn- npi? [^String n]
+  (boolean (and (re-matches #"[12]\d{9}" n) (.isValid luhn-cd (str "80840" n)))))
+
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
    :iban        {:validate iban-valid? :parse iban-parse :format iban-format}
@@ -541,7 +572,12 @@
    :ro-vat      {:validate ro-vat?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id?}
-   :kr-brn      {:validate kr-brn?}})
+   :kr-brn      {:validate kr-brn?}
+   :ean13       {:validate ean13?}
+   :upc         {:validate upc?}
+   :vin         {:validate vin?}
+   :nhs         {:validate nhs?}
+   :npi         {:validate npi?}})
 
 (def types
   "The set of identifier-type keywords this library understands."

@@ -15,6 +15,10 @@ All notable changes to this project are documented here. The format follows
 - `:ro-vat` (Romania CUI), `:sg-nric` (Singapore NRIC/FIN, S/T/F/G series), `:hk-id` (Hong Kong
   HKID), `:kr-brn` (South Korea Business Registration Number). Clean-room, each verified against a
   real published number.
+- Commerce / vehicle / healthcare: `:ean13` (EAN-13/GTIN-13 barcode), `:upc` (UPC-A), `:vin` (ISO
+  3779 vehicle ID), `:nhs` (UK NHS number), `:npi` (US National Provider Identifier). Barcode checks
+  are engine-backed (Commons Validator EAN-13); VIN/NHS/NPI are clean-room, each verified against a
+  real published number.
 
 ## [0.5.0] - 2026-06-24
 
