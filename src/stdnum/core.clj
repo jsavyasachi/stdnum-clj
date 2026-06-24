@@ -20,7 +20,7 @@
   (:import [org.apache.commons.validator.routines
             CreditCardValidator IBANValidator ISBNValidator ISSNValidator ISINValidator]
            [org.apache.commons.validator.routines.checkdigit
-            LuhnCheckDigit ABANumberCheckDigit CUSIPCheckDigit SedolCheckDigit]
+            LuhnCheckDigit ABANumberCheckDigit CUSIPCheckDigit SedolCheckDigit VerhoeffCheckDigit]
            [org.iban4j Iban Bic]))
 
 (defn- norm ^String [s]
@@ -197,6 +197,21 @@
         (not (nino-bad-second (subs n 1 2)))
         (not (nino-bad-prefix (subs n 0 2))))))
 
+;; other national identifiers (clean-room / engine-backed) --------------------
+(def ^:private ^VerhoeffCheckDigit verhoeff-cd (VerhoeffCheckDigit.))
+(defn- ca-sin? [^String n]                          ; Canada SIN: 9-digit Luhn
+  (boolean (and (re-matches #"\d{9}" n) (.isValid luhn-cd n))))
+(def ^:private abn-weights [10 1 3 5 7 9 11 13 15 17 19])
+(defn- au-abn? [^String n]                          ; Australia ABN: weighted mod 89 (first digit -1)
+  (and (re-matches #"\d{11}" n)
+       (let [d (digits-of n) d (assoc d 0 (dec (long (d 0))))]
+         (zero? (mod (long (reduce + (map * d abn-weights))) 89)))))
+(def ^:private pan-entity #{\P \C \H \F \A \T \B \L \J \G})
+(defn- in-pan? [^String n]                          ; India PAN: structural, 4th char = entity type
+  (boolean (and (re-matches #"[A-Z]{5}[0-9]{4}[A-Z]" n) (pan-entity (.charAt n 3)))))
+(defn- in-aadhaar? [^String n]                      ; India Aadhaar: 12 digits, Verhoeff, leads 2-9
+  (boolean (and (re-matches #"[2-9]\d{11}" n) (.isValid verhoeff-cd n))))
+
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
    :iban        {:validate iban-valid? :parse iban-parse :format iban-format}
@@ -220,7 +235,11 @@
    :be-vat      {:validate be-vat?}
    :pl-vat      {:validate pl-vat?}
    :gb-vat      {:validate gb-vat?}
-   :gb-nino     {:validate nino?}})
+   :gb-nino     {:validate nino?}
+   :ca-sin      {:validate ca-sin?}
+   :au-abn      {:validate au-abn?}
+   :in-pan      {:validate in-pan?}
+   :in-aadhaar  {:validate in-aadhaar?}})
 
 (def types
   "The set of identifier-type keywords this library understands."

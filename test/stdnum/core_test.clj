@@ -130,6 +130,20 @@
     (is (not (stdnum/valid? :gb-nino "GB123456C")))      ; disallowed prefix
     (is (not (stdnum/valid? :gb-nino "AO123456C")))))    ; O not allowed as 2nd letter
 
+(deftest other-national-ids
+  (testing "Canada SIN (Luhn)"
+    (is (stdnum/valid? :ca-sin "046454286"))
+    (is (not (stdnum/valid? :ca-sin "046454287"))))
+  (testing "Australia ABN (weighted mod 89) - ATO published example"
+    (is (stdnum/valid? :au-abn "51824753556"))
+    (is (not (stdnum/valid? :au-abn "51824753557"))))
+  (testing "India PAN (structural, entity-type letter)"
+    (is (stdnum/valid? :in-pan "ABCPE1234F"))
+    (is (not (stdnum/valid? :in-pan "ABCDE1234F"))))   ; D is not a valid entity type
+  (testing "India Aadhaar (Verhoeff)"
+    (is (stdnum/valid? :in-aadhaar "234123412346"))
+    (is (not (stdnum/valid? :in-aadhaar "234123412347")))))
+
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"
     (is (some #{:credit-card} (stdnum/detect "4111111111111111")))
