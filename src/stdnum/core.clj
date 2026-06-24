@@ -430,6 +430,50 @@
          (let [d (digits-of (subs n 0 8))
                s (reduce + (map-indexed (fn [i x] (if (even? i) (cy-vat-map x) x)) d))]
            (= (char (+ 65 (mod (long s) 26))) (.charAt n 8))))))
+(def ^:private ro-vat-key [7 5 3 2 1 7 5 3 2])
+(defn- ro-vat? [^String n]                            ; Romania CUI: key right-aligned, (sum*10 mod 11) mod 10
+  (let [n (strip-cc n "RO")]
+    (and (re-matches #"\d{2,10}" n)
+         (let [d (digits-of n) k (dec (count d))
+               s (reduce + (map * (subvec d 0 k) (subvec ro-vat-key (- 9 k))))]
+           (= (mod (mod (* (long s) 10) 11) 10) (d k))))))
+
+;; Asia-Pacific business & person identifiers (clean-room from public specs) ---
+;; Singapore NRIC/FIN: prefix S/T (citizens, PRs) or F/G (foreigners), 7 digits,
+;; weighted mod 11 + prefix offset, check letter from a prefix-class table. The
+;; newer M-series FIN uses a different table and is out of scope here.
+(def ^:private ^String sg-st-letters "JZIHGFEDCBA")
+(def ^:private ^String sg-fg-letters "XWUTRQPNMLK")
+(def ^:private sg-weights [2 7 6 5 4 3 2])
+(defn- sg-nric? [^String n]
+  (when (re-matches #"[STFG]\d{7}[A-Z]" n)
+    (let [p (.charAt n 0)
+          off (case p \S 0 \T 4 \F 0 \G 4)
+          r (mod (+ (long off) (long (reduce + (map * (digits-of (subs n 1 8)) sg-weights)))) 11)]
+      (= (.charAt ^String (if (#{\S \T} p) sg-st-letters sg-fg-letters) r) (.charAt n 8)))))
+
+;; Hong Kong HKID: one or two letters (a single letter counts as 36 in the first
+;; slot) + 6 digits + a check char (0-9, or A for 10), weighted 9..2 mod 11.
+(defn- hk-val ^long [^Character c] (+ 10 (- (int c) 65)))
+(defn- hk-id? [^String n]
+  (when (re-matches #"[A-Z]{1,2}\d{6}[0-9A]" n)
+    (let [^String letters (re-find #"^[A-Z]+" n)
+          vals (concat (if (= 1 (count letters))
+                         [36 (hk-val (.charAt letters 0))]
+                         [(hk-val (.charAt letters 0)) (hk-val (.charAt letters 1))])
+                       (digits-of (subs n (count letters) (+ (count letters) 6))))
+          c (mod (- 11 (mod (long (reduce + (map * vals [9 8 7 6 5 4 3 2]))) 11)) 11)]
+      (= (int (.charAt n (dec (count n)))) (if (= c 10) 65 (+ 48 c))))))
+
+;; South Korea Business Registration Number: 10 digits, weighted with a tens-carry
+;; on the 9th digit, mod-10 complement. (The personal RRN is PII and out of scope.)
+(def ^:private kr-brn-weights [1 3 7 1 3 7 1 3 5])
+(defn- kr-brn? [^String n]
+  (and (re-matches #"\d{10}" n)
+       (let [d (digits-of n)
+             s (+ (long (reduce + (map * (subvec d 0 9) kr-brn-weights)))
+                  (quot (* (long (d 8)) 5) 10))]
+         (= (mod (- 10 (mod s 10)) 10) (d 9)))))
 
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
@@ -493,7 +537,11 @@
    :mt-vat      {:validate mt-vat?}
    :sk-vat      {:validate sk-vat?}
    :lt-vat      {:validate lt-vat?}
-   :cy-vat      {:validate cy-vat?}})
+   :cy-vat      {:validate cy-vat?}
+   :ro-vat      {:validate ro-vat?}
+   :sg-nric     {:validate sg-nric?}
+   :hk-id       {:validate hk-id?}
+   :kr-brn      {:validate kr-brn?}})
 
 (def types
   "The set of identifier-type keywords this library understands."

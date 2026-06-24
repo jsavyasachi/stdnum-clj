@@ -280,6 +280,23 @@
     (is (stdnum/valid? :cy-vat "10259033P"))
     (is (not (stdnum/valid? :cy-vat "10259033Q")))))
 
+(deftest apac-and-romania-ids
+  (testing "Romania VAT/CUI (key right-aligned, variable length)"
+    (is (stdnum/valid? :ro-vat "RO18547290"))
+    (is (stdnum/valid? :ro-vat "18547290"))
+    (is (not (stdnum/valid? :ro-vat "18547291"))))
+  (testing "Singapore NRIC/FIN (S/T citizens-PR, F/G foreigners) - textbook check letters"
+    (is (stdnum/valid? :sg-nric "S1234567D"))
+    (is (stdnum/valid? :sg-nric "F1234567N"))
+    (is (not (stdnum/valid? :sg-nric "S1234567A")))   ; bad check letter
+    (is (not (stdnum/valid? :sg-nric "M1234567A"))))  ; M-series out of scope
+  (testing "Hong Kong HKID (weighted mod 11, A=10 check)"
+    (is (stdnum/valid? :hk-id "A1234563"))            ; canonical worked example A123456(3)
+    (is (not (stdnum/valid? :hk-id "A1234564"))))
+  (testing "South Korea Business Registration Number - Samsung Electronics"
+    (is (stdnum/valid? :kr-brn "1248100998"))
+    (is (not (stdnum/valid? :kr-brn "1248100999")))))
+
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"
     (is (some #{:credit-card} (stdnum/detect "4111111111111111")))

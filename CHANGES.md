@@ -12,6 +12,9 @@ All notable changes to this project are documented here. The format follows
 - `:figi` (Financial Instrument Global Identifier, OMG check digit) and four more EU VAT numbers:
   `:mt-vat` (Malta), `:sk-vat` (Slovakia), `:lt-vat` (Lithuania), `:cy-vat` (Cyprus). Clean-room,
   each verified against a real published number.
+- `:ro-vat` (Romania CUI), `:sg-nric` (Singapore NRIC/FIN, S/T/F/G series), `:hk-id` (Hong Kong
+  HKID), `:kr-brn` (South Korea Business Registration Number). Clean-room, each verified against a
+  real published number.
 
 ## [0.5.0] - 2026-06-24
 
