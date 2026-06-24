@@ -9,6 +9,9 @@ All notable changes to this project are documented here. The format follows
 ### Added
 - `:nz-ird` (New Zealand IRD), `:be-nn` (Belgium national number), `:fi-hetu` (Finland HETU).
   Clean-room, verified against published numbers.
+- `:figi` (Financial Instrument Global Identifier, OMG check digit) and four more EU VAT numbers:
+  `:mt-vat` (Malta), `:sk-vat` (Slovakia), `:lt-vat` (Lithuania), `:cy-vat` (Cyprus). Clean-room,
+  each verified against a real published number.
 
 ## [0.5.0] - 2026-06-24
 

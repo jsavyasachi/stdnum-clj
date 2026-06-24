@@ -391,6 +391,46 @@
     (= (.charAt hetu-chk (int (mod (Long/parseLong (str ddmmyy zzz)) 31)))
        (.charAt ^String c 0))))
 
+;; FIGI (Financial Instrument Global Identifier, OMG standard): 12 chars - two
+;; consonants, 'G', eight consonant/digit chars, and a mod-10 check digit computed
+;; over the first 11 (even 1-indexed positions doubled, summing decimal digits).
+(defn- figi? [^String n]
+  (and (re-matches #"[BCDFGHJKLMNPQRSTVWXYZ]{2}G[BCDFGHJKLMNPQRSTVWXYZ0-9]{8}\d" n)
+       (let [s (reduce + (map-indexed
+                          (fn [i c] (let [v (code36 c) v (if (odd? i) (* 2 v) v)]
+                                      (+ (quot v 10) (mod v 10))))
+                          (subs n 0 11)))]
+         (= (mod (- 10 (mod (long s) 10)) 10) (- (int (.charAt n 11)) 48)))))
+
+;; more EU VAT (clean-room) ----------------------------------------------------
+(defn- mt-vat? [^String n]                            ; Malta: first 6 weighted, 37-complement check
+  (let [n (strip-cc n "MT")]
+    (and (re-matches #"\d{8}" n)
+         (let [d (digits-of n)]
+           (= (- 37 (mod (long (reduce + (map * (subvec d 0 6) [3 4 6 7 8 9]))) 37))
+              (Integer/parseInt (subs n 6)))))))
+(defn- sk-vat? [^String n]                            ; Slovakia: 10 digits, 3rd in set, whole mod 11
+  (let [n (strip-cc n "SK")]
+    (boolean (and (re-matches #"[1-9]\d{9}" n)
+                  (#{\2 \3 \4 \7 \8 \9} (.charAt n 2))
+                  (zero? (mod (Long/parseLong n) 11))))))
+(defn- lt-vat? [^String n]                            ; Lithuania: 9 or 12 digits, weighted mod 11
+  (let [n (strip-cc n "LT")]
+    (and (re-matches #"\d{9}|\d{12}" n)
+         (let [d (digits-of n) k (dec (count d)) base (subvec d 0 k)
+               wsum (fn [start] (reduce + (map-indexed
+                                           (fn [i x] (* (long x) (inc (mod (+ i start) 9)))) base)))
+               r (mod (long (wsum 0)) 11)
+               r (if (= r 10) (mod (long (wsum 2)) 11) r)]
+           (= (if (= r 10) 0 r) (d k))))))
+(def ^:private cy-vat-map {0 1, 1 0, 2 5, 3 7, 4 9, 5 13, 6 15, 7 17, 8 19, 9 21})
+(defn- cy-vat? [^String n]                            ; Cyprus: even-position digits remapped, mod 26 letter
+  (let [n (strip-cc n "CY")]
+    (and (re-matches #"\d{8}[A-Z]" n)
+         (let [d (digits-of (subs n 0 8))
+               s (reduce + (map-indexed (fn [i x] (if (even? i) (cy-vat-map x) x)) d))]
+           (= (char (+ 65 (mod (long s) 26))) (.charAt n 8))))))
+
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
    :iban        {:validate iban-valid? :parse iban-parse :format iban-format}
@@ -448,7 +488,12 @@
    :ch-ahv      {:validate ch-ahv?}
    :nz-ird      {:validate nz-ird?}
    :be-nn       {:validate be-nn?}
-   :fi-hetu     {:validate fi-hetu?}})
+   :fi-hetu     {:validate fi-hetu?}
+   :figi        {:validate figi?}
+   :mt-vat      {:validate mt-vat?}
+   :sk-vat      {:validate sk-vat?}
+   :lt-vat      {:validate lt-vat?}
+   :cy-vat      {:validate cy-vat?}})
 
 (def types
   "The set of identifier-type keywords this library understands."

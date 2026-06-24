@@ -257,6 +257,29 @@
     (is (stdnum/valid? :fi-hetu "010594Y9032"))
     (is (not (stdnum/valid? :fi-hetu "131052-308U")))))
 
+(deftest figi-and-more-vat
+  (testing "FIGI (OMG check digit) - real Bloomberg values"
+    (is (stdnum/valid? :figi "BBG000BLNNH6"))            ; Apple composite
+    (is (stdnum/valid? :figi "BBG000B9XRY4"))            ; Apple equity
+    (is (not (stdnum/valid? :figi "BBG000BLNNH7")))      ; bad check digit
+    (is (not (stdnum/valid? :figi "ABG000BLNNH6")))      ; vowel in position 1
+    (is (not (stdnum/valid? :figi "BBX000BLNNH6"))))     ; position 3 not 'G'
+  (testing "Malta VAT (37-complement)"
+    (is (stdnum/valid? :mt-vat "MT11679112"))
+    (is (stdnum/valid? :mt-vat "11679112"))
+    (is (not (stdnum/valid? :mt-vat "11679113"))))
+  (testing "Slovakia VAT (mod 11)"
+    (is (stdnum/valid? :sk-vat "SK2020317068"))
+    (is (stdnum/valid? :sk-vat "2020317068"))
+    (is (not (stdnum/valid? :sk-vat "2020317069"))))
+  (testing "Lithuania VAT (9 and 12 digit, weighted mod 11)"
+    (is (stdnum/valid? :lt-vat "LT119511515"))
+    (is (not (stdnum/valid? :lt-vat "119511516"))))
+  (testing "Cyprus VAT (even-position remap, mod-26 letter)"
+    (is (stdnum/valid? :cy-vat "CY10259033P"))
+    (is (stdnum/valid? :cy-vat "10259033P"))
+    (is (not (stdnum/valid? :cy-vat "10259033Q")))))
+
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"
     (is (some #{:credit-card} (stdnum/detect "4111111111111111")))
