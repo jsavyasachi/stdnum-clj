@@ -79,6 +79,37 @@ stdnum/types                              ;=> #{:iban :credit-card :de-vat ...} 
 identifier type** (a programming bug). Bad *data* never throws: `valid?` returns `false`,
 `parse` returns `{:valid? false}`, `format` returns `nil`.
 
+## Check-digit primitives
+
+When you need the raw algorithm rather than a typed validator, `stdnum.checkdigit` exposes them
+directly (the python-stdnum `stdnum.luhn` / `verhoeff` / `iso7064` parallel):
+
+```clojure
+(require '[stdnum.checkdigit :as cd])
+(cd/luhn-valid? "79927398713")            ;=> true
+(cd/luhn-check-digit "7992739871")        ;=> "3"
+(cd/verhoeff-check-digit "23412341234")   ;=> "6"
+(cd/iso7064-mod11-2-check "000000021825009") ;=> "7"  (ORCID/ISNI check char, may be "X")
+(cd/iso7064-mod97-10-valid? "5493001KJTIIGC8Y1R12") ;=> true  (LEI / IBAN family)
+```
+
+## Online VAT validation (VIES)
+
+A checksum proves a VAT number is *well-formed*; it can't prove the company exists. `stdnum.vies`
+checks a number against the EU's live [VIES](https://ec.europa.eu/taxation_customs/vies/) registry:
+
+```clojure
+(require '[stdnum.vies :as vies])
+(vies/check "LU26375245")
+;=> {:valid? true, :country "LU", :vat-number "26375245",
+;    :name "AMAZON EUROPE CORE S.A R.L.", :address "38, AVENUE JOHN F. KENNEDY...", ...}
+```
+
+A member-state outage (`MS_UNAVAILABLE`, rate-limiting, …) returns `{:error "..."}` rather than a
+misleading `:valid? false` - validity is genuinely unknown when the registry can't answer. This is
+the only part of the library that does network I/O; it lives in its own namespace, **requires JDK
+11+** (uses `java.net.http`), and pulls in `org.clojure/data.json`. `stdnum.core` stays pure.
+
 ## Supported identifiers
 
 `stdnum/types` is the authoritative set. National identifiers are keyed by an ISO-3166 prefix

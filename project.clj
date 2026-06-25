@@ -4,8 +4,12 @@
   :license {:name "Eclipse Public License 1.0" :url "https://www.eclipse.org/legal/epl-v10.html"}
   :scm {:name "git" :url "https://github.com/jsavyasachi/stdnum-clj"}
   :dependencies [[commons-validator/commons-validator "1.10.1"]
-                 [org.iban4j/iban4j "3.2.11-RELEASE"]]
+                 [org.iban4j/iban4j "3.2.11-RELEASE"]
+                 [org.clojure/data.json "2.5.1"]]
   :global-vars {*warn-on-reflection* true}
+  :test-selectors {:default (complement :integration)
+                   :integration :integration
+                   :all (constantly true)}
   :profiles {:provided {:dependencies [[org.clojure/clojure "1.12.0"]]}
              :dev {:dependencies [[org.clojure/clojure "1.12.0"]]}
              :clojure-1-10 {:dependencies [[org.clojure/clojure "1.10.3"]]}

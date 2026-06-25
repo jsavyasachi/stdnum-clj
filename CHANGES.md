@@ -13,6 +13,12 @@ All notable changes to this project are documented here. The format follows
   (the python-stdnum `stdnum.luhn`/`verhoeff`/`iso7064` parallel): `luhn-valid?` /
   `luhn-check-digit`, `verhoeff-valid?` / `verhoeff-check-digit`, `iso7064-mod11-2-valid?` /
   `iso7064-mod11-2-check`, and `iso7064-mod97-10-valid?`.
+- New namespace `stdnum.vies` for **online** EU VAT validation against the official VIES service
+  (`vies/check`), confirming a VAT number actually exists in the member-state registry and returning
+  the trader name/address where disclosed. Member-state errors (e.g. `MS_UNAVAILABLE`) surface as
+  `{:error ...}` so a transient outage is never mistaken for an invalid number. Requires JDK 11+
+  (uses `java.net.http`); adds an `org.clojure/data.json` dependency. `stdnum.core` remains pure and
+  network-free.
 
 ## [0.10.0] - 2026-06-24
 
