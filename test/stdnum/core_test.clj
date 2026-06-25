@@ -465,6 +465,20 @@
     (let [p (stdnum/parse :bg-egn "7523169263")]
       (is (= "1875-03-16" (:birth-date p)))
       (is (= :female (:gender p)))))
+  (testing "India PAN exposes its holder-type (4th character)"
+    (is (= :individual (:holder-type (stdnum/parse :in-pan "ABCPE1234F"))))
+    (is (= :company (:holder-type (stdnum/parse :in-pan "ABCCE1234F")))))
+  (testing "Ecuador cedula exposes its issuing province"
+    (let [p (stdnum/parse :ec-ced "1710034065")]
+      (is (= 17 (:province-code p)))
+      (is (= "Pichincha" (:province p)))))
+  (testing "Peru RUC exposes the taxpayer entity type"
+    (is (= :company (:entity-type (stdnum/parse :pe-ruc "20100070970")))))
+  (testing "credit card exposes IIN and last four"
+    (let [p (stdnum/parse :credit-card "4111111111111111")]
+      (is (= :visa (:network p)))
+      (is (= "411111" (:iin p)))
+      (is (= "1111" (:last4 p)))))
   (testing "parse on an invalid value still returns {:valid? false} with no fields"
     (is (= {:valid? false} (stdnum/parse :mx-curp "HEGG560427MVZRRL05")))
     (is (= {:valid? false} (stdnum/parse :ee-ik "37605030298")))))

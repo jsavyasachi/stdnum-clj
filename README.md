@@ -53,7 +53,7 @@ net.clojars.savya/stdnum-clj {:mvn/version "0.9.0"}
 (stdnum/valid? :iban        "GB82 WEST 1234 5698 7654 33")  ;=> false (bad check digit)
 
 ;; parse - validity plus extracted fields where they exist
-(stdnum/parse :credit-card "378282246310005")   ;=> {:valid? true, :network :amex}
+(stdnum/parse :credit-card "378282246310005")   ;=> {:valid? true, :network :amex, :iin "378282", :last4 "0005"}
 (stdnum/parse :iban "GB82WEST12345698765432")
 ;=> {:valid? true, :country "GB", :bban "WEST12345698765432",
 ;    :bank-code "WEST", :branch-code "123456", :account-number "98765432", :formatted "GB82 WEST ..."}

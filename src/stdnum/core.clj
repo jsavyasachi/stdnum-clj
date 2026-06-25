@@ -45,7 +45,8 @@
   (some (fn [[k ^CreditCardValidator v]] (when (.isValid v n) k)) card-validators))
 
 (defn- card-valid? [^String n] (.isValid all-cards n))
-(defn- card-parse [^String n] {:valid? true :network (network-of n)})
+(defn- card-parse [^String n]
+  {:valid? true :network (network-of n) :iin (subs n 0 6) :last4 (subs n (- (count n) 4))})
 (defn- card-format [^String n] (str/join " " (re-seq #".{1,4}" n)))
 
 ;; --- IBAN / BIC (iban4j for the rich parse/format, CV for the check) ----------
@@ -717,6 +718,28 @@
      :birth-date (str century (subs n 0 2) "-" (subs n 2 4) "-" (subs n 4 6))
      :gender     (if (odd? (- (int (.charAt n 8)) 48)) :male :female)}))
 
+;; Non-date embedded info: India PAN holder-type (4th char), Ecuador province
+;; (first 2 digits), Peru RUC taxpayer type (first 2 digits).
+(def ^:private pan-holder-types
+  {\P :individual \C :company \H :huf \F :firm \A :association-of-persons \T :trust
+   \B :body-of-individuals \L :local-authority \J :artificial-juridical-person \G :government})
+(defn- in-pan-parse [^String n] {:valid? true :holder-type (pan-holder-types (.charAt n 3))})
+
+(def ^:private ec-provinces
+  ["Azuay" "Bolívar" "Cañar" "Carchi" "Cotopaxi" "Chimborazo" "El Oro" "Esmeraldas" "Guayas"
+   "Imbabura" "Loja" "Los Ríos" "Manabí" "Morona Santiago" "Napo" "Pastaza" "Pichincha"
+   "Tungurahua" "Zamora Chinchipe" "Galápagos" "Sucumbíos" "Orellana"
+   "Santo Domingo de los Tsáchilas" "Santa Elena"])
+(defn- ec-ced-parse [^String n]
+  (let [p (Integer/parseInt (subs n 0 2))]
+    {:valid? true :province-code p :province (nth ec-provinces (dec p))}))
+
+(defn- pe-ruc-parse [^String n]
+  {:valid? true :entity-type (case (subs n 0 2)
+                               "20" :company
+                               ("10" "15" "17") :natural-person
+                               :other)})
+
 ;; Belgium national number: YYMMDD + serial; the century is whichever mod-97 base
 ;; validated (un-prefixed = 1900s, "2"-prefixed = 2000s). Serial parity = gender.
 (defn- be-nn-parse [^String n]
@@ -806,7 +829,7 @@
    :gb-nino     {:validate nino? :format nino-format}
    :ca-sin      {:validate ca-sin? :format ca-sin-format}
    :au-abn      {:validate au-abn?}
-   :in-pan      {:validate in-pan?}
+   :in-pan      {:validate in-pan? :parse in-pan-parse}
    :in-aadhaar  {:validate in-aadhaar? :format aadhaar-format}
    :es-dni      {:validate es-dni?}
    :es-nie      {:validate es-nie?}
@@ -861,11 +884,11 @@
    :ar-cuit     {:validate ar-cuit? :format ar-cuit-format}
    :cl-rut      {:validate cl-rut? :format dash-check-format}
    :co-nit      {:validate co-nit? :format dash-check-format}
-   :pe-ruc      {:validate pe-ruc?}
+   :pe-ruc      {:validate pe-ruc? :parse pe-ruc-parse}
    :ie-pps      {:validate ie-pps?}
    :ee-ik       {:validate ee-ik? :parse ee-ik-parse}
    :jmbg        {:validate jmbg? :parse jmbg-parse}
-   :ec-ced      {:validate ec-ced?}
+   :ec-ced      {:validate ec-ced? :parse ec-ced-parse}
    :bg-egn      {:validate bg-egn? :parse bg-egn-parse}
    :orcid       {:validate orcid? :format orcid-format}
    :isni        {:validate orcid? :format isni-format}

@@ -10,6 +10,9 @@ All notable changes to this project are documented here. The format follows
 - Canonical `format` for more existing types with standard display forms: `:nhs` (`943 476 5919`),
   `:gb-nino` (`AB 12 34 56 C`), `:in-aadhaar` (`2341 2341 2346`), `:ch-ahv` (`756.9217.0769.85`),
   `:ca-sin` (`046 454 286`), `:fr-nir` (`2 55 08 14 168 025 38`).
+- More non-date `parse` extraction: `:in-pan` -> `:holder-type` (from the 4th character), `:ec-ced`
+  -> `:province-code` `:province`, `:pe-ruc` -> `:entity-type` (`:company`/`:natural-person`), and
+  `:credit-card` now also returns `:iin` (first 6) and `:last4`.
 
 ## [0.9.0] - 2026-06-24
 
