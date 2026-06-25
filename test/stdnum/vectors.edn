@@ -99,27 +99,27 @@
  ;; are checksum-valid algorithm examples (they exercise the validator) that are
  ;; NOT necessarily registered companies - VIES is the source of truth on that, and
  ;; it showed several common "example" VAT numbers are checksum-valid but unregistered.
- :de-vat      {:valid ["DE136695976"] :invalid ["DE136695977"] :source "AB InBev DE; VIES-confirmed" :vies true}
- :fr-vat      {:valid ["FR40303265045"] :invalid ["FR41303265045"] :source "INSEE SIREN; VIES-confirmed" :vies true}
+ :de-vat      {:valid ["DE129274202"] :invalid ["DE129274203"] :source "VIES-confirmed registered (DE withholds trader name)" :vies true}
+ :fr-vat      {:valid ["FR40303265045"] :invalid ["FR41303265045"] :source "SA Sodimas; VIES-confirmed" :vies true}
  :it-vat      {:valid ["IT00743110157"] :invalid ["IT00743110158"] :source "Motorola Solutions Italia; VIES-confirmed" :vies true}
  :be-vat      {:valid ["BE0417497106"] :invalid ["BE0417497107"] :source "AB InBev BE; VIES-confirmed" :vies true}
  :lu-vat      {:valid ["LU26375245"] :invalid ["LU26375246"] :source "Amazon Europe Core; VIES-confirmed" :vies true}
  :es-vat      {:valid ["A28015865"] :invalid ["A28015866"] :source "Telefónica CIF; VIES-confirmed" :vies true}
  :ie-vat      {:valid ["6388047V"] :invalid ["6388047W"] :source "Google Ireland; VIES-confirmed" :vies true}
  :gb-vat      {:valid ["GB980780684"] :invalid ["GB980780685"] :source "HMRC weighted mod-97 example (UK left VIES)"}
- :pl-vat      {:valid ["PL5260001246"] :invalid ["PL5260001247"] :source "Poland NIP checksum example"}
+ :pl-vat      {:valid ["PL7740001454"] :invalid ["PL7740001455"] :source "PKN Orlen; VIES-confirmed" :vies true}
+ :dk-vat      {:valid ["DK61056416"] :invalid ["DK61056417"] :source "Carlsberg A/S; VIES-confirmed" :vies true}
+ :fi-vat      {:valid ["FI01120389"] :invalid ["FI01120388"] :source "Nokia Oyj; VIES-confirmed" :vies true}
+ :pt-nif      {:valid ["PT500697256"] :invalid ["PT500697257"] :source "EDP S.A.; VIES-confirmed" :vies true}
+ :sk-vat      {:valid ["SK2020317068"] :invalid ["SK2020317069"] :source "ESET spol. s r.o.; VIES-confirmed" :vies true}
+ :lt-vat      {:valid ["LT119511515"] :invalid ["LT119511516"] :source "Klaipėda University; VIES-confirmed" :vies true}
+ :ro-vat      {:valid ["RO14837428"] :invalid ["RO14837429"] :source "Borg Design SRL; VIES-confirmed" :vies true}
  :at-vat      {:valid ["ATU13585627"] :invalid ["ATU13585628"] :source "Austria ATU checksum example"}
- :dk-vat      {:valid ["DK13585628"] :invalid ["DK13585629"] :source "Denmark VAT checksum example"}
- :fi-vat      {:valid ["FI20774740"] :invalid ["FI20774741"] :source "Finland VAT checksum example"}
  :se-vat      {:valid ["SE556293998201"] :invalid ["SE556293998202"] :source "Sweden VAT checksum example"}
  :gr-vat      {:valid ["EL094014249"] :invalid ["EL094014248"] :source "Greece AFM checksum example"}
  :si-vat      {:valid ["SI50223054"] :invalid ["SI50223055"] :source "Slovenia VAT checksum example"}
  :ee-vat      {:valid ["EE100207415"] :invalid ["EE100207416"] :source "Estonia VAT checksum example"}
  :hu-vat      {:valid ["HU10597190"] :invalid ["HU10597191"] :source "Hungary VAT checksum example"}
- :pt-nif      {:valid ["501964843"] :invalid ["501964844"] :source "Portugal NIF checksum example"}
  :cz-ico      {:valid ["00006947"] :invalid ["00006948"] :source "Czech IČO algorithm"}
  :mt-vat      {:valid ["MT11679112"] :invalid ["MT11679113"] :source "Malta VAT checksum example"}
- :sk-vat      {:valid ["SK2020317068"] :invalid ["SK2020317069"] :source "Slovakia VAT checksum example"}
- :lt-vat      {:valid ["LT119511515"] :invalid ["LT119511516"] :source "Lithuania VAT checksum example"}
- :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}
- :ro-vat      {:valid ["RO18547290"] :invalid ["RO18547291"] :source "Romania CUI checksum example"}}
+ :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}}
