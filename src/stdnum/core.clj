@@ -688,6 +688,35 @@
      :plant      (subs n 10 11)
      :serial     (subs n 11 17)}))
 
+;; Poland PESEL: the month field carries the century (01-12=1900s, 21-32=2000s,
+;; 41-52=2100s, 61-72=2200s, 81-92=1800s); the 10th digit is the gender.
+(def ^:private pesel-centuries [1900 2000 2100 2200 1800])
+(defn- pesel-parse [^String n]
+  (let [mm (Integer/parseInt (subs n 2 4))
+        year (+ (nth pesel-centuries (quot mm 20)) (Integer/parseInt (subs n 0 2)))
+        month (inc (mod (dec mm) 20))]
+    {:valid?     true
+     :birth-date (str year "-" (clojure.core/format "%02d" month) "-" (subs n 4 6))
+     :gender     (if (odd? (- (int (.charAt n 9)) 48)) :male :female)}))
+
+;; France NIR: digit 1 = sex, 2-3 = year, 4-5 = month, 6-7 = department. The
+;; century is not encoded, so the 2-digit year is returned as-is.
+(defn- fr-nir-parse [^String n]
+  {:valid?      true
+   :gender      (if (= \1 (.charAt n 0)) :male :female)
+   :birth-year  (Integer/parseInt (subs n 1 3))
+   :birth-month (Integer/parseInt (subs n 3 5))
+   :department  (subs n 5 7)})
+
+;; Sweden personnummer: YYMMDD + serial; the 9th digit is the gender. The
+;; separator that disambiguates the century is dropped on normalization, so the
+;; year is resolved with a pivot at the current 2-digit year.
+(defn- se-pnr-parse [^String n]
+  (let [yy (Integer/parseInt (subs n 0 2)) century (if (<= yy 26) "20" "19")]
+    {:valid?     true
+     :birth-date (str century (subs n 0 2) "-" (subs n 2 4) "-" (subs n 4 6))
+     :gender     (if (odd? (- (int (.charAt n 8)) 48)) :male :female)}))
+
 ;; China resident ID: digits 7-14 are the full YYYYMMDD birth date; the 17th
 ;; digit is the gender (odd male, even female).
 (defn- cn-ric-parse [^String n]
@@ -751,7 +780,7 @@
    :es-nie      {:validate es-nie?}
    :nl-bsn      {:validate nl-bsn?}
    :cn-ric      {:validate cn-ric? :parse cn-ric-parse}
-   :se-pnr      {:validate se-pnr?}
+   :se-pnr      {:validate se-pnr? :parse se-pnr-parse}
    :mx-clabe    {:validate mx-clabe?}
    :za-id       {:validate za-id? :parse za-id-parse}
    :no-org      {:validate no-org?}
@@ -795,8 +824,8 @@
    :ismn        {:validate ismn?}
    :cas         {:validate cas? :format cas-format}
    :imo         {:validate imo?}
-   :fr-nir      {:validate fr-nir?}
-   :pl-pesel    {:validate pesel?}
+   :fr-nir      {:validate fr-nir? :parse fr-nir-parse}
+   :pl-pesel    {:validate pesel? :parse pesel-parse}
    :ar-cuit     {:validate ar-cuit? :format ar-cuit-format}
    :cl-rut      {:validate cl-rut? :format dash-check-format}
    :co-nit      {:validate co-nit? :format dash-check-format}

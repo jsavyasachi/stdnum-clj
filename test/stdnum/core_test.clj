@@ -443,6 +443,20 @@
     (let [p (stdnum/parse :cn-ric "440524188001010014")]
       (is (= "1880-01-01" (:birth-date p)))
       (is (= :male (:gender p)))))                          ; 17th digit odd
+  (testing "Poland PESEL extracts birth date (century from month offset) and gender"
+    (let [p (stdnum/parse :pl-pesel "44051401359")]
+      (is (= "1944-05-14" (:birth-date p)))
+      (is (= :male (:gender p)))))
+  (testing "France NIR extracts gender, birth year/month, department"
+    (let [p (stdnum/parse :fr-nir "255081416802538")]
+      (is (= :female (:gender p)))
+      (is (= 55 (:birth-year p)))
+      (is (= 8 (:birth-month p)))
+      (is (= "14" (:department p)))))
+  (testing "Sweden personnummer extracts birth date and gender"
+    (let [p (stdnum/parse :se-pnr "811218-9876")]
+      (is (= "1981-12-18" (:birth-date p)))
+      (is (= :male (:gender p)))))
   (testing "parse on an invalid value still returns {:valid? false} with no fields"
     (is (= {:valid? false} (stdnum/parse :mx-curp "HEGG560427MVZRRL05")))
     (is (= {:valid? false} (stdnum/parse :ee-ik "37605030298")))))
