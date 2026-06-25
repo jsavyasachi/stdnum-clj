@@ -8,22 +8,21 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 - New namespace `stdnum.gs1-128` for parsing GS1-128 (UCC/EAN-128) Application Identifier element
-  strings (the python-stdnum `stdnum.gs1_128` parallel). `parse` handles both the parenthesized
+  strings. `parse` handles both the parenthesized
   human-readable form and the raw FNC1-delimited scan form, returning ordered
   `{:ai :label :value}` segments; weight/measure and amount AIs also report `:decimals` and a
   numeric `:decimal-value`. `parse-map` returns an AI-keyed map.
 
 ## [0.11.0] - 2026-06-24
 
-Two major capability additions plus broader format coverage and two new VAT types (92 -> 94). The
-two real gaps versus python-stdnum - standalone check-digit algorithms and online VAT validation -
-are now closed.
+Two major capability additions plus broader format coverage and two new VAT types (92 -> 94):
+standalone check-digit algorithms and online VAT validation.
 
 ### Added
 - More canonical `format`: `:hk-id` (`A123456(3)`), `:kr-brn` (`124-81-00998`), `:au-abn`
   (`51 824 753 556`), `:au-tfn` (`123 456 782`), `:no-org` (`974 760 673`).
-- New namespace `stdnum.checkdigit` exposing the underlying algorithms as standalone primitives
-  (the python-stdnum `stdnum.luhn`/`verhoeff`/`iso7064` parallel): `luhn-valid?` /
+- New namespace `stdnum.checkdigit` exposing the underlying algorithms as standalone primitives:
+  `luhn-valid?` /
   `luhn-check-digit`, `verhoeff-valid?` / `verhoeff-check-digit`, `iso7064-mod11-2-valid?` /
   `iso7064-mod11-2-check`, and `iso7064-mod97-10-valid?`.
 - Two more VAT types (90 -> ... 94 total): `:es-vat` (Spain - covers the DNI, NIE and CIF forms;
@@ -75,8 +74,7 @@ the existing surface.
 ## [0.8.0] - 2026-06-24
 
 Two new types (90 -> 92) plus a depth pass: `parse` now extracts the structured data embedded in
-several identifiers, matching the most-used part of python-stdnum's per-type richness. Everything
-verified against published example numbers; stays EPL.
+several identifiers. Everything verified against published example numbers; stays EPL.
 
 ### Added
 - `:gln` (GS1 Global Location Number) and `:mx-curp` (Mexico CURP). Clean-room / engine-backed,

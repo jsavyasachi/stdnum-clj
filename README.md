@@ -20,7 +20,8 @@ check, behind one small API.
 Clojure has plenty of *one-identifier* libraries (an IBAN parser here, a Luhn checker there),
 most of them tiny and unmaintained, each with its own API. There was no single library that
 validates the common, checksummable identifiers under one consistent interface - the way
-Python's `python-stdnum` does. `stdnum-clj` is that facade. For the international identifiers it
+Python's [python-stdnum](https://arthurdejong.org/python-stdnum/) does. `stdnum-clj` is that
+facade. For the international identifiers it
 wraps the maintained [Apache Commons Validator](https://commons.apache.org/proper/commons-validator/)
 and [iban4j](https://github.com/arturmkrtchyan/iban4j) engines rather than reinventing them, so
 those checks are as correct as those libraries and stay correct as they're updated. A few global
@@ -82,7 +83,7 @@ identifier type** (a programming bug). Bad *data* never throws: `valid?` returns
 ## Check-digit primitives
 
 When you need the raw algorithm rather than a typed validator, `stdnum.checkdigit` exposes them
-directly (the python-stdnum `stdnum.luhn` / `verhoeff` / `iso7064` parallel):
+directly:
 
 ```clojure
 (require '[stdnum.checkdigit :as cd])

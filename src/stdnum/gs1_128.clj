@@ -1,7 +1,6 @@
 (ns stdnum.gs1-128
   "Parsing of GS1-128 (formerly UCC/EAN-128) element strings - the Application
-  Identifier (AI) encoding used on logistics and retail barcodes. This is the
-  python-stdnum `stdnum.gs1_128` parallel.
+  Identifier (AI) encoding used on logistics and retail barcodes.
 
   `parse` accepts either the human-readable parenthesized form or the raw scanned
   form (variable-length fields terminated by FNC1 / ASCII group-separator 0x1D),

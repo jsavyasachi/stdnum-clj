@@ -1,7 +1,6 @@
 (ns stdnum.checkdigit
-  "Standalone check-digit algorithms, usable directly when you need the primitive
-  rather than a typed identifier validator (the `stdnum.core` parallel to
-  python-stdnum's `stdnum.luhn` / `stdnum.verhoeff` / `stdnum.iso7064` modules).
+  "Standalone check-digit algorithms (Luhn, Verhoeff, ISO 7064), usable directly
+  when you need the primitive rather than a typed identifier validator.
 
   Each algorithm offers a `*-valid?` predicate over a complete string (payload +
   trailing check character) and, where meaningful, a `*-check-digit` /
