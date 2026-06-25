@@ -634,6 +634,36 @@
        (let [d (digits-of n)
              r (mod (long (reduce + (map * (subvec d 0 9) [2 4 8 5 10 9 7 3 6]))) 11)]
          (= (if (= r 10) 0 r) (d 9)))))
+(defn- nl-vat? [^String n]                            ; Netherlands: 9-digit mod-11 + "B" + 2-digit suffix
+  (let [n (strip-cc n "NL")]
+    (and (re-matches #"\d{9}B\d{2}" n)
+         (not= "00" (subs n 10))
+         (let [d (digits-of (subs n 0 9))
+               r (mod (long (reduce + (map * (subvec d 0 8) [9 8 7 6 5 4 3 2]))) 11)]
+           (and (not= r 10) (= r (d 8)))))))
+(defn- lv-vat? [^String n]                            ; Latvia PVN (legal entity, leading digit > 3)
+  (let [n (strip-cc n "LV")]
+    (and (re-matches #"[4-9]\d{10}" n)
+         (let [d (digits-of n)
+               r (mod (long (reduce + (map * (subvec d 0 10) [9 1 4 8 3 10 2 5 7 6]))) 11)
+               c (cond (= r 4) -1, (> r 4) (+ (- 3 r) 11), :else (- 3 r))]
+           (and (not= c -1) (= c (d 10)))))))
+(defn- bg-vat? [^String n]                            ; Bulgaria: 9-digit EIK/BULSTAT, or 10-digit EGN
+  (let [n (strip-cc n "BG")]
+    (cond
+      (re-matches #"\d{9}" n)
+      (let [d (digits-of n)
+            r (mod (long (reduce + (map * (subvec d 0 8) [1 2 3 4 5 6 7 8]))) 11)
+            c (if (= r 10)
+                (let [r2 (mod (long (reduce + (map * (subvec d 0 8) [3 4 5 6 7 8 9 10]))) 11)]
+                  (if (= r2 10) 0 r2))
+                r)]
+        (= c (d 8)))
+      (re-matches #"\d{10}" n) (bg-egn? n)
+      :else false)))
+(defn- hr-vat? [^String n] (hr-oib? n))               ; Croatia VAT = HR + OIB
+(defn- cz-vat? [^String n] (cz-ico? n))               ; Czech VAT (legal entity) = CZ + 8-digit IČO
+(defn- pt-vat? [^String n] (pt-nif? n))               ; Portugal VAT = PT + NIF
 
 ;; ORCID and ISNI: 16 chars, ISO 7064 MOD 11-2 check (last char may be X). Same
 ;; algorithm and shape; kept as distinct types for intent.
@@ -907,6 +937,12 @@
    :ro-vat      {:validate ro-vat?}
    :es-vat      {:validate es-vat?}
    :ie-vat      {:validate ie-vat?}
+   :nl-vat      {:validate nl-vat?}
+   :lv-vat      {:validate lv-vat?}
+   :bg-vat      {:validate bg-vat?}
+   :hr-vat      {:validate hr-vat?}
+   :cz-vat      {:validate cz-vat?}
+   :pt-vat      {:validate pt-vat?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}

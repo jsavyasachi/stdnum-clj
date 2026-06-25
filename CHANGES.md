@@ -6,6 +6,17 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-06-24
+
+EU-27 VAT coverage is now complete (100 identifier types).
+
+### Added
+- VAT validators for the six remaining EU member states: `:nl-vat` (Netherlands, 9-digit mod-11
+  + `B` suffix), `:lv-vat` (Latvia PVN, legal entity), `:bg-vat` (Bulgaria, 9-digit EIK/BULSTAT
+  or 10-digit EGN), `:hr-vat` (Croatia, `HR` + OIB), plus `:cz-vat` and `:pt-vat` aliases over
+  the existing IČO / NIF checks. Every new vector is a real company number confirmed live against
+  VIES (Booking.com, Air Baltic, Sopharma, Škoda Auto, EDP), `:vies true`.
+
 ## [0.13.0] - 2026-06-24
 
 ### Changed

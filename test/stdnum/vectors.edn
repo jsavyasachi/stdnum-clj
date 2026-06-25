@@ -121,5 +121,11 @@
  :ee-vat      {:valid ["EE100594102"] :invalid ["EE100594103"] :source "Movek Grupp OÜ; VIES-confirmed" :vies true}
  :hu-vat      {:valid ["HU10484878"] :invalid ["HU10484879"] :source "Richter Gedeon Nyrt.; VIES-confirmed" :vies true}
  :cz-ico      {:valid ["00006947"] :invalid ["00006948"] :source "Czech IČO algorithm"}
+ :nl-vat      {:valid ["NL805734958B01"] :invalid ["NL805734957B01"] :source "Booking.com B.V.; VIES-confirmed" :vies true}
+ :lv-vat      {:valid ["LV40003245752"] :invalid ["LV40003245753"] :source "Air Baltic Corporation AS; VIES-confirmed" :vies true}
+ :bg-vat      {:valid ["BG831902088"] :invalid ["BG831902089"] :source "Sopharma AD; VIES-confirmed" :vies true}
+ :hr-vat      {:valid ["HR30286967868"] :invalid ["HR30286967869"] :source "Croatia VAT (HR + OIB); VIES-confirmed registrant" :vies true}
+ :cz-vat      {:valid ["CZ00177041"] :invalid ["CZ00177042"] :source "Škoda Auto a.s.; VIES-confirmed" :vies true}
+ :pt-vat      {:valid ["PT500697256"] :invalid ["PT500697257"] :source "EDP S.A.; VIES-confirmed" :vies true}
  :mt-vat      {:valid ["MT11679112"] :invalid ["MT11679113"] :source "Malta VAT checksum example"}
  :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}}
