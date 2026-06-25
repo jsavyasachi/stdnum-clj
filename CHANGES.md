@@ -6,12 +6,22 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-06-24
+
+GS1-128 barcode parsing, and a cited verification corpus that drives the test suite (with live VIES
+re-confirmation of registered VAT numbers).
+
 ### Added
 - New namespace `stdnum.gs1-128` for parsing GS1-128 (UCC/EAN-128) Application Identifier element
   strings. `parse` handles both the parenthesized
   human-readable form and the raw FNC1-delimited scan form, returning ordered
   `{:ai :label :value}` segments; weight/measure and amount AIs also report `:decimals` and a
   numeric `:decimal-value`. `parse-map` returns an AI-keyed map.
+
+### Changed
+- Verification is now driven by a cited corpus (`test/stdnum/vectors.edn`): every type maps to
+  valid/invalid vectors with a mandatory `:source`. EU VAT entries confirmed live-registered are
+  re-checked against the official VIES service under `lein test :integration`.
 
 ## [0.11.0] - 2026-06-24
 
@@ -190,6 +200,7 @@ Initial release.
 - Idiomatic facade over Apache Commons Validator 1.10.1 and iban4j 3.2.11 - no algorithm
   reimplementation. Bad input data never throws; only an unknown identifier type does.
 
+[0.12.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.12.0
 [0.11.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.11.0
 [0.10.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.10.0
 [0.9.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.9.0
