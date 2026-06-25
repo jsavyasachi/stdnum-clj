@@ -436,9 +436,31 @@
       (is (= :female (:gender p)))
       (is (= 1 (:birth-day p)))
       (is (= 12 (:birth-month p)))))
+  (testing "China resident ID extracts full birth date and gender"
+    (let [p (stdnum/parse :cn-ric "11010519491231002X")]
+      (is (= "1949-12-31" (:birth-date p)))
+      (is (= :female (:gender p))))                        ; 17th digit even
+    (let [p (stdnum/parse :cn-ric "440524188001010014")]
+      (is (= "1880-01-01" (:birth-date p)))
+      (is (= :male (:gender p)))))                          ; 17th digit odd
   (testing "parse on an invalid value still returns {:valid? false} with no fields"
     (is (= {:valid? false} (stdnum/parse :mx-curp "HEGG560427MVZRRL05")))
     (is (= {:valid? false} (stdnum/parse :ee-ik "37605030298")))))
+
+(deftest canonical-format
+  (testing "ORCID / ISNI group into fours (hyphen vs space, per convention)"
+    (is (= "0000-0002-1825-0097" (stdnum/format :orcid "0000000218250097")))
+    (is (= "0000 0001 2103 2683" (stdnum/format :isni "0000000121032683"))))
+  (testing "CAS registry number reconstructs its hyphenated form"
+    (is (= "7732-18-5" (stdnum/format :cas "7732185")))
+    (is (= "50-00-0" (stdnum/format :cas "50000"))))
+  (testing "LatAm tax IDs reformat to their national display form"
+    (is (= "30-70308853-4" (stdnum/format :ar-cuit "30703088534")))
+    (is (= "97.004.000-5" (stdnum/format :cl-rut "970040005")))
+    (is (= "890.903.938-8" (stdnum/format :co-nit "8909039388"))))
+  (testing "format returns nil for invalid input"
+    (is (nil? (stdnum/format :ar-cuit "30703088535")))
+    (is (nil? (stdnum/format :cas "7732186")))))
 
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"

@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- `parse :cn-ric` (China resident ID) now extracts `:birth-date` (full YYYY-MM-DD) and `:gender`.
+- Canonical `format` for more types: `:orcid` (`0000-0002-1825-0097`), `:isni`
+  (`0000 0001 2103 2683`), `:cas` (`7732-18-5`), `:ar-cuit` (`30-70308853-4`), `:cl-rut`
+  (`97.004.000-5`), `:co-nit` (`890.903.938-8`).
+
 ## [0.8.0] - 2026-06-24
 
 Two new types (90 -> 92) plus a depth pass: `parse` now extracts the structured data embedded in

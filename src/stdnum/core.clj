@@ -688,6 +688,13 @@
      :plant      (subs n 10 11)
      :serial     (subs n 11 17)}))
 
+;; China resident ID: digits 7-14 are the full YYYYMMDD birth date; the 17th
+;; digit is the gender (odd male, even female).
+(defn- cn-ric-parse [^String n]
+  {:valid?     true
+   :birth-date (str (subs n 6 10) "-" (subs n 10 12) "-" (subs n 12 14))
+   :gender     (if (odd? (- (int (.charAt n 16)) 48)) :male :female)})
+
 ;; Italy codice fiscale: gender + birth day/month + comune. The century is not
 ;; encoded in a CF, so the 2-digit year is returned as-is (no guessed ISO date).
 (def ^:private it-cf-months {\A 1 \B 2 \C 3 \D 4 \E 5 \H 6 \L 7 \M 8 \P 9 \R 10 \S 11 \T 12})
@@ -699,6 +706,18 @@
      :birth-month (it-cf-months (.charAt n 8))
      :birth-year  (Integer/parseInt (subs n 6 8))
      :comune-code (subs n 11 15)}))
+
+;; --- canonical formatting for IDs with a standard separated display form ------
+(defn- group4 [^String sep ^String n] (str/join sep (re-seq #".{4}" n)))
+(defn- dotted [^String s]                              ; digits grouped in threes from the right
+  (->> (reverse s) (partition-all 3) (map #(apply str (reverse %))) reverse (str/join ".")))
+(defn- orcid-format [^String n] (group4 "-" n))
+(defn- isni-format  [^String n] (group4 " " n))
+(defn- cas-format   [^String n]
+  (let [k (count n)] (str (subs n 0 (- k 3)) "-" (subs n (- k 3) (dec k)) "-" (subs n (dec k)))))
+(defn- ar-cuit-format [^String n] (str (subs n 0 2) "-" (subs n 2 10) "-" (subs n 10)))
+(defn- dash-check-format [^String n]                   ; dotted body + "-" + final check char (CL/CO)
+  (let [k (dec (count n))] (str (dotted (subs n 0 k)) "-" (subs n k))))
 
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
@@ -731,7 +750,7 @@
    :es-dni      {:validate es-dni?}
    :es-nie      {:validate es-nie?}
    :nl-bsn      {:validate nl-bsn?}
-   :cn-ric      {:validate cn-ric?}
+   :cn-ric      {:validate cn-ric? :parse cn-ric-parse}
    :se-pnr      {:validate se-pnr?}
    :mx-clabe    {:validate mx-clabe?}
    :za-id       {:validate za-id? :parse za-id-parse}
@@ -774,21 +793,21 @@
    :npi         {:validate npi?}
    :ean8        {:validate ean8?}
    :ismn        {:validate ismn?}
-   :cas         {:validate cas?}
+   :cas         {:validate cas? :format cas-format}
    :imo         {:validate imo?}
    :fr-nir      {:validate fr-nir?}
    :pl-pesel    {:validate pesel?}
-   :ar-cuit     {:validate ar-cuit?}
-   :cl-rut      {:validate cl-rut?}
-   :co-nit      {:validate co-nit?}
+   :ar-cuit     {:validate ar-cuit? :format ar-cuit-format}
+   :cl-rut      {:validate cl-rut? :format dash-check-format}
+   :co-nit      {:validate co-nit? :format dash-check-format}
    :pe-ruc      {:validate pe-ruc?}
    :ie-pps      {:validate ie-pps?}
    :ee-ik       {:validate ee-ik? :parse ee-ik-parse}
    :jmbg        {:validate jmbg? :parse jmbg-parse}
    :ec-ced      {:validate ec-ced?}
    :bg-egn      {:validate bg-egn?}
-   :orcid       {:validate orcid?}
-   :isni        {:validate orcid?}
+   :orcid       {:validate orcid? :format orcid-format}
+   :isni        {:validate orcid? :format isni-format}
    :gtin14      {:validate gtin14?}
    :sscc        {:validate sscc?}
    :gln         {:validate gln?}
