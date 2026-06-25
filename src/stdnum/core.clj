@@ -717,6 +717,24 @@
      :birth-date (str century (subs n 0 2) "-" (subs n 2 4) "-" (subs n 4 6))
      :gender     (if (odd? (- (int (.charAt n 8)) 48)) :male :female)}))
 
+;; Belgium national number: YYMMDD + serial; the century is whichever mod-97 base
+;; validated (un-prefixed = 1900s, "2"-prefixed = 2000s). Serial parity = gender.
+(defn- be-nn-parse [^String n]
+  (let [base (subs n 0 9) chk (Integer/parseInt (subs n 9))
+        century (if (= chk (- 97 (mod (Long/parseLong base) 97))) "19" "20")]
+    {:valid?     true
+     :birth-date (str century (subs n 0 2) "-" (subs n 2 4) "-" (subs n 4 6))
+     :gender     (if (odd? (Integer/parseInt (subs n 6 9))) :male :female)}))
+
+;; Bulgaria EGN: month offset carries the century (01-12=1900s, 21-32=1800s,
+;; 41-52=2000s); the 9th digit is the gender.
+(defn- bg-egn-parse [^String n]
+  (let [mm (Integer/parseInt (subs n 2 4))
+        [century month] (cond (> mm 40) ["20" (- mm 40)] (> mm 20) ["18" (- mm 20)] :else ["19" mm])]
+    {:valid?     true
+     :birth-date (str century (subs n 0 2) "-" (clojure.core/format "%02d" month) "-" (subs n 4 6))
+     :gender     (if (odd? (- (int (.charAt n 8)) 48)) :male :female)}))
+
 ;; China resident ID: digits 7-14 are the full YYYYMMDD birth date; the 17th
 ;; digit is the gender (odd male, even female).
 (defn- cn-ric-parse [^String n]
@@ -747,6 +765,9 @@
 (defn- ar-cuit-format [^String n] (str (subs n 0 2) "-" (subs n 2 10) "-" (subs n 10)))
 (defn- dash-check-format [^String n]                   ; dotted body + "-" + final check char (CL/CO)
   (let [k (dec (count n))] (str (dotted (subs n 0 k)) "-" (subs n k))))
+(defn- se-pnr-format [^String n] (str (subs n 0 6) "-" (subs n 6 10)))
+(defn- be-nn-format [^String n]
+  (str (subs n 0 2) "." (subs n 2 4) "." (subs n 4 6) "-" (subs n 6 9) "." (subs n 9 11)))
 
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
@@ -780,7 +801,7 @@
    :es-nie      {:validate es-nie?}
    :nl-bsn      {:validate nl-bsn?}
    :cn-ric      {:validate cn-ric? :parse cn-ric-parse}
-   :se-pnr      {:validate se-pnr? :parse se-pnr-parse}
+   :se-pnr      {:validate se-pnr? :parse se-pnr-parse :format se-pnr-format}
    :mx-clabe    {:validate mx-clabe?}
    :za-id       {:validate za-id? :parse za-id-parse}
    :no-org      {:validate no-org?}
@@ -804,7 +825,7 @@
    :ch-uid      {:validate ch-uid?}
    :ch-ahv      {:validate ch-ahv?}
    :nz-ird      {:validate nz-ird?}
-   :be-nn       {:validate be-nn?}
+   :be-nn       {:validate be-nn? :parse be-nn-parse :format be-nn-format}
    :fi-hetu     {:validate fi-hetu?}
    :figi        {:validate figi?}
    :mt-vat      {:validate mt-vat?}
@@ -834,7 +855,7 @@
    :ee-ik       {:validate ee-ik? :parse ee-ik-parse}
    :jmbg        {:validate jmbg? :parse jmbg-parse}
    :ec-ced      {:validate ec-ced?}
-   :bg-egn      {:validate bg-egn?}
+   :bg-egn      {:validate bg-egn? :parse bg-egn-parse}
    :orcid       {:validate orcid? :format orcid-format}
    :isni        {:validate orcid? :format isni-format}
    :gtin14      {:validate gtin14?}

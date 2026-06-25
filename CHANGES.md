@@ -10,7 +10,10 @@ All notable changes to this project are documented here. The format follows
 - `parse :cn-ric` (China resident ID) now extracts `:birth-date` (full YYYY-MM-DD) and `:gender`.
 - More `parse` extraction: `:pl-pesel` -> `:birth-date` (century resolved from the PESEL month
   offset, so unambiguous) + `:gender`; `:fr-nir` -> `:gender` `:birth-year` `:birth-month`
-  `:department`; `:se-pnr` -> `:birth-date` `:gender`.
+  `:department`; `:se-pnr` -> `:birth-date` `:gender`; `:be-nn` -> `:birth-date` (century from the
+  validating mod-97 base) + `:gender`; `:bg-egn` -> `:birth-date` (century from month offset) +
+  `:gender`.
+- Canonical `format` for `:se-pnr` (`811218-9876`) and `:be-nn` (`00.01.25-111.48`).
 - Canonical `format` for more types: `:orcid` (`0000-0002-1825-0097`), `:isni`
   (`0000 0001 2103 2683`), `:cas` (`7732-18-5`), `:ar-cuit` (`30-70308853-4`), `:cl-rut`
   (`97.004.000-5`), `:co-nit` (`890.903.938-8`).

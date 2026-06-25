@@ -457,6 +457,14 @@
     (let [p (stdnum/parse :se-pnr "811218-9876")]
       (is (= "1981-12-18" (:birth-date p)))
       (is (= :male (:gender p)))))
+  (testing "Belgium national number extracts birth date (century from check base) and gender"
+    (let [p (stdnum/parse :be-nn "00012511148")]
+      (is (= "2000-01-25" (:birth-date p)))
+      (is (= :male (:gender p)))))
+  (testing "Bulgaria EGN extracts birth date (century from month offset) and gender"
+    (let [p (stdnum/parse :bg-egn "7523169263")]
+      (is (= "1875-03-16" (:birth-date p)))
+      (is (= :female (:gender p)))))
   (testing "parse on an invalid value still returns {:valid? false} with no fields"
     (is (= {:valid? false} (stdnum/parse :mx-curp "HEGG560427MVZRRL05")))
     (is (= {:valid? false} (stdnum/parse :ee-ik "37605030298")))))
@@ -472,6 +480,9 @@
     (is (= "30-70308853-4" (stdnum/format :ar-cuit "30703088534")))
     (is (= "97.004.000-5" (stdnum/format :cl-rut "970040005")))
     (is (= "890.903.938-8" (stdnum/format :co-nit "8909039388"))))
+  (testing "personnummer and Belgium NN national display forms"
+    (is (= "811218-9876" (stdnum/format :se-pnr "8112189876")))
+    (is (= "00.01.25-111.48" (stdnum/format :be-nn "00012511148"))))
   (testing "format returns nil for invalid input"
     (is (nil? (stdnum/format :ar-cuit "30703088535")))
     (is (nil? (stdnum/format :cas "7732186")))))
