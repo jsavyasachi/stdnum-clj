@@ -9,6 +9,10 @@ All notable changes to this project are documented here. The format follows
 ### Added
 - More canonical `format`: `:hk-id` (`A123456(3)`), `:kr-brn` (`124-81-00998`), `:au-abn`
   (`51 824 753 556`), `:au-tfn` (`123 456 782`), `:no-org` (`974 760 673`).
+- New namespace `stdnum.checkdigit` exposing the underlying algorithms as standalone primitives
+  (the python-stdnum `stdnum.luhn`/`verhoeff`/`iso7064` parallel): `luhn-valid?` /
+  `luhn-check-digit`, `verhoeff-valid?` / `verhoeff-check-digit`, `iso7064-mod11-2-valid?` /
+  `iso7064-mod11-2-check`, and `iso7064-mod97-10-valid?`.
 
 ## [0.10.0] - 2026-06-24
 
