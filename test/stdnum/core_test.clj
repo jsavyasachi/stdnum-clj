@@ -479,6 +479,25 @@
       (is (= :visa (:network p)))
       (is (= "411111" (:iin p)))
       (is (= "1111" (:last4 p)))))
+  (testing "BIC decomposes into bank / country / location / branch"
+    (let [p (stdnum/parse :bic "DEUTDEFF500")]
+      (is (= "DEUT" (:bank-code p)))
+      (is (= "DE" (:country p)))
+      (is (= "FF" (:location-code p)))
+      (is (= "500" (:branch-code p))))
+    (is (nil? (:branch-code (stdnum/parse :bic "DEUTDEFF")))))   ; no branch on an 8-char BIC
+  (testing "Mexico CLABE decomposes into bank / branch / account"
+    (let [p (stdnum/parse :mx-clabe "002010077777777771")]
+      (is (= "002" (:bank-code p)))
+      (is (= "010" (:branch-code p)))
+      (is (= "07777777777" (:account p)))))
+  (testing "IMEI exposes TAC and serial; ISIN exposes country and NSIN"
+    (let [p (stdnum/parse :imei "490154203237518")]
+      (is (= "49015420" (:tac p)))
+      (is (= "323751" (:serial p))))
+    (let [p (stdnum/parse :isin "US0378331005")]
+      (is (= "US" (:country p)))
+      (is (= "037833100" (:nsin p)))))
   (testing "parse on an invalid value still returns {:valid? false} with no fields"
     (is (= {:valid? false} (stdnum/parse :mx-curp "HEGG560427MVZRRL05")))
     (is (= {:valid? false} (stdnum/parse :ee-ik "37605030298")))))

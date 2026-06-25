@@ -64,6 +64,14 @@
       (iban-field #(.getAccountNumber i)) (assoc :account-number (iban-field #(.getAccountNumber i))))))
 (defn- iban-format [^String n] (.toFormattedString (Iban/valueOf n)))
 (defn- bic-valid? [^String n] (boolean (Bic/valueOf n))) ; throws on invalid; caught upstream
+(defn- bic-parse [^String n]
+  (let [^Bic b (Bic/valueOf n)
+        branch (try (.getBranchCode b) (catch Exception _ nil))]
+    (cond-> {:valid?        true
+             :bank-code     (.getBankCode b)
+             :country       (str (.getCountryCode b))
+             :location-code (.getLocationCode b)}
+      (seq branch) (assoc :branch-code branch))))
 
 ;; --- books / securities -------------------------------------------------------
 (def ^:private ^ISBNValidator isbn-validator (ISBNValidator/getInstance))
@@ -73,6 +81,7 @@
 (defn- issn-hyphenate [^String n] (if (= 8 (count n)) (str (subs n 0 4) "-" (subs n 4)) n))
 (defn- issn-valid? [^String n] (.isValid issn-validator (issn-hyphenate n)))
 (defn- isin-valid? [^String n] (.isValid isin-validator n))
+(defn- isin-parse [^String n] {:valid? true :country (subs n 0 2) :nsin (subs n 2 11)})
 
 ;; --- check-digit primitives ---------------------------------------------------
 (def ^:private ^LuhnCheckDigit luhn-cd (LuhnCheckDigit.))
@@ -80,6 +89,7 @@
 (defn- luhn-valid? [^String n] (and (re-matches #"\d+" n) (.isValid luhn-cd n)))
 (defn- aba-valid?  [^String n] (and (re-matches #"\d{9}" n) (.isValid aba-cd n)))
 (defn- imei-valid? [^String n] (and (re-matches #"\d{15}" n) (.isValid luhn-cd n)))
+(defn- imei-parse [^String n] {:valid? true :tac (subs n 0 8) :serial (subs n 8 14)})
 
 ;; --- global / national entity & person identifiers (clean-room from public specs) ---
 
@@ -249,6 +259,8 @@
        (let [d (digits-of n)
              s (reduce + (map (fn [x w] (mod (* (long x) (long w)) 10)) (subvec d 0 17) clabe-weights))]
          (= (mod (- 10 (mod (long s) 10)) 10) (d 17)))))
+(defn- mx-clabe-parse [^String n]                    ; 3 bank + 3 branch + 11 account + 1 check
+  {:valid? true :bank-code (subs n 0 3) :branch-code (subs n 3 6) :account (subs n 6 17)})
 (defn- za-id? [^String n]                            ; South Africa ID: 13-digit Luhn
   (boolean (and (re-matches #"\d{13}" n) (.isValid luhn-cd n))))
 (def ^:private no-org-weights [3 2 7 6 5 4 3 2])
@@ -806,12 +818,12 @@
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
    :iban        {:validate iban-valid? :parse iban-parse :format iban-format}
-   :bic         {:validate bic-valid?}
+   :bic         {:validate bic-valid? :parse bic-parse}
    :isbn        {:validate isbn-valid?}
    :issn        {:validate issn-valid? :format issn-hyphenate}
-   :isin        {:validate isin-valid?}
+   :isin        {:validate isin-valid? :parse isin-parse}
    :aba         {:validate aba-valid?}
-   :imei        {:validate imei-valid?}
+   :imei        {:validate imei-valid? :parse imei-parse}
    :luhn        {:validate luhn-valid?}
    :lei         {:validate lei-valid?}
    :cusip       {:validate cusip-valid?}
@@ -836,7 +848,7 @@
    :nl-bsn      {:validate nl-bsn?}
    :cn-ric      {:validate cn-ric? :parse cn-ric-parse}
    :se-pnr      {:validate se-pnr? :parse se-pnr-parse :format se-pnr-format}
-   :mx-clabe    {:validate mx-clabe?}
+   :mx-clabe    {:validate mx-clabe? :parse mx-clabe-parse}
    :za-id       {:validate za-id? :parse za-id-parse}
    :no-org      {:validate no-org?}
    :tr-tc       {:validate tr-tc?}

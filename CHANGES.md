@@ -13,6 +13,9 @@ All notable changes to this project are documented here. The format follows
 - More non-date `parse` extraction: `:in-pan` -> `:holder-type` (from the 4th character), `:ec-ced`
   -> `:province-code` `:province`, `:pe-ruc` -> `:entity-type` (`:company`/`:natural-person`), and
   `:credit-card` now also returns `:iin` (first 6) and `:last4`.
+- Structural `parse` decomposition: `:bic` -> `:bank-code` `:country` `:location-code`
+  `:branch-code` (via iban4j); `:mx-clabe` -> `:bank-code` `:branch-code` `:account`; `:imei` ->
+  `:tac` `:serial`; `:isin` -> `:country` `:nsin`.
 
 ## [0.9.0] - 2026-06-24
 
