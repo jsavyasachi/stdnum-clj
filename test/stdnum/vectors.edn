@@ -114,12 +114,12 @@
  :sk-vat      {:valid ["SK2020317068"] :invalid ["SK2020317069"] :source "ESET spol. s r.o.; VIES-confirmed" :vies true}
  :lt-vat      {:valid ["LT119511515"] :invalid ["LT119511516"] :source "Klaipėda University; VIES-confirmed" :vies true}
  :ro-vat      {:valid ["RO14837428"] :invalid ["RO14837429"] :source "Borg Design SRL; VIES-confirmed" :vies true}
- :at-vat      {:valid ["ATU13585627"] :invalid ["ATU13585628"] :source "Austria ATU checksum example"}
- :se-vat      {:valid ["SE556293998201"] :invalid ["SE556293998202"] :source "Sweden VAT checksum example"}
- :gr-vat      {:valid ["EL094014249"] :invalid ["EL094014248"] :source "Greece AFM checksum example"}
- :si-vat      {:valid ["SI50223054"] :invalid ["SI50223055"] :source "Slovenia VAT checksum example"}
- :ee-vat      {:valid ["EE100207415"] :invalid ["EE100207416"] :source "Estonia VAT checksum example"}
- :hu-vat      {:valid ["HU10597190"] :invalid ["HU10597191"] :source "Hungary VAT checksum example"}
+ :at-vat      {:valid ["ATU37675002"] :invalid ["ATU37675003"] :source "Technische Universität Wien; VIES-confirmed" :vies true}
+ :se-vat      {:valid ["SE556293998201"] :invalid ["SE556293998202"] :source "Björn Lundén AB; VIES-confirmed" :vies true}
+ :gr-vat      {:valid ["EL094019245"] :invalid ["EL094019246"] :source "OTE (Hellenic Telecommunications Org.); VIES-confirmed" :vies true}
+ :si-vat      {:valid ["SI50223054"] :invalid ["SI50223055"] :source "Postojnska Jama d.d.; VIES-confirmed" :vies true}
+ :ee-vat      {:valid ["EE100594102"] :invalid ["EE100594103"] :source "Movek Grupp OÜ; VIES-confirmed" :vies true}
+ :hu-vat      {:valid ["HU10484878"] :invalid ["HU10484879"] :source "Richter Gedeon Nyrt.; VIES-confirmed" :vies true}
  :cz-ico      {:valid ["00006947"] :invalid ["00006948"] :source "Czech IČO algorithm"}
  :mt-vat      {:valid ["MT11679112"] :invalid ["MT11679113"] :source "Malta VAT checksum example"}
  :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}}
