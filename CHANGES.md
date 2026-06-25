@@ -6,6 +6,10 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- More canonical `format`: `:hk-id` (`A123456(3)`), `:kr-brn` (`124-81-00998`), `:au-abn`
+  (`51 824 753 556`), `:au-tfn` (`123 456 782`), `:no-org` (`974 760 673`).
+
 ## [0.10.0] - 2026-06-24
 
 Depth pass, part 2: broader `format` coverage and `parse` decomposition of structural identifiers

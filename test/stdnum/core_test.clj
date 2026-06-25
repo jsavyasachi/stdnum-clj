@@ -524,6 +524,12 @@
     (is (= "756.9217.0769.85" (stdnum/format :ch-ahv "7569217076985")))
     (is (= "046 454 286" (stdnum/format :ca-sin "046454286")))
     (is (= "2 55 08 14 168 025 38" (stdnum/format :fr-nir "255081416802538"))))
+  (testing "business/national IDs with national display forms"
+    (is (= "A123456(3)" (stdnum/format :hk-id "A1234563")))
+    (is (= "124-81-00998" (stdnum/format :kr-brn "1248100998")))
+    (is (= "51 824 753 556" (stdnum/format :au-abn "51824753556")))
+    (is (= "123 456 782" (stdnum/format :au-tfn "123456782")))
+    (is (= "974 760 673" (stdnum/format :no-org "974760673"))))
   (testing "format returns nil for invalid input"
     (is (nil? (stdnum/format :ar-cuit "30703088535")))
     (is (nil? (stdnum/format :cas "7732186")))))

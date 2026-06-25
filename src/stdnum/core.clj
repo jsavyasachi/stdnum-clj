@@ -810,7 +810,12 @@
 (defn- aadhaar-format [^String n] (str (subs n 0 4) " " (subs n 4 8) " " (subs n 8 12)))
 (defn- ch-ahv-format [^String n]
   (str (subs n 0 3) "." (subs n 3 7) "." (subs n 7 11) "." (subs n 11 13)))
-(defn- ca-sin-format [^String n] (str (subs n 0 3) " " (subs n 3 6) " " (subs n 6 9)))
+(defn- triple3-format [^String n] (str (subs n 0 3) " " (subs n 3 6) " " (subs n 6 9)))  ; SIN/TFN/org
+(defn- hk-id-format [^String n]
+  (let [k (dec (count n))] (str (subs n 0 k) "(" (subs n k) ")")))
+(defn- kr-brn-format [^String n] (str (subs n 0 3) "-" (subs n 3 5) "-" (subs n 5 10)))
+(defn- au-abn-format [^String n]
+  (str (subs n 0 2) " " (subs n 2 5) " " (subs n 5 8) " " (subs n 8 11)))
 (defn- fr-nir-format [^String n]
   (str (subs n 0 1) " " (subs n 1 3) " " (subs n 3 5) " " (subs n 5 7) " "
        (subs n 7 10) " " (subs n 10 13) " " (subs n 13 15)))
@@ -839,8 +844,8 @@
    :pl-vat      {:validate pl-vat?}
    :gb-vat      {:validate gb-vat?}
    :gb-nino     {:validate nino? :format nino-format}
-   :ca-sin      {:validate ca-sin? :format ca-sin-format}
-   :au-abn      {:validate au-abn?}
+   :ca-sin      {:validate ca-sin? :format triple3-format}
+   :au-abn      {:validate au-abn? :format au-abn-format}
    :in-pan      {:validate in-pan? :parse in-pan-parse}
    :in-aadhaar  {:validate in-aadhaar? :format aadhaar-format}
    :es-dni      {:validate es-dni?}
@@ -850,7 +855,7 @@
    :se-pnr      {:validate se-pnr? :parse se-pnr-parse :format se-pnr-format}
    :mx-clabe    {:validate mx-clabe? :parse mx-clabe-parse}
    :za-id       {:validate za-id? :parse za-id-parse}
-   :no-org      {:validate no-org?}
+   :no-org      {:validate no-org? :format triple3-format}
    :tr-tc       {:validate tr-tc?}
    :at-vat      {:validate at-vat?}
    :dk-vat      {:validate dk-vat?}
@@ -860,7 +865,7 @@
    :pt-nif      {:validate pt-nif?}
    :cz-ico      {:validate cz-ico?}
    :jp-cn       {:validate jp-cn?}
-   :au-tfn      {:validate au-tfn?}
+   :au-tfn      {:validate au-tfn? :format triple3-format}
    :lu-vat      {:validate lu-vat?}
    :si-vat      {:validate si-vat?}
    :in-gstin    {:validate in-gstin?}
@@ -880,8 +885,8 @@
    :cy-vat      {:validate cy-vat?}
    :ro-vat      {:validate ro-vat?}
    :sg-nric     {:validate sg-nric?}
-   :hk-id       {:validate hk-id?}
-   :kr-brn      {:validate kr-brn?}
+   :hk-id       {:validate hk-id? :format hk-id-format}
+   :kr-brn      {:validate kr-brn? :format kr-brn-format}
    :ean13       {:validate ean13?}
    :upc         {:validate upc?}
    :vin         {:validate vin? :parse vin-parse}
