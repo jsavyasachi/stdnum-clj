@@ -6,6 +6,15 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-06-24
+
+### Added
+- `:iso6346` — ISO 6346 freight container (BIC) number, with the standard's character-value
+  weighting and mod-11 check (vector: the standard's worked example `CSQU3054383`).
+- `:ru-inn` — Russia INN tax number (10-digit legal entity and 12-digit individual variants;
+  vector: Gazprom PJSC's public number).
+- `:tw-gui` — Taiwan Unified Business Number / 統一編號 (vector: TSMC's public number).
+
 ## [0.14.0] - 2026-06-24
 
 EU-27 VAT coverage is now complete (100 identifier types).

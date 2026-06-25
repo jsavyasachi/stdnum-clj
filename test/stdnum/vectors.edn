@@ -127,5 +127,8 @@
  :hr-vat      {:valid ["HR30286967868"] :invalid ["HR30286967869"] :source "Croatia VAT (HR + OIB); VIES-confirmed registrant" :vies true}
  :cz-vat      {:valid ["CZ00177041"] :invalid ["CZ00177042"] :source "Škoda Auto a.s.; VIES-confirmed" :vies true}
  :pt-vat      {:valid ["PT500697256"] :invalid ["PT500697257"] :source "EDP S.A.; VIES-confirmed" :vies true}
+ :iso6346     {:valid ["CSQU3054383"] :invalid ["CSQU3054384"] :source "ISO 6346 standard; worked example CSQU3054383"}
+ :ru-inn      {:valid ["7736050003"] :invalid ["7736050004"] :source "Russia INN; Gazprom PJSC (public legal-entity tax ID)"}
+ :tw-gui      {:valid ["22099131"] :invalid ["22099132"] :source "Taiwan Unified Business No. (統一編號); TSMC (public)"}
  :mt-vat      {:valid ["MT11679112"] :invalid ["MT11679113"] :source "Malta VAT checksum example"}
  :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}}

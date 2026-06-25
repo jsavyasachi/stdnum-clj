@@ -664,6 +664,33 @@
 (defn- hr-vat? [^String n] (hr-oib? n))               ; Croatia VAT = HR + OIB
 (defn- cz-vat? [^String n] (cz-ico? n))               ; Czech VAT (legal entity) = CZ + 8-digit IČO
 (defn- pt-vat? [^String n] (pt-nif? n))               ; Portugal VAT = PT + NIF
+(def ^:private iso6346-letter                         ; A=10..Z=38, skipping multiples of 11
+  (zipmap (map char (range (int \A) (inc (int \Z))))
+          (remove #(zero? (mod (long %) 11)) (range 10 39))))
+(defn- iso6346? [^String n]                           ; ISO 6346 freight container (BIC) number
+  (and (re-matches #"[A-Z]{3}[UJZ]\d{7}" n)
+       (let [vs (concat (map iso6346-letter (subs n 0 4))
+                        (map #(- (int %) 48) (subs n 4 10)))
+             s (reduce + (map-indexed (fn [i v] (* (long v) (bit-shift-left 1 (int i)))) vs))]
+         (= (mod (mod s 11) 10) (- (int (.charAt n 10)) 48)))))
+(defn- ru-inn? [^String n]                            ; Russia INN: mod-11 mod-10 (10-digit legal, 12-digit person)
+  (cond
+    (re-matches #"\d{10}" n)
+    (let [d (digits-of n)]
+      (= (mod (mod (long (reduce + (map * (subvec d 0 9) [2 4 10 3 5 9 4 6 8]))) 11) 10) (d 9)))
+    (re-matches #"\d{12}" n)
+    (let [d (digits-of n)
+          c11 (mod (mod (long (reduce + (map * (subvec d 0 10) [7 2 4 10 3 5 9 4 6 8]))) 11) 10)
+          c12 (mod (mod (long (reduce + (map * (subvec d 0 11) [3 7 2 4 10 3 5 9 4 6 8]))) 11) 10)]
+      (and (= c11 (d 10)) (= c12 (d 11))))
+    :else false))
+(defn- tw-digit-sum ^long [^long x] (+ (quot x 10) (mod x 10)))
+(defn- tw-gui? [^String n]                            ; Taiwan Unified Business No. (統一編號): weighted, mod 5
+  (and (re-matches #"\d{8}" n)
+       (let [d (digits-of n)
+             s (long (reduce + (map (fn [w dig] (tw-digit-sum (* (long w) (long dig)))) [1 2 1 2 1 2 4 1] d)))]
+         (or (zero? (mod s 5))
+             (and (= (d 6) 7) (zero? (mod (inc s) 5)))))))
 
 ;; ORCID and ISNI: 16 chars, ISO 7064 MOD 11-2 check (last char may be X). Same
 ;; algorithm and shape; kept as distinct types for intent.
@@ -943,6 +970,9 @@
    :hr-vat      {:validate hr-vat?}
    :cz-vat      {:validate cz-vat?}
    :pt-vat      {:validate pt-vat?}
+   :iso6346     {:validate iso6346?}
+   :ru-inn      {:validate ru-inn?}
+   :tw-gui      {:validate tw-gui?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}
