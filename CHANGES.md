@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- New namespace `stdnum.gs1-128` for parsing GS1-128 (UCC/EAN-128) Application Identifier element
+  strings (the python-stdnum `stdnum.gs1_128` parallel). `parse` handles both the parenthesized
+  human-readable form and the raw FNC1-delimited scan form, returning ordered
+  `{:ai :label :value}` segments; weight/measure and amount AIs also report `:decimals` and a
+  numeric `:decimal-value`. `parse-map` returns an AI-keyed map.
+
 ## [0.11.0] - 2026-06-24
 
 Two major capability additions plus broader format coverage and two new VAT types (92 -> 94). The

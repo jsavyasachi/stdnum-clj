@@ -93,6 +93,21 @@ directly (the python-stdnum `stdnum.luhn` / `verhoeff` / `iso7064` parallel):
 (cd/iso7064-mod97-10-valid? "5493001KJTIIGC8Y1R12") ;=> true  (LEI / IBAN family)
 ```
 
+## GS1-128 barcode parsing
+
+`stdnum.gs1-128` decodes GS1-128 (UCC/EAN-128) Application Identifier element strings - the data
+carried on logistics and retail barcodes - in either the parenthesized or raw FNC1 form:
+
+```clojure
+(require '[stdnum.gs1-128 :as gs1])
+(gs1/parse "(01)09521234543213(3103)000123(10)ABC123")
+;=> [{:ai "01"   :label "GTIN"           :value "09521234543213"}
+;    {:ai "3103" :label "NET WEIGHT (kg)" :value "000123" :decimals 3 :decimal-value 0.123}
+;    {:ai "10"   :label "BATCH/LOT"      :value "ABC123"}]
+
+(gs1/parse-map "(01)09521234543213(10)ABC123")  ;=> {"01" "09521234543213", "10" "ABC123"}
+```
+
 ## Online VAT validation (VIES)
 
 A checksum proves a VAT number is *well-formed*; it can't prove the company exists. `stdnum.vies`
