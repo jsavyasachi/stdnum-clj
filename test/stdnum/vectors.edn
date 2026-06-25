@@ -132,5 +132,8 @@
  :tw-gui      {:valid ["22099131"] :invalid ["22099132"] :source "Taiwan Unified Business No. (統一編號); TSMC (public)"}
  :ua-edrpou   {:valid ["20077720" "40075815"] :invalid ["20077721"] :source "Ukraine EDRPOU; Naftogaz / Ukrzaliznytsia (public companies)"}
  :cn-usci     {:valid ["91440300708461136T"] :invalid ["91440300708461136U"] :source "China Unified Social Credit Identifier; Tencent (public)"}
+ :iswc        {:valid ["T0345246801" "T-034.524.680-1"] :invalid ["T0345246802"] :source "ISO 15707 / CISAC; worked example T-034.524.680-1"}
+ :is-kennitala {:valid ["4612023490"] :invalid ["4612023480"] :source "Iceland kennitala; Icelandair ehf (public company registry no.)"}
+ :ve-rif      {:valid ["J000950369" "J001230726"] :invalid ["J000950368"] :source "Venezuela RIF; PDVSA / PDVSA Petróleo (public)"}
  :mt-vat      {:valid ["MT11679112"] :invalid ["MT11679113"] :source "Malta VAT checksum example"}
  :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}}

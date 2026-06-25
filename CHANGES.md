@@ -6,6 +6,14 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-06-24
+
+### Added
+- `:iswc` — International Standard Musical Work Code (ISO 15707; vector: the CISAC worked
+  example `T-034.524.680-1`).
+- `:is-kennitala` — Iceland kennitala (vector: Icelandair ehf's public registry number).
+- `:ve-rif` — Venezuela RIF tax number (letter-prefixed; vector: PDVSA's public number).
+
 ## [0.16.0] - 2026-06-24
 
 ### Added

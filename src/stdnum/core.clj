@@ -708,6 +708,26 @@
        (let [vals (mapv #(.indexOf usci-charset (int %)) n)
              s (long (reduce + (map * (subvec vals 0 17) usci-weights)))]
          (= (mod (- 31 (mod s 31)) 31) (vals 17)))))
+(defn- iswc? [^String n]                              ; ISWC musical-work code: T + 9 digits + mod-10 check
+  (and (re-matches #"T\d{10}" n)
+       (let [d (digits-of (subs n 1))
+             s (long (reduce + (map-indexed (fn [i x] (* (inc (long i)) (long x))) (subvec d 0 9))))]
+         (= (mod (- 10 (mod (inc s) 10)) 10) (d 9)))))
+(defn- is-kennitala? [^String n]                      ; Iceland kennitala: weighted mod 11
+  (and (re-matches #"\d{10}" n)
+       (let [d (digits-of n)
+             c (- 11 (mod (long (reduce + (map * [3 2 7 6 5 4 3 2] (subvec d 0 8)))) 11))
+             c (if (= c 11) 0 c)]
+         (and (not= c 10) (= c (d 8))))))
+(def ^:private ve-rif-letter {\V 1 \E 2 \J 3 \P 4 \G 5})
+(defn- ve-rif? [^String n]                            ; Venezuela RIF: letter-weighted mod 11
+  (and (re-matches #"[VEJPG]\d{9}" n)
+       (let [d (digits-of (subs n 1))
+             s (+ (* 4 (long (ve-rif-letter (.charAt n 0))))
+                  (long (reduce + (map * [3 2 7 6 5 4 3 2] (subvec d 0 8)))))
+             c (- 11 (mod s 11))
+             c (if (>= c 10) 0 c)]
+         (= c (d 8)))))
 
 ;; ORCID and ISNI: 16 chars, ISO 7064 MOD 11-2 check (last char may be X). Same
 ;; algorithm and shape; kept as distinct types for intent.
@@ -992,6 +1012,9 @@
    :tw-gui      {:validate tw-gui?}
    :ua-edrpou   {:validate ua-edrpou?}
    :cn-usci     {:validate cn-usci?}
+   :iswc        {:validate iswc?}
+   :is-kennitala {:validate is-kennitala?}
+   :ve-rif      {:validate ve-rif?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}
