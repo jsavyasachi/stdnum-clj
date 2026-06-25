@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-06-24
+
+Two major capability additions plus broader format coverage and two new VAT types (92 -> 94). The
+two real gaps versus python-stdnum - standalone check-digit algorithms and online VAT validation -
+are now closed.
+
 ### Added
 - More canonical `format`: `:hk-id` (`A123456(3)`), `:kr-brn` (`124-81-00998`), `:au-abn`
   (`51 824 753 556`), `:au-tfn` (`123 456 782`), `:no-org` (`974 760 673`).
@@ -179,6 +185,7 @@ Initial release.
 - Idiomatic facade over Apache Commons Validator 1.10.1 and iban4j 3.2.11 - no algorithm
   reimplementation. Bad input data never throws; only an unknown identifier type does.
 
+[0.11.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.11.0
 [0.10.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.10.0
 [0.9.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.9.0
 [0.8.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.8.0
