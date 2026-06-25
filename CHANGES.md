@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- Canonical `format` for more existing types with standard display forms: `:nhs` (`943 476 5919`),
+  `:gb-nino` (`AB 12 34 56 C`), `:in-aadhaar` (`2341 2341 2346`), `:ch-ahv` (`756.9217.0769.85`),
+  `:ca-sin` (`046 454 286`), `:fr-nir` (`2 55 08 14 168 025 38`).
+
 ## [0.9.0] - 2026-06-24
 
 Depth pass continued: more `parse` field-extraction and canonical `format`. Extraction now covers

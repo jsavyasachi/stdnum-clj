@@ -483,6 +483,14 @@
   (testing "personnummer and Belgium NN national display forms"
     (is (= "811218-9876" (stdnum/format :se-pnr "8112189876")))
     (is (= "00.01.25-111.48" (stdnum/format :be-nn "00012511148"))))
+  (testing "national IDs reformat to their standard spaced/dotted display forms"
+    (is (= "943 476 5919" (stdnum/format :nhs "9434765919")))
+    (is (= "AB 12 34 56 C" (stdnum/format :gb-nino "AB123456C")))
+    (is (= "AB 12 34 56" (stdnum/format :gb-nino "AB123456")))      ; suffix optional
+    (is (= "2341 2341 2346" (stdnum/format :in-aadhaar "234123412346")))
+    (is (= "756.9217.0769.85" (stdnum/format :ch-ahv "7569217076985")))
+    (is (= "046 454 286" (stdnum/format :ca-sin "046454286")))
+    (is (= "2 55 08 14 168 025 38" (stdnum/format :fr-nir "255081416802538"))))
   (testing "format returns nil for invalid input"
     (is (nil? (stdnum/format :ar-cuit "30703088535")))
     (is (nil? (stdnum/format :cas "7732186")))))

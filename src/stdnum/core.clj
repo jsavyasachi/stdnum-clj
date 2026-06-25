@@ -768,6 +768,17 @@
 (defn- se-pnr-format [^String n] (str (subs n 0 6) "-" (subs n 6 10)))
 (defn- be-nn-format [^String n]
   (str (subs n 0 2) "." (subs n 2 4) "." (subs n 4 6) "-" (subs n 6 9) "." (subs n 9 11)))
+(defn- nhs-format [^String n] (str (subs n 0 3) " " (subs n 3 6) " " (subs n 6 10)))
+(defn- nino-format [^String n]
+  (str (subs n 0 2) " " (subs n 2 4) " " (subs n 4 6) " " (subs n 6 8)
+       (when (> (count n) 8) (str " " (subs n 8)))))
+(defn- aadhaar-format [^String n] (str (subs n 0 4) " " (subs n 4 8) " " (subs n 8 12)))
+(defn- ch-ahv-format [^String n]
+  (str (subs n 0 3) "." (subs n 3 7) "." (subs n 7 11) "." (subs n 11 13)))
+(defn- ca-sin-format [^String n] (str (subs n 0 3) " " (subs n 3 6) " " (subs n 6 9)))
+(defn- fr-nir-format [^String n]
+  (str (subs n 0 1) " " (subs n 1 3) " " (subs n 3 5) " " (subs n 5 7) " "
+       (subs n 7 10) " " (subs n 10 13) " " (subs n 13 15)))
 
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
@@ -792,11 +803,11 @@
    :be-vat      {:validate be-vat?}
    :pl-vat      {:validate pl-vat?}
    :gb-vat      {:validate gb-vat?}
-   :gb-nino     {:validate nino?}
-   :ca-sin      {:validate ca-sin?}
+   :gb-nino     {:validate nino? :format nino-format}
+   :ca-sin      {:validate ca-sin? :format ca-sin-format}
    :au-abn      {:validate au-abn?}
    :in-pan      {:validate in-pan?}
-   :in-aadhaar  {:validate in-aadhaar?}
+   :in-aadhaar  {:validate in-aadhaar? :format aadhaar-format}
    :es-dni      {:validate es-dni?}
    :es-nie      {:validate es-nie?}
    :nl-bsn      {:validate nl-bsn?}
@@ -823,7 +834,7 @@
    :hr-oib      {:validate hr-oib?}
    :it-cf       {:validate it-cf? :parse it-cf-parse}
    :ch-uid      {:validate ch-uid?}
-   :ch-ahv      {:validate ch-ahv?}
+   :ch-ahv      {:validate ch-ahv? :format ch-ahv-format}
    :nz-ird      {:validate nz-ird?}
    :be-nn       {:validate be-nn? :parse be-nn-parse :format be-nn-format}
    :fi-hetu     {:validate fi-hetu?}
@@ -839,13 +850,13 @@
    :ean13       {:validate ean13?}
    :upc         {:validate upc?}
    :vin         {:validate vin? :parse vin-parse}
-   :nhs         {:validate nhs?}
+   :nhs         {:validate nhs? :format nhs-format}
    :npi         {:validate npi?}
    :ean8        {:validate ean8?}
    :ismn        {:validate ismn?}
    :cas         {:validate cas? :format cas-format}
    :imo         {:validate imo?}
-   :fr-nir      {:validate fr-nir? :parse fr-nir-parse}
+   :fr-nir      {:validate fr-nir? :parse fr-nir-parse :format fr-nir-format}
    :pl-pesel    {:validate pesel? :parse pesel-parse}
    :ar-cuit     {:validate ar-cuit? :format ar-cuit-format}
    :cl-rut      {:validate cl-rut? :format dash-check-format}
