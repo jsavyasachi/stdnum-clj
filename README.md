@@ -150,6 +150,19 @@ standards with public, well-documented algorithms (LEI, VAT, CPF/CNPJ, SSN, …)
 clean-room and stay under this library's EPL license. More are added on demand - open an issue
 for an identifier you need.
 
+## Verification (source of truth)
+
+Correctness is pinned by a cited corpus, not ad-hoc assertions. `test/stdnum/vectors.edn` maps
+every identifier type to `{:valid [...] :invalid [...] :source "..."}`, where each number is a
+worked example from its standard, a government registry, an issuing company's published number, or
+a live VIES check - and `:source` is mandatory. The test suite is driven from this file, so adding
+a format means adding a cited vector first.
+
+For EU VAT, entries tagged `:vies true` are confirmed live-registered companies, and
+`lein test :integration` re-checks them against the official VIES service. (A useful distinction
+that surfaced: a valid checksum doesn't imply a *registered* number - several common example VAT
+numbers are checksum-valid but unregistered, and are labelled as algorithm examples accordingly.)
+
 ## License
 
 Copyright (c) 2026 Savyasachi. Released under the

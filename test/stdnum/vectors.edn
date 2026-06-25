@@ -1,0 +1,125 @@
+;; Verification corpus - the source of truth for stdnum-clj.
+;;
+;; Each identifier type maps to {:valid [...] :invalid [...] :source "..."}. Each
+;; number is a worked example from its standard, a government registry, an issuing
+;; company's published number, or a live VIES check; `:source` is mandatory and
+;; names where the vector came from so any entry can be re-checked.
+;;
+;; `:vies true` marks EU VAT entries confirmed live-registered, re-checked against
+;; the VIES service by the ^:integration test in vectors_test.clj.
+;;
+;; Adding a format = add a row here with a cited vector FIRST, then implement.
+
+{:lei         {:valid ["5493001KJTIIGC8Y1R12" "HWUPKR0MPOU8FGXBT394"]
+               :invalid ["5493001KJTIIGC8Y1R13" "5493001KJTIIGC8Y1R1"]
+               :source "GLEIF LEI registry (gleif.org); ISO 17442"}
+ :iban        {:valid ["GB82WEST12345698765432"] :invalid ["GB82WEST12345698765433"]
+               :source "ISO 13616 worked example"}
+ :bic         {:valid ["DEUTDEFF" "DEUTDEFF500"] :invalid ["XX"] :source "ISO 9362 (Deutsche Bank)"}
+ :credit-card {:valid ["4111111111111111" "5555555555554444" "378282246310005" "6011111111111117"]
+               :invalid ["4111111111111112"] :source "Standard per-network test PANs"}
+ :isin        {:valid ["US0378331005"] :invalid ["US0378331004"] :source "ISO 6166 (Apple)"}
+ :cusip       {:valid ["037833100" "38259P508"] :invalid ["037833108"]
+               :source "CUSIP Global Services (Apple, Alphabet)"}
+ :sedol       {:valid ["0263494" "B0YBKJ7"] :invalid ["0263495"] :source "LSE SEDOL masterfile examples"}
+ :figi        {:valid ["BBG000BLNNH6" "BBG000B9XRY4"] :invalid ["BBG000BLNNH7"]
+               :source "OpenFIGI (Apple composite & equity)"}
+ :isbn        {:valid ["0306406152" "9780306406157"] :invalid ["9780306406158"]
+               :source "ISBN International worked example"}
+ :issn        {:valid ["0317-8471"] :invalid ["0317-8470"] :source "ISSN worked example"}
+ :ismn        {:valid ["9790001148412"] :invalid ["9790001148413"] :source "ISMN International (Schott)"}
+ :imei        {:valid ["490154203237518"] :invalid ["490154203237519"] :source "GSMA Luhn example"}
+ :luhn        {:valid ["79927398713"] :invalid ["79927398714"] :source "Luhn algorithm canonical example"}
+ :aba         {:valid ["021000021"] :invalid ["021000020"] :source "US Federal Reserve routing (JPMorgan NY)"}
+ :orcid       {:valid ["0000000218250097"] :invalid ["0000000218250098"]
+               :source "ORCID (Josiah Carberry sandbox id); ISO 7064 Mod 11-2"}
+ :isni        {:valid ["0000000121032683"] :invalid ["0000000121032684"] :source "ISNI registry"}
+ :ean13       {:valid ["4006381333931"] :invalid ["4006381333932"] :source "GS1 EAN-13 worked example"}
+ :ean8        {:valid ["96385074"] :invalid ["96385075"] :source "GS1 EAN-8 worked example"}
+ :upc         {:valid ["036000291452"] :invalid ["036000291453"] :source "GS1 UPC-A worked example"}
+ :gtin14      {:valid ["10614141000415"] :invalid ["10614141000416"] :source "GS1 GTIN-14 worked example"}
+ :sscc        {:valid ["001234560000000018"] :invalid ["001234560000000019"] :source "GS1 SSCC worked example"}
+ :gln         {:valid ["0614141000005"] :invalid ["0614141000006"] :source "GS1 GLN worked example"}
+ :vin         {:valid ["1HGBH41JXMN109186"] :invalid ["1HGBH41J1MN109186"] :source "NHTSA VIN check-digit example"}
+ :imo         {:valid ["9074729"] :invalid ["9074728"] :source "IMO ship number (Wikipedia worked example)"}
+ :cas         {:valid ["7732185" "50000"] :invalid ["7732186"] :source "CAS Registry (water, formaldehyde)"}
+ :nhs         {:valid ["9434765919"] :invalid ["9434765918"] :source "NHS Data Dictionary test number"}
+ :npi         {:valid ["1234567893"] :invalid ["1234567890"] :source "US CMS NPI example"}
+
+ :br-cpf      {:valid ["11144477735"] :invalid ["11144477736" "11111111111"] :source "Receita Federal worked example"}
+ :br-cnpj     {:valid ["11222333000181" "00000000000191"] :invalid ["11222333000182"]
+               :source "Receita Federal; Banco do Brasil CNPJ"}
+ :us-ssn      {:valid ["123456789"] :invalid ["000123456" "666123456" "078051120"] :source "US SSA issuance rules"}
+ :us-ein      {:valid ["123456789"] :invalid ["070000000"] :source "US IRS campus prefix list"}
+ :gb-nino     {:valid ["AB123456C" "AB123456"] :invalid ["QQ123456C" "GB123456C"] :source "UK HMRC NINO structure"}
+ :ca-sin      {:valid ["046454286"] :invalid ["046454287"] :source "Canada SIN (Luhn) worked example"}
+ :au-abn      {:valid ["51824753556"] :invalid ["51824753557"] :source "Australian Taxation Office published example"}
+ :au-tfn      {:valid ["123456782"] :invalid ["123456789"] :source "ATO TFN algorithm example"}
+ :in-pan      {:valid ["ABCPE1234F"] :invalid ["ABCDE1234F"] :source "India Income Tax PAN structure"}
+ :in-aadhaar  {:valid ["234123412346"] :invalid ["234123412347"] :source "UIDAI Verhoeff example"}
+ :in-gstin    {:valid ["27AAPFU0939F1ZV"] :invalid ["27AAPFU0939F1ZX"] :source "GSTN canonical example"}
+ :es-dni      {:valid ["12345678Z"] :invalid ["12345678A"] :source "Spain DNI mod-23 example"}
+ :es-nie      {:valid ["X1234567L"] :invalid ["X1234567A"] :source "Spain NIE mod-23 example"}
+ :nl-bsn      {:valid ["111222333"] :invalid ["111222334"] :source "Netherlands BSN elfproef example"}
+ :cn-ric      {:valid ["11010519491231002X" "440524188001010014"] :invalid ["11010519491231002Y"]
+               :source "China GB 11643 resident ID example"}
+ :se-pnr      {:valid ["8112189876"] :invalid ["8112189877"] :source "Sweden personnummer (Luhn) example"}
+ :za-id       {:valid ["8001015009087"] :invalid ["8001015009088"] :source "South Africa ID (Luhn) example"}
+ :no-org      {:valid ["974760673"] :invalid ["974760674"] :source "Brønnøysund Register org. number"}
+ :tr-tc       {:valid ["10000000146"] :invalid ["10000000147"] :source "Turkey T.C. Kimlik No algorithm"}
+ :it-cf       {:valid ["RSSMRA80A01H501U" "MRTMTT25D09F205Z"] :invalid ["RSSMRA80A01H501A"]
+               :source "Agenzia delle Entrate codice fiscale example"}
+ :ch-uid      {:valid ["CHE116281710"] :invalid ["116281711"] :source "Switzerland UID register"}
+ :ch-ahv      {:valid ["7569217076985"] :invalid ["7569217076986"] :source "Switzerland AHV (EAN-13) example"}
+ :hr-oib      {:valid ["69435151530"] :invalid ["69435151531"] :source "Croatia OIB (ISO 7064) example"}
+ :ee-ik       {:valid ["37605030299"] :invalid ["37605030298"] :source "Estonia isikukood example"}
+ :ie-pps      {:valid ["6433435F" "6433435OA"] :invalid ["6433435FA"] :source "Ireland PPSN algorithm"}
+ :jmbg        {:valid ["0101006500006"] :invalid ["0101006500007"] :source "ex-Yugoslav JMBG algorithm"}
+ :ec-ced      {:valid ["1710034065"] :invalid ["1710034066"] :source "Ecuador cédula algorithm"}
+ :bg-egn      {:valid ["7523169263"] :invalid ["7523169264"] :source "Bulgaria EGN (Wikipedia worked example)"}
+ :mx-curp     {:valid ["HEGG560427MVZRRL04"] :invalid ["HEGG560427MVZRRL05"] :source "RENAPO CURP worked example"}
+ :mx-clabe    {:valid ["002010077777777771" "032180000118359719"] :invalid ["002010077777777772"]
+               :source "Banxico CLABE worked example"}
+ :fr-nir      {:valid ["255081416802538"] :invalid ["255081416802539"] :source "INSEE NIR worked example"}
+ :pl-pesel    {:valid ["44051401359"] :invalid ["44051401358"] :source "Poland PESEL worked example"}
+ :ar-cuit     {:valid ["30703088534"] :invalid ["30703088535"] :source "AFIP; MercadoLibre CUIT"}
+ :cl-rut      {:valid ["970040005"] :invalid ["970040006"] :source "SII; Banco de Chile RUT"}
+ :co-nit      {:valid ["8909039388"] :invalid ["8909039389"] :source "DIAN; Bancolombia NIT"}
+ :pe-ruc      {:valid ["20100070970"] :invalid ["20100070971"] :source "SUNAT; Banco de Crédito del Perú RUC"}
+ :sg-nric     {:valid ["S1234567D" "F1234567N"] :invalid ["S1234567A"] :source "Singapore NRIC/FIN algorithm"}
+ :hk-id       {:valid ["A1234563"] :invalid ["A1234564"] :source "Hong Kong HKID worked example"}
+ :kr-brn      {:valid ["1248100998"] :invalid ["1248100999"] :source "South Korea BRN; Samsung Electronics"}
+ :jp-cn       {:valid ["7000012050002"] :invalid ["7000012050003"] :source "Japan corporate number (NTA)"}
+ :nz-ird      {:valid ["049098576" "49091850"] :invalid ["049098577"] :source "NZ IRD number algorithm (IRD)"}
+ :be-nn       {:valid ["00012511148"] :invalid ["00012511149"] :source "Belgium national number (mod-97) algorithm"}
+ :fi-hetu     {:valid ["131052-308T" "010594Y9032"] :invalid ["131052-308U"] :source "Finland HETU (DVV) example"}
+
+ ;; EU VAT. `:vies true` marks numbers CONFIRMED to be live-registered companies
+ ;; (re-checked against VIES); the live integration test asserts those. The rest
+ ;; are checksum-valid algorithm examples (they exercise the validator) that are
+ ;; NOT necessarily registered companies - VIES is the source of truth on that, and
+ ;; it showed several common "example" VAT numbers are checksum-valid but unregistered.
+ :de-vat      {:valid ["DE136695976"] :invalid ["DE136695977"] :source "AB InBev DE; VIES-confirmed" :vies true}
+ :fr-vat      {:valid ["FR40303265045"] :invalid ["FR41303265045"] :source "INSEE SIREN; VIES-confirmed" :vies true}
+ :it-vat      {:valid ["IT00743110157"] :invalid ["IT00743110158"] :source "Motorola Solutions Italia; VIES-confirmed" :vies true}
+ :be-vat      {:valid ["BE0417497106"] :invalid ["BE0417497107"] :source "AB InBev BE; VIES-confirmed" :vies true}
+ :lu-vat      {:valid ["LU26375245"] :invalid ["LU26375246"] :source "Amazon Europe Core; VIES-confirmed" :vies true}
+ :es-vat      {:valid ["A28015865"] :invalid ["A28015866"] :source "Telefónica CIF; VIES-confirmed" :vies true}
+ :ie-vat      {:valid ["6388047V"] :invalid ["6388047W"] :source "Google Ireland; VIES-confirmed" :vies true}
+ :gb-vat      {:valid ["GB980780684"] :invalid ["GB980780685"] :source "HMRC weighted mod-97 example (UK left VIES)"}
+ :pl-vat      {:valid ["PL5260001246"] :invalid ["PL5260001247"] :source "Poland NIP checksum example"}
+ :at-vat      {:valid ["ATU13585627"] :invalid ["ATU13585628"] :source "Austria ATU checksum example"}
+ :dk-vat      {:valid ["DK13585628"] :invalid ["DK13585629"] :source "Denmark VAT checksum example"}
+ :fi-vat      {:valid ["FI20774740"] :invalid ["FI20774741"] :source "Finland VAT checksum example"}
+ :se-vat      {:valid ["SE556293998201"] :invalid ["SE556293998202"] :source "Sweden VAT checksum example"}
+ :gr-vat      {:valid ["EL094014249"] :invalid ["EL094014248"] :source "Greece AFM checksum example"}
+ :si-vat      {:valid ["SI50223054"] :invalid ["SI50223055"] :source "Slovenia VAT checksum example"}
+ :ee-vat      {:valid ["EE100207415"] :invalid ["EE100207416"] :source "Estonia VAT checksum example"}
+ :hu-vat      {:valid ["HU10597190"] :invalid ["HU10597191"] :source "Hungary VAT checksum example"}
+ :pt-nif      {:valid ["501964843"] :invalid ["501964844"] :source "Portugal NIF checksum example"}
+ :cz-ico      {:valid ["00006947"] :invalid ["00006948"] :source "Czech IČO algorithm"}
+ :mt-vat      {:valid ["MT11679112"] :invalid ["MT11679113"] :source "Malta VAT checksum example"}
+ :sk-vat      {:valid ["SK2020317068"] :invalid ["SK2020317069"] :source "Slovakia VAT checksum example"}
+ :lt-vat      {:valid ["LT119511515"] :invalid ["LT119511516"] :source "Lithuania VAT checksum example"}
+ :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}
+ :ro-vat      {:valid ["RO18547290"] :invalid ["RO18547291"] :source "Romania CUI checksum example"}}
