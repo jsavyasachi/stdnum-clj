@@ -719,6 +719,11 @@
              c (- 11 (mod (long (reduce + (map * [3 2 7 6 5 4 3 2] (subvec d 0 8)))) 11))
              c (if (= c 11) 0 c)]
          (and (not= c 10) (= c (d 8))))))
+(defn- do-rnc? [^String n]                            ; Dominican Republic RNC: weighted mod 11
+  (and (re-matches #"\d{9}" n)
+       (let [d (digits-of n)
+             s (long (reduce + (map * [7 9 8 6 5 4 3 2] (subvec d 0 8))))]
+         (= (inc (mod (- 10 (mod s 11)) 9)) (d 8)))))
 (def ^:private ve-rif-letter {\V 1 \E 2 \J 3 \P 4 \G 5})
 (defn- ve-rif? [^String n]                            ; Venezuela RIF: letter-weighted mod 11
   (and (re-matches #"[VEJPG]\d{9}" n)
@@ -1015,6 +1020,7 @@
    :iswc        {:validate iswc?}
    :is-kennitala {:validate is-kennitala?}
    :ve-rif      {:validate ve-rif?}
+   :do-rnc      {:validate do-rnc?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}

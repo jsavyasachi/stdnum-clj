@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-06-24
+
+### Added
+- `:do-rnc` — Dominican Republic RNC tax number (vectors: 3M Dominicana, from the DGII's own
+  published list, and Claro).
+
 ## [0.17.0] - 2026-06-24
 
 ### Added
