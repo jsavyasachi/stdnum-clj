@@ -6,6 +6,18 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-06-24
+
+### Changed
+- Six EU VAT verification vectors (AT, SE, GR, SI, EE, HU) upgraded from checksum-valid but
+  unregistered example numbers to numbers confirmed live-registered against VIES (TU Wien,
+  Björn Lundén AB, OTE, Postojnska Jama, Movek Grupp, Richter Gedeon), each tagged `:vies true`
+  so `lein test :integration` re-checks them against the official registry.
+
+### Fixed
+- Removed an auto-boxing warning in `stdnum.gs1-128/parse-raw` (the FNC1 offset accumulator was
+  Object-typed); the build is now reflection- and boxing-warning clean again.
+
 ## [0.12.0] - 2026-06-24
 
 GS1-128 barcode parsing, and a cited verification corpus that drives the test suite (with live VIES

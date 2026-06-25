@@ -91,9 +91,9 @@
           out                                          ; unknown AI: stop, return what we have
           (let [spec (ai-spec ai)
                 vstart (+ i (count ai))
-                vend (if-let [len (:len spec)]
-                       (min (count s) (+ vstart len))
-                       (let [gs (str/index-of s fnc1 vstart)] (or gs (count s))))
+                vend (long (if-let [len (:len spec)]
+                             (min (count s) (+ vstart len))
+                             (let [gs (str/index-of s fnc1 vstart)] (or gs (count s)))))
                 value (subs s vstart vend)
                 ;; skip a trailing FNC1 after a variable field
                 next-i (if (and (:max spec) (< vend (count s)) (= 29 (int (.charAt s vend))))
