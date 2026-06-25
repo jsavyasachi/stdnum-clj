@@ -238,6 +238,21 @@
                 (let [p (case (.charAt n 0) \X "0" \Y "1" \Z "2")
                       v (Long/parseLong (str p (subs n 1 8)))]
                   (= (.charAt dni-letters (int (mod v 23))) (.charAt n 8))))))
+;; Spain VAT (NIF): a natural-person DNI, a foreigner NIE, or a legal-entity CIF
+;; (entity letter + 7 digits + a control that is a digit for some entity types,
+;; a letter for others - accept either so no valid number is rejected).
+(def ^:private ^String cif-letters "JABCDEFGHI")
+(defn- cif? [^String n]
+  (and (re-matches #"[ABCDEFGHJNPQRSUVW]\d{7}[0-9A-J]" n)
+       (let [total (reduce + (map-indexed
+                              (fn [i d] (if (even? i) (let [p (* 2 (long d))] (+ (quot p 10) (mod p 10))) (long d)))
+                              (digits-of (subs n 1 8))))
+             cd (mod (- 10 (mod (long total) 10)) 10)
+             ctrl (.charAt n 8)]
+         (or (= ctrl (char (+ 48 cd))) (= ctrl (.charAt cif-letters cd))))))
+(defn- es-vat? [^String n]                          ; Spain VAT = DNI, NIE, or CIF
+  (let [n (strip-cc n "ES")] (boolean (or (es-dni? n) (es-nie? n) (cif? n)))))
+
 (def ^:private bsn-weights [9 8 7 6 5 4 3 2 -1])
 (defn- nl-bsn? [^String n]                           ; Netherlands BSN: 11-test (elfproef)
   (and (re-matches #"\d{8,9}" n)
@@ -584,6 +599,12 @@
     (let [extra (if (= 9 (count n)) (* 9 (- (int (.charAt n 8)) 64)) 0)
           s (+ (long (reduce + (map * (digits-of (subs n 0 7)) [8 7 6 5 4 3 2]))) (long extra))]
       (= (.charAt ie-pps-letters (int (mod s 23))) (.charAt n 7)))))
+(defn- ie-vat? [^String n]                            ; Ireland VAT: 7 digits + mod-23 check letter
+  (let [n (strip-cc n "IE")]
+    (when (re-matches #"\d{7}[A-W]" n)
+      (= (.charAt ie-pps-letters
+                  (int (mod (long (reduce + (map * (digits-of (subs n 0 7)) [8 7 6 5 4 3 2]))) 23)))
+         (.charAt n 7)))))
 
 ;; Estonia isikukood: weighted mod 11, reweighting once when the remainder is 10.
 (defn- ee-ik? [^String n]
@@ -884,6 +905,8 @@
    :lt-vat      {:validate lt-vat?}
    :cy-vat      {:validate cy-vat?}
    :ro-vat      {:validate ro-vat?}
+   :es-vat      {:validate es-vat?}
+   :ie-vat      {:validate ie-vat?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}

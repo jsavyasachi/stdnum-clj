@@ -281,7 +281,17 @@
   (testing "Cyprus VAT (even-position remap, mod-26 letter)"
     (is (stdnum/valid? :cy-vat "CY10259033P"))
     (is (stdnum/valid? :cy-vat "10259033P"))
-    (is (not (stdnum/valid? :cy-vat "10259033Q")))))
+    (is (not (stdnum/valid? :cy-vat "10259033Q"))))
+  (testing "Spain VAT covers CIF (Telefonica), DNI and NIE forms"
+    (is (stdnum/valid? :es-vat "A28015865"))            ; Telefonica CIF
+    (is (stdnum/valid? :es-vat "ESA28015865"))          ; prefix tolerated
+    (is (stdnum/valid? :es-vat "12345678Z"))            ; DNI form
+    (is (stdnum/valid? :es-vat "X1234567L"))            ; NIE form
+    (is (not (stdnum/valid? :es-vat "A28015866"))))
+  (testing "Ireland VAT (mod-23 check letter) - Google Ireland"
+    (is (stdnum/valid? :ie-vat "IE6388047V"))
+    (is (stdnum/valid? :ie-vat "6388047V"))
+    (is (not (stdnum/valid? :ie-vat "6388047W")))))
 
 (deftest apac-and-romania-ids
   (testing "Romania VAT/CUI (key right-aligned, variable length)"

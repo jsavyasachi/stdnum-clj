@@ -13,6 +13,9 @@ All notable changes to this project are documented here. The format follows
   (the python-stdnum `stdnum.luhn`/`verhoeff`/`iso7064` parallel): `luhn-valid?` /
   `luhn-check-digit`, `verhoeff-valid?` / `verhoeff-check-digit`, `iso7064-mod11-2-valid?` /
   `iso7064-mod11-2-check`, and `iso7064-mod97-10-valid?`.
+- Two more VAT types (90 -> ... 94 total): `:es-vat` (Spain - covers the DNI, NIE and CIF forms;
+  CIF accepts the digit- or letter-control convention) and `:ie-vat` (Ireland, mod-23 check letter).
+  Verified against Telefónica's CIF and Google Ireland's VAT.
 - New namespace `stdnum.vies` for **online** EU VAT validation against the official VIES service
   (`vies/check`), confirming a VAT number actually exists in the member-state registry and returning
   the trader name/address where disclosed. Member-state errors (e.g. `MS_UNAVAILABLE`) surface as
