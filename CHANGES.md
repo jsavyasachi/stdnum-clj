@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-06-24
+
+Depth pass continued: more `parse` field-extraction and canonical `format`. Extraction now covers
+every shipped identifier that embeds a birth date. No new types (still 92); this release deepens
+the existing surface.
+
 ### Added
 - `parse :cn-ric` (China resident ID) now extracts `:birth-date` (full YYYY-MM-DD) and `:gender`.
 - More `parse` extraction: `:pl-pesel` -> `:birth-date` (century resolved from the PESEL month
@@ -138,6 +144,7 @@ Initial release.
 - Idiomatic facade over Apache Commons Validator 1.10.1 and iban4j 3.2.11 - no algorithm
   reimplementation. Bad input data never throws; only an unknown identifier type does.
 
+[0.9.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.9.0
 [0.8.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.8.0
 [0.7.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.7.0
 [0.6.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.6.0
