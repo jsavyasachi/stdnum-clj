@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-06-24
+
+Depth pass, part 2: broader `format` coverage and `parse` decomposition of structural identifiers
+(BIC, CLABE, IMEI, ISIN) and non-date IDs. Still 92 types; this release deepens the surface so most
+identifiers now report their parts, not just `{:valid? true}`. 22 types have `parse` extraction and
+22 have canonical `format`.
+
 ### Added
 - Canonical `format` for more existing types with standard display forms: `:nhs` (`943 476 5919`),
   `:gb-nino` (`AB 12 34 56 C`), `:in-aadhaar` (`2341 2341 2346`), `:ch-ahv` (`756.9217.0769.85`),
@@ -155,6 +162,7 @@ Initial release.
 - Idiomatic facade over Apache Commons Validator 1.10.1 and iban4j 3.2.11 - no algorithm
   reimplementation. Bad input data never throws; only an unknown identifier type does.
 
+[0.10.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.10.0
 [0.9.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.9.0
 [0.8.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.8.0
 [0.7.0]: https://github.com/jsavyasachi/stdnum-clj/releases/tag/0.7.0
