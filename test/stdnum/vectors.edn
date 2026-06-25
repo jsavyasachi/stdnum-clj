@@ -130,5 +130,7 @@
  :iso6346     {:valid ["CSQU3054383"] :invalid ["CSQU3054384"] :source "ISO 6346 standard; worked example CSQU3054383"}
  :ru-inn      {:valid ["7736050003"] :invalid ["7736050004"] :source "Russia INN; Gazprom PJSC (public legal-entity tax ID)"}
  :tw-gui      {:valid ["22099131"] :invalid ["22099132"] :source "Taiwan Unified Business No. (統一編號); TSMC (public)"}
+ :ua-edrpou   {:valid ["20077720" "40075815"] :invalid ["20077721"] :source "Ukraine EDRPOU; Naftogaz / Ukrzaliznytsia (public companies)"}
+ :cn-usci     {:valid ["91440300708461136T"] :invalid ["91440300708461136U"] :source "China Unified Social Credit Identifier; Tencent (public)"}
  :mt-vat      {:valid ["MT11679112"] :invalid ["MT11679113"] :source "Malta VAT checksum example"}
  :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}}

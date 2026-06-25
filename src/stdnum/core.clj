@@ -691,6 +691,23 @@
              s (long (reduce + (map (fn [w dig] (tw-digit-sum (* (long w) (long dig)))) [1 2 1 2 1 2 4 1] d)))]
          (or (zero? (mod s 5))
              (and (= (d 6) 7) (zero? (mod (inc s) 5)))))))
+(defn- ua-edrpou? [^String n]                         ; Ukraine EDRPOU (company): weighted mod 11, two weight sets
+  (and (re-matches #"\d{8}" n)
+       (let [d (digits-of n) v (Long/parseLong n)
+             w (if (or (< v 30000000) (>= v 60000000)) [1 2 3 4 5 6 7] [7 1 2 3 4 5 6])
+             c (mod (long (reduce + (map * (subvec d 0 7) w))) 11)
+             c (if (= c 10)
+                 (let [c2 (mod (long (reduce + (map * (subvec d 0 7) (map #(+ (long %) 2) w)))) 11)]
+                   (if (= c2 10) 0 c2))
+                 c)]
+         (= c (d 7)))))
+(def ^:private ^String usci-charset "0123456789ABCDEFGHJKLMNPQRTUWXY")  ; excludes I O S V Z
+(def ^:private usci-weights [1 3 9 27 19 26 16 17 20 29 25 13 8 24 10 30 28])
+(defn- cn-usci? [^String n]                           ; China Unified Social Credit Identifier (18 char, mod 31)
+  (and (re-matches #"[0-9A-HJ-NP-RTUWXY]{18}" n)
+       (let [vals (mapv #(.indexOf usci-charset (int %)) n)
+             s (long (reduce + (map * (subvec vals 0 17) usci-weights)))]
+         (= (mod (- 31 (mod s 31)) 31) (vals 17)))))
 
 ;; ORCID and ISNI: 16 chars, ISO 7064 MOD 11-2 check (last char may be X). Same
 ;; algorithm and shape; kept as distinct types for intent.
@@ -973,6 +990,8 @@
    :iso6346     {:validate iso6346?}
    :ru-inn      {:validate ru-inn?}
    :tw-gui      {:validate tw-gui?}
+   :ua-edrpou   {:validate ua-edrpou?}
+   :cn-usci     {:validate cn-usci?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}

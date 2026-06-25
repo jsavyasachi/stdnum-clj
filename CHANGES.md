@@ -6,6 +6,14 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-06-24
+
+### Added
+- `:ua-edrpou` — Ukraine EDRPOU company registration number (both weight-set branches;
+  vectors: Naftogaz and Ukrzaliznytsia public numbers).
+- `:cn-usci` — China Unified Social Credit Identifier, the 18-character company code
+  (mod-31 over the 31-symbol alphabet; vector: Tencent's public number).
+
 ## [0.15.0] - 2026-06-24
 
 ### Added
