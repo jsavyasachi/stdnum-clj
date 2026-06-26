@@ -733,6 +733,14 @@
              c (- 11 (mod s 11))
              c (if (>= c 10) 0 c)]
          (= c (d 8)))))
+(defn- ru-ogrn? [^String n]                           ; Russia OGRN (company): check = (first12 mod 11) mod 10
+  (and (re-matches #"\d{13}" n)
+       (= (mod (mod (Long/parseLong (subs n 0 12)) 11) 10) (Character/digit (.charAt n 12) 10))))
+(defn- vn-mst? [^String n]                            ; Vietnam tax code (MST): 10 digits (+ optional 3-digit branch), weighted mod 11
+  (and (re-matches #"\d{10}(?:\d{3})?" n)
+       (let [d (digits-of (subs n 0 10))
+             s (long (reduce + (map * [31 29 23 19 17 13 7 5 3] (subvec d 0 9))))]
+         (= (mod (- 10 (mod s 11)) 10) (d 9)))))
 
 ;; ORCID and ISNI: 16 chars, ISO 7064 MOD 11-2 check (last char may be X). Same
 ;; algorithm and shape; kept as distinct types for intent.
@@ -1021,6 +1029,8 @@
    :is-kennitala {:validate is-kennitala?}
    :ve-rif      {:validate ve-rif?}
    :do-rnc      {:validate do-rnc?}
+   :ru-ogrn     {:validate ru-ogrn?}
+   :vn-mst      {:validate vn-mst?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}

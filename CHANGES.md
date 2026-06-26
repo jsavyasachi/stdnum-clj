@@ -6,6 +6,14 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-06-25
+
+### Added
+- `:ru-ogrn` — Russia OGRN company registration number (check = first-12 mod 11, mod 10;
+  vectors: Sberbank / Gazprom public EGRUL numbers).
+- `:vn-mst` — Vietnam tax code / MST (10-digit, optional 3-digit branch suffix; weighted mod 11;
+  vectors: Vietcombank / Vinamilk, public listed companies).
+
 ## [0.18.0] - 2026-06-24
 
 ### Added

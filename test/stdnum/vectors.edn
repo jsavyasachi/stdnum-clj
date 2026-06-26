@@ -136,5 +136,7 @@
  :is-kennitala {:valid ["4612023490"] :invalid ["4612023480"] :source "Iceland kennitala; Icelandair ehf (public company registry no.)"}
  :ve-rif      {:valid ["J000950369" "J001230726"] :invalid ["J000950368"] :source "Venezuela RIF; PDVSA / PDVSA Petróleo (public)"}
  :do-rnc      {:valid ["101027797" "101001577"] :invalid ["101027798"] :source "Dominican Republic RNC; DGII published list (3M Dominicana) / Claro"}
+ :ru-ogrn     {:valid ["1027700132195" "1027700070518"] :invalid ["1027700132196"] :source "Russia OGRN; Sberbank / Gazprom (public EGRUL registration numbers)"}
+ :vn-mst      {:valid ["0100112437" "0300588569"] :invalid ["0100112438"] :source "Vietnam tax code (MST); Vietcombank / Vinamilk (public listed companies)"}
  :mt-vat      {:valid ["MT11679112"] :invalid ["MT11679113"] :source "Malta VAT checksum example"}
  :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}}
