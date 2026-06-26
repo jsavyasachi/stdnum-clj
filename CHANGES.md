@@ -6,6 +6,15 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-06-25
+
+### Added
+- `:au-acn` — Australia Company Number, 9-digit (weights 8..1, complement mod 10; vector: BHP Group Ltd).
+- `:sk-ico` — Slovakia IČO, 8-digit (same Czechoslovak mod-11 algorithm as `:cz-ico`; vector: ESET spol. s r.o.).
+
+### Changed
+- README install snippets bumped to the current release (were stale at 0.18.0).
+
 ## [0.21.0] - 2026-06-25
 
 ### Added

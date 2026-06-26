@@ -762,6 +762,15 @@
                                                 (if (> x 9) (- x 9) x)))
                                     (digits-of n))))
                    10))))
+(defn- au-acn? [^String n]                            ; Australia Company Number (ACN): weights 8..1, complement mod 10
+  (and (re-matches #"\d{9}" n)
+       (let [d (digits-of n)]
+         (= (mod (- 10 (mod (long (reduce + (map * (subvec d 0 8) [8 7 6 5 4 3 2 1]))) 10)) 10) (d 8)))))
+(defn- sk-ico? [^String n]                            ; Slovakia IČO: weighted mod 11 (same Czechoslovak algorithm as Czech IČO)
+  (and (re-matches #"\d{8}" n)
+       (let [d (digits-of n)
+             r (mod (long (reduce + (map * (subvec d 0 7) [8 7 6 5 4 3 2]))) 11)]
+         (= (mod (- 11 r) 10) (d 7)))))
 
 ;; ORCID and ISNI: 16 chars, ISO 7064 MOD 11-2 check (last char may be X). Same
 ;; algorithm and shape; kept as distinct types for intent.
@@ -1055,6 +1064,8 @@
    :rs-pib      {:validate rs-pib?}
    :pl-regon    {:validate pl-regon?}
    :il-company  {:validate il-company?}
+   :au-acn      {:validate au-acn?}
+   :sk-ico      {:validate sk-ico?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}

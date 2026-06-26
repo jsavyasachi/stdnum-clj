@@ -141,5 +141,7 @@
  :rs-pib      {:valid ["104052135"] :invalid ["104052136"] :source "Serbia PIB; NIS a.d. Novi Sad (public; PIB on belex.rs / business registries)"}
  :pl-regon    {:valid ["610188201"] :invalid ["610188202"] :source "Poland REGON (9-digit); PKN Orlen S.A. (public; KRS 0000028860)"}
  :il-company  {:valid ["520013954"] :invalid ["520013955"] :source "Israel company/ID number (9-digit Luhn); Teva Pharmaceutical Industries Ltd (public registrar no.)"}
+ :au-acn      {:valid ["004028077"] :invalid ["004028078"] :source "Australia Company Number (ACN); BHP Group Ltd (public; ABN Lookup 49 004 028 077)"}
+ :sk-ico      {:valid ["31333532"] :invalid ["31333533"] :source "Slovakia IČO; ESET spol. s r.o. (public Slovak commercial register)"}
  :mt-vat      {:valid ["MT11679112"] :invalid ["MT11679113"] :source "Malta VAT checksum example"}
  :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}}
