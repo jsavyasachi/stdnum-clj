@@ -755,6 +755,13 @@
        (let [d (digits-of n)
              c (mod (mod (long (reduce + (map * [8 9 2 3 4 5 6 7] (subvec d 0 8)))) 11) 10)]
          (= c (d 8)))))
+(defn- il-company? [^String n]                        ; Israel company/ID number: 9-digit Israeli Luhn (weights 1,2,1,2,…)
+  (and (re-matches #"\d{9}" n)
+       (zero? (mod (long (reduce + (map-indexed
+                                    (fn [i d] (let [x (* (long d) (if (even? (long i)) 1 2))]
+                                                (if (> x 9) (- x 9) x)))
+                                    (digits-of n))))
+                   10))))
 
 ;; ORCID and ISNI: 16 chars, ISO 7064 MOD 11-2 check (last char may be X). Same
 ;; algorithm and shape; kept as distinct types for intent.
@@ -1047,6 +1054,7 @@
    :vn-mst      {:validate vn-mst?}
    :rs-pib      {:validate rs-pib?}
    :pl-regon    {:validate pl-regon?}
+   :il-company  {:validate il-company?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}

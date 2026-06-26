@@ -140,5 +140,6 @@
  :vn-mst      {:valid ["0100112437" "0300588569"] :invalid ["0100112438"] :source "Vietnam tax code (MST); Vietcombank / Vinamilk (public listed companies)"}
  :rs-pib      {:valid ["104052135"] :invalid ["104052136"] :source "Serbia PIB; NIS a.d. Novi Sad (public; PIB on belex.rs / business registries)"}
  :pl-regon    {:valid ["610188201"] :invalid ["610188202"] :source "Poland REGON (9-digit); PKN Orlen S.A. (public; KRS 0000028860)"}
+ :il-company  {:valid ["520013954"] :invalid ["520013955"] :source "Israel company/ID number (9-digit Luhn); Teva Pharmaceutical Industries Ltd (public registrar no.)"}
  :mt-vat      {:valid ["MT11679112"] :invalid ["MT11679113"] :source "Malta VAT checksum example"}
  :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}}

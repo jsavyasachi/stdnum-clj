@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-06-25
+
+### Added
+- `:il-company` — Israel company/ID number, 9-digit (Israeli Luhn; vector: Teva Pharmaceutical
+  Industries Ltd, public registrar number).
+
 ## [0.20.0] - 2026-06-25
 
 ### Added
