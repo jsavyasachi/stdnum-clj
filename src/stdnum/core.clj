@@ -780,6 +780,11 @@
                    (if (= c2 10) 0 c2))
                  c)]
          (= c (d 7)))))
+(defn- uy-rut? [^String n]                            ; Uruguay RUT (tax): 12-digit weighted mod 11
+  (and (re-matches #"\d{12}" n)
+       (let [d (digits-of n)
+             s (long (reduce + (map * [4 3 2 9 8 7 6 5 4 3 2] (subvec d 0 11))))]
+         (= (mod (- 11 (mod s 11)) 11) (d 11)))))
 
 ;; ORCID and ISNI: 16 chars, ISO 7064 MOD 11-2 check (last char may be X). Same
 ;; algorithm and shape; kept as distinct types for intent.
@@ -1076,6 +1081,7 @@
    :au-acn      {:validate au-acn?}
    :sk-ico      {:validate sk-ico?}
    :ee-rk       {:validate ee-rk?}
+   :uy-rut      {:validate uy-rut?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}
