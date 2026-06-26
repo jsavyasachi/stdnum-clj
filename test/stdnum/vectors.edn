@@ -152,5 +152,6 @@
  :fr-siret    {:valid ["44163946500018"] :invalid ["44163946500019"] :source "France SIRET (14-digit Luhn); Renault S.A. siège social 441 639 465 00018 (annuaire-entreprises.data.gouv.fr)"}
  :se-orgnr    {:valid ["5560125790" "5560160680"] :invalid ["5560125791"] :source "Sweden organisationsnummer (10-digit Luhn); Volvo AB 556012-5790 / Ericsson AB 556016-0680 (Bolagsverket)"}
  :es-cif      {:valid ["A39000013"] :invalid ["A39000014"] :source "Spain CIF; Banco Santander S.A. A39000013 (CNMV official register, cnmv.es)"}
+ :nz-nzbn     {:valid ["9429040402543" "9429036748471"] :invalid ["9429040402544"] :source "New Zealand Business Number (GS1 GLN, 9429 prefix); Air New Zealand Ltd / Fonterra Co-operative Group Ltd (nzbn.govt.nz register)"}
  :mt-vat      {:valid ["MT11679112"] :invalid ["MT11679113"] :source "Malta VAT checksum example"}
  :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}}

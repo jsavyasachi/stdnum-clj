@@ -15,6 +15,8 @@ All notable changes to this project are documented here. The format follows
   Ericsson AB, Bolagsverket).
 - `:es-cif` — Spain CIF, org-letter + 7 digits + control digit or letter (vector: Banco
   Santander S.A., CNMV official register).
+- `:nz-nzbn` — New Zealand Business Number, 13-digit GS1 GLN with `9429` prefix (mod-10;
+  vectors: Air New Zealand Ltd / Fonterra Co-operative Group Ltd, nzbn.govt.nz).
 
 ## [0.23.0] - 2026-06-26
 

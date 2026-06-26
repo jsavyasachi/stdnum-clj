@@ -848,6 +848,7 @@
 (defn- gtin14? [^String n] (and (re-matches #"\d{14}" n) (gtin-mod10? n)))
 (defn- sscc?  [^String n] (and (re-matches #"\d{18}" n) (gtin-mod10? n)))
 (defn- gln?   [^String n] (and (re-matches #"\d{13}" n) (.isValid ean13-cd n)))  ; GS1 location number
+(defn- nz-nzbn? [^String n] (and (re-matches #"9429\d{9}" n) (.isValid ean13-cd n)))  ; NZ Business Number: GS1 GLN, 9429 prefix
 
 ;; Mexico CURP: 18 chars, weighted base-37 sum (with Ñ in the alphabet), mod-10 check.
 (def ^:private curp-val (zipmap "0123456789ABCDEFGHIJKLMNÑOPQRSTUVWXYZ" (range)))
@@ -1134,6 +1135,7 @@
    :fr-siret    {:validate fr-siret?}
    :se-orgnr    {:validate se-orgnr?}
    :es-cif      {:validate es-cif?}
+   :nz-nzbn     {:validate nz-nzbn?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}
