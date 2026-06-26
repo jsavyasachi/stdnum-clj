@@ -143,5 +143,6 @@
  :il-company  {:valid ["520013954"] :invalid ["520013955"] :source "Israel company/ID number (9-digit Luhn); Teva Pharmaceutical Industries Ltd (public registrar no.)"}
  :au-acn      {:valid ["004028077"] :invalid ["004028078"] :source "Australia Company Number (ACN); BHP Group Ltd (public; ABN Lookup 49 004 028 077)"}
  :sk-ico      {:valid ["31333532"] :invalid ["31333533"] :source "Slovakia IČO; ESET spol. s r.o. (public Slovak commercial register)"}
+ :ee-rk       {:valid ["10238429" "10137025"] :invalid ["10238428"] :source "Estonia registry code (registrikood); Tallink Grupp / Telia Eesti (official e-Äriregister)"}
  :mt-vat      {:valid ["MT11679112"] :invalid ["MT11679113"] :source "Malta VAT checksum example"}
  :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}}

@@ -771,6 +771,15 @@
        (let [d (digits-of n)
              r (mod (long (reduce + (map * (subvec d 0 7) [8 7 6 5 4 3 2]))) 11)]
          (= (mod (- 11 r) 10) (d 7)))))
+(defn- ee-rk? [^String n]                             ; Estonia registry code (registrikood): mod-11 with weight-set fallback
+  (and (re-matches #"\d{8}" n)
+       (let [d (digits-of n)
+             c (mod (long (reduce + (map * (subvec d 0 7) [1 2 3 4 5 6 7]))) 11)
+             c (if (= c 10)
+                 (let [c2 (mod (long (reduce + (map * (subvec d 0 7) [3 4 5 6 7 8 9]))) 11)]
+                   (if (= c2 10) 0 c2))
+                 c)]
+         (= c (d 7)))))
 
 ;; ORCID and ISNI: 16 chars, ISO 7064 MOD 11-2 check (last char may be X). Same
 ;; algorithm and shape; kept as distinct types for intent.
@@ -1066,6 +1075,7 @@
    :il-company  {:validate il-company?}
    :au-acn      {:validate au-acn?}
    :sk-ico      {:validate sk-ico?}
+   :ee-rk       {:validate ee-rk?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}

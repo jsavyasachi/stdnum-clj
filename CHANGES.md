@@ -6,6 +6,10 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- `:ee-rk` — Estonia registry code (registrikood), 8-digit (mod-11 with weight-set fallback;
+  vectors: Tallink Grupp / Telia Eesti, official e-Äriregister).
+
 ## [0.22.0] - 2026-06-25
 
 ### Added
