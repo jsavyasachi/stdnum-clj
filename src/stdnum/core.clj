@@ -798,6 +798,13 @@
                           c (if (zero? r) 0 (- 11 r))]
                       (and (< c 10) (= c (d 9)) (not= "000" (subs n 10))))
            :else false))))
+(defn- py-ruc? [^String n]                            ; Paraguay RUC: base + check digit, weighted mod 11 (>=10 -> 0)
+  (and (re-matches #"\d{6,9}" n)
+       (let [d (digits-of n) k (dec (count d))
+             s (long (reduce + (map-indexed (fn [i x] (* (+ (long i) 2) (long x))) (reverse (subvec d 0 k)))))
+             c (- 11 (mod s 11))
+             c (if (>= c 10) 0 c)]
+         (= c (d k)))))
 
 ;; ORCID and ISNI: 16 chars, ISO 7064 MOD 11-2 check (last char may be X). Same
 ;; algorithm and shape; kept as distinct types for intent.
@@ -1096,6 +1103,7 @@
    :ee-rk       {:validate ee-rk?}
    :uy-rut      {:validate uy-rut?}
    :ec-ruc      {:validate ec-ruc?}
+   :py-ruc      {:validate py-ruc?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}

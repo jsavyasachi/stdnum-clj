@@ -132,7 +132,7 @@ the only part of the library that does network I/O; it lives in its own namespac
 (`:br-cpf`, `:us-ssn`, `:de-vat`); full descriptions are on [cljdoc](https://cljdoc.org/d/net.clojars.savya/stdnum-clj).
 
 <details>
-<summary><b>All 119 types, by category</b></summary>
+<summary><b>All 120 types, by category</b></summary>
 
 | Category | Types |
 |----------|-------|
@@ -141,7 +141,7 @@ the only part of the library that does network I/O; it lives in its own namespac
 | **Publishing / device** | `:isbn` · `:issn` · `:ismn` · `:iswc` · `:imei` · `:luhn` |
 | **Commerce / vehicle / industry** | `:ean13` · `:ean8` · `:upc` · `:gtin14` · `:sscc` · `:gln` · `:iso6346` · `:vin` · `:imo` · `:cas` · `:nhs` · `:npi` |
 | **Research / name** | `:orcid` · `:isni` |
-| **Tax & national IDs** | `:us-ssn` · `:us-ein` · `:gb-nino` · `:br-cpf` · `:br-cnpj` · `:ca-sin` · `:au-abn` · `:au-tfn` · `:in-pan` · `:in-aadhaar` · `:es-dni` · `:es-nie` · `:nl-bsn` · `:cn-ric` · `:se-pnr` · `:za-id` · `:no-org` · `:tr-tc` · `:pt-nif` · `:cz-ico` · `:jp-cn` · `:hr-oib` · `:it-cf` · `:ch-uid` · `:ch-ahv` · `:nz-ird` · `:be-nn` · `:fi-hetu` · `:sg-nric` · `:hk-id` · `:kr-brn` · `:fr-nir` · `:pl-pesel` · `:ar-cuit` · `:cl-rut` · `:co-nit` · `:pe-ruc` · `:ie-pps` · `:ee-ik` · `:jmbg` · `:ec-ced` · `:bg-egn` · `:mx-curp` · `:ru-inn` · `:tw-gui` · `:ua-edrpou` · `:cn-usci` · `:is-kennitala` · `:ve-rif` · `:do-rnc` · `:ru-ogrn` · `:vn-mst` · `:rs-pib` · `:pl-regon` · `:il-company` · `:au-acn` · `:sk-ico` · `:ee-rk` · `:uy-rut` · `:ec-ruc` |
+| **Tax & national IDs** | `:us-ssn` · `:us-ein` · `:gb-nino` · `:br-cpf` · `:br-cnpj` · `:ca-sin` · `:au-abn` · `:au-tfn` · `:in-pan` · `:in-aadhaar` · `:es-dni` · `:es-nie` · `:nl-bsn` · `:cn-ric` · `:se-pnr` · `:za-id` · `:no-org` · `:tr-tc` · `:pt-nif` · `:cz-ico` · `:jp-cn` · `:hr-oib` · `:it-cf` · `:ch-uid` · `:ch-ahv` · `:nz-ird` · `:be-nn` · `:fi-hetu` · `:sg-nric` · `:hk-id` · `:kr-brn` · `:fr-nir` · `:pl-pesel` · `:ar-cuit` · `:cl-rut` · `:co-nit` · `:pe-ruc` · `:ie-pps` · `:ee-ik` · `:jmbg` · `:ec-ced` · `:bg-egn` · `:mx-curp` · `:ru-inn` · `:tw-gui` · `:ua-edrpou` · `:cn-usci` · `:is-kennitala` · `:ve-rif` · `:do-rnc` · `:ru-ogrn` · `:vn-mst` · `:rs-pib` · `:pl-regon` · `:il-company` · `:au-acn` · `:sk-ico` · `:ee-rk` · `:uy-rut` · `:ec-ruc` · `:py-ruc` |
 | **VAT / GST** (EU-27 complete) | `:de-vat` · `:fr-vat` · `:it-vat` · `:be-vat` · `:pl-vat` · `:gb-vat` · `:at-vat` · `:dk-vat` · `:fi-vat` · `:se-vat` · `:gr-vat` · `:lu-vat` · `:si-vat` · `:ee-vat` · `:hu-vat` · `:mt-vat` · `:sk-vat` · `:lt-vat` · `:cy-vat` · `:ro-vat` · `:es-vat` · `:ie-vat` · `:nl-vat` · `:lv-vat` · `:bg-vat` · `:hr-vat` · `:cz-vat` · `:pt-vat` · `:in-gstin` |
 
 </details>

@@ -146,5 +146,6 @@
  :ee-rk       {:valid ["10238429" "10137025"] :invalid ["10238428"] :source "Estonia registry code (registrikood); Tallink Grupp / Telia Eesti (official e-Äriregister)"}
  :uy-rut      {:valid ["211003420017"] :invalid ["211003420018"] :source "Uruguay RUT; ANTEL (state telecom; public RUT 21.100342.0017)"}
  :ec-ruc      {:valid ["1790010937001" "1760013210001"] :invalid ["1790010936001"] :source "Ecuador RUC; Banco Pichincha C.A. (juridical) / SRI 1760013210001 (public entity, sri.gob.ec)"}
+ :py-ruc      {:valid ["800026756"] :invalid ["800026755"] :source "Paraguay RUC; PETROPAR 80002675-6 (state oil co., contrataciones.gov.py)"}
  :mt-vat      {:valid ["MT11679112"] :invalid ["MT11679113"] :source "Malta VAT checksum example"}
  :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}}

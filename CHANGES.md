@@ -12,6 +12,7 @@ All notable changes to this project are documented here. The format follows
 - `:uy-rut` — Uruguay RUT tax number, 12-digit (weighted mod 11; vector: ANTEL, state telecom).
 - `:ec-ruc` — Ecuador RUC, 13-digit, all three taxpayer classes (natural / public entity /
   juridical, selected by the 3rd digit; vectors: Banco Pichincha juridical + SRI public entity).
+- `:py-ruc` — Paraguay RUC tax number (base + check digit, weighted mod 11; vector: PETROPAR).
 
 ## [0.22.0] - 2026-06-25
 
