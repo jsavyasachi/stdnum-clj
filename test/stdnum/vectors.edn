@@ -148,5 +148,9 @@
  :ec-ruc      {:valid ["1790010937001" "1760013210001"] :invalid ["1790010936001"] :source "Ecuador RUC; Banco Pichincha C.A. (juridical) / SRI 1760013210001 (public entity, sri.gob.ec)"}
  :py-ruc      {:valid ["800026756"] :invalid ["800026755"] :source "Paraguay RUC; PETROPAR 80002675-6 (state oil co., contrataciones.gov.py)"}
  :gt-nit      {:valid ["325732"] :invalid ["325733"] :source "Guatemala NIT; Cementos Progreso S.A. 32573-2 (NIT via SAT)"}
+ :fr-siren    {:valid ["441639465" "542051180"] :invalid ["441639466"] :source "France SIREN (9-digit Luhn); Renault S.A. / TotalEnergies SE (annuaire-entreprises.data.gouv.fr)"}
+ :fr-siret    {:valid ["44163946500018"] :invalid ["44163946500019"] :source "France SIRET (14-digit Luhn); Renault S.A. siège social 441 639 465 00018 (annuaire-entreprises.data.gouv.fr)"}
+ :se-orgnr    {:valid ["5560125790" "5560160680"] :invalid ["5560125791"] :source "Sweden organisationsnummer (10-digit Luhn); Volvo AB 556012-5790 / Ericsson AB 556016-0680 (Bolagsverket)"}
+ :es-cif      {:valid ["A39000013"] :invalid ["A39000014"] :source "Spain CIF; Banco Santander S.A. A39000013 (CNMV official register, cnmv.es)"}
  :mt-vat      {:valid ["MT11679112"] :invalid ["MT11679113"] :source "Malta VAT checksum example"}
  :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}}

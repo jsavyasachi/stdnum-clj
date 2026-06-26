@@ -6,6 +6,16 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- `:fr-siren` — France SIREN, 9-digit company identifier (Luhn; vectors: Renault S.A. /
+  TotalEnergies SE, annuaire-entreprises.data.gouv.fr).
+- `:fr-siret` — France SIRET, 14-digit establishment identifier (SIREN + 5-digit NIC, Luhn;
+  vector: Renault S.A. siège social).
+- `:se-orgnr` — Sweden organisationsnummer, 10-digit (Luhn, 3rd digit ≥ 2; vectors: Volvo AB /
+  Ericsson AB, Bolagsverket).
+- `:es-cif` — Spain CIF, org-letter + 7 digits + control digit or letter (vector: Banco
+  Santander S.A., CNMV official register).
+
 ## [0.23.0] - 2026-06-26
 
 ### Added

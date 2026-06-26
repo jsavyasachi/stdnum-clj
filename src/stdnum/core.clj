@@ -813,6 +813,23 @@
              r (mod (- 11 (mod s 11)) 11)
              exp (if (= r 10) (int \K) (+ 48 r))]
          (= (int (.charAt n k)) exp))))
+(defn- fr-siren? [^String n]                          ; France SIREN: 9-digit Luhn
+  (boolean (and (re-matches #"\d{9}" n) (.isValid luhn-cd n))))
+(defn- fr-siret? [^String n]                          ; France SIRET: SIREN + 5-digit NIC, 14-digit Luhn
+  (boolean (and (re-matches #"\d{14}" n) (.isValid luhn-cd n))))
+(defn- se-orgnr? [^String n]                          ; Sweden organisationsnummer: 10-digit Luhn, 3rd digit >= 2
+  (boolean (and (re-matches #"\d{10}" n) (>= (- (int (.charAt n 2)) 48) 2) (.isValid luhn-cd n))))
+(defn- es-cif? [^String n]                            ; Spain CIF: org-letter + 7 digits + control (digit or letter)
+  (and (re-matches #"[ABCDEFGHJNPQRSUVW]\d{7}[0-9A-J]" n)
+       (let [d (digits-of (subs n 1 8))
+             odd (long (reduce + (map (fn [x] (let [y (* 2 (long x))] (if (> y 9) (- y 9) y)))
+                                      [(d 0) (d 2) (d 4) (d 6)])))
+             even (long (+ (d 1) (d 3) (d 5)))
+             c (mod (+ odd even) 10)
+             c (if (zero? c) 0 (- 10 c))
+             ctrl (.charAt n 8)]
+         (or (= (int ctrl) (+ 48 c))
+             (= (int ctrl) (int (.charAt "JABCDEFGHI" c)))))))
 
 ;; ORCID and ISNI: 16 chars, ISO 7064 MOD 11-2 check (last char may be X). Same
 ;; algorithm and shape; kept as distinct types for intent.
@@ -1113,6 +1130,10 @@
    :ec-ruc      {:validate ec-ruc?}
    :py-ruc      {:validate py-ruc?}
    :gt-nit      {:validate gt-nit?}
+   :fr-siren    {:validate fr-siren?}
+   :fr-siret    {:validate fr-siret?}
+   :se-orgnr    {:validate se-orgnr?}
+   :es-cif      {:validate es-cif?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}
