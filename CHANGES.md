@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-06-25
+
+### Added
+- `:rs-pib` — Serbia tax number (PIB; ISO 7064 MOD 11,10; vector: NIS a.d. Novi Sad, public).
+- `:pl-regon` — Poland REGON statistical number, 9-digit (weighted mod 11; vector: PKN Orlen S.A.).
+
 ## [0.19.0] - 2026-06-25
 
 ### Added

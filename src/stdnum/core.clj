@@ -741,6 +741,20 @@
        (let [d (digits-of (subs n 0 10))
              s (long (reduce + (map * [31 29 23 19 17 13 7 5 3] (subvec d 0 9))))]
          (= (mod (- 10 (mod s 11)) 10) (d 9)))))
+(defn- rs-pib? [^String n]                            ; Serbia PIB (tax): ISO 7064 MOD 11,10
+  (and (re-matches #"\d{9}" n)
+       (let [d (digits-of n)
+             p (long (reduce (fn [p i]
+                               (let [s (mod (+ (d i) (long p)) 10)
+                                     s (if (zero? s) 10 s)]
+                                 (mod (* s 2) 11)))
+                             10 (range 8)))]
+         (= (mod (- 11 p) 10) (d 8)))))
+(defn- pl-regon? [^String n]                          ; Poland REGON (9-digit): weighted mod 11
+  (and (re-matches #"\d{9}" n)
+       (let [d (digits-of n)
+             c (mod (mod (long (reduce + (map * [8 9 2 3 4 5 6 7] (subvec d 0 8)))) 11) 10)]
+         (= c (d 8)))))
 
 ;; ORCID and ISNI: 16 chars, ISO 7064 MOD 11-2 check (last char may be X). Same
 ;; algorithm and shape; kept as distinct types for intent.
@@ -1031,6 +1045,8 @@
    :do-rnc      {:validate do-rnc?}
    :ru-ogrn     {:validate ru-ogrn?}
    :vn-mst      {:validate vn-mst?}
+   :rs-pib      {:validate rs-pib?}
+   :pl-regon    {:validate pl-regon?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}
