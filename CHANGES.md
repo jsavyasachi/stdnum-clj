@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.24.0] - 2026-06-26
+
 ### Added
 - `:fr-siren` — France SIREN, 9-digit company identifier (Luhn; vectors: Renault S.A. /
   TotalEnergies SE, annuaire-entreprises.data.gouv.fr).
