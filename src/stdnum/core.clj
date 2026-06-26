@@ -785,6 +785,19 @@
        (let [d (digits-of n)
              s (long (reduce + (map * [4 3 2 9 8 7 6 5 4 3 2] (subvec d 0 11))))]
          (= (mod (- 11 (mod s 11)) 11) (d 11)))))
+(defn- ec-ruc? [^String n]                            ; Ecuador RUC: 13-digit; 3rd digit selects class (0-5 natural, 6 public, 9 juridical)
+  (and (re-matches #"\d{13}" n)
+       (<= 1 (Integer/parseInt (subs n 0 2)) 24)
+       (let [d (digits-of n) t (d 2)]
+         (cond
+           (<= t 5) (and (ec-ced? (subs n 0 10)) (not= "000" (subs n 10)))
+           (= t 6)  (let [r (mod (long (reduce + (map * (subvec d 0 8) [3 2 7 6 5 4 3 2]))) 11)
+                          c (if (zero? r) 0 (- 11 r))]
+                      (and (< c 10) (= c (d 8)) (not= "0000" (subs n 9))))
+           (= t 9)  (let [r (mod (long (reduce + (map * (subvec d 0 9) [4 3 2 7 6 5 4 3 2]))) 11)
+                          c (if (zero? r) 0 (- 11 r))]
+                      (and (< c 10) (= c (d 9)) (not= "000" (subs n 10))))
+           :else false))))
 
 ;; ORCID and ISNI: 16 chars, ISO 7064 MOD 11-2 check (last char may be X). Same
 ;; algorithm and shape; kept as distinct types for intent.
@@ -1082,6 +1095,7 @@
    :sk-ico      {:validate sk-ico?}
    :ee-rk       {:validate ee-rk?}
    :uy-rut      {:validate uy-rut?}
+   :ec-ruc      {:validate ec-ruc?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}
