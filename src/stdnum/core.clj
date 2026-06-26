@@ -805,6 +805,14 @@
              c (- 11 (mod s 11))
              c (if (>= c 10) 0 c)]
          (= c (d k)))))
+(defn- gt-nit? [^String n]                            ; Guatemala NIT: base + check (digit or K), weighted mod 11
+  (and (re-matches #"\d{4,12}[0-9K]" n)
+       (let [k (dec (count n))
+             s (long (reduce + (map-indexed (fn [i c] (* (+ (long i) 2) (long (- (int c) 48))))
+                                            (reverse (subs n 0 k)))))
+             r (mod (- 11 (mod s 11)) 11)
+             exp (if (= r 10) (int \K) (+ 48 r))]
+         (= (int (.charAt n k)) exp))))
 
 ;; ORCID and ISNI: 16 chars, ISO 7064 MOD 11-2 check (last char may be X). Same
 ;; algorithm and shape; kept as distinct types for intent.
@@ -1104,6 +1112,7 @@
    :uy-rut      {:validate uy-rut?}
    :ec-ruc      {:validate ec-ruc?}
    :py-ruc      {:validate py-ruc?}
+   :gt-nit      {:validate gt-nit?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}
