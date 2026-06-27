@@ -15,6 +15,8 @@ All notable changes to this project are documented here. The format follows
   (SAT mod-11 check over the value table; vector: Petróleos Mexicanos / PEMEX, SAT CIF).
 - `:grid` — GRid (Global Release Identifier), 18-char music release ID (ISO 7064
   Mod 37,36; vector: the GRid standard worked example).
+- `:isan` — ISAN (ISO 15706), audiovisual work identifier with two ISO 7064 Mod 37,36
+  check characters (root and version; vectors: ISAN standard worked examples).
 
 ## [0.24.1] - 2026-06-26
 

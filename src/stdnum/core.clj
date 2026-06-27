@@ -876,6 +876,10 @@
                18 s)))
 (defn- grid? [^String n]                              ; GRid (Global Release Identifier): 18 alnum, ISO 7064 Mod 37,36
   (and (re-matches #"[0-9A-Z]{18}" n) (iso7064-mod37-36-valid? n)))
+(defn- isan? [^String n]                              ; ISAN (ISO 15706): root12+episode4 +check1 +version8 +check2, two Mod 37,36 checks
+  (and (re-matches #"[0-9A-F]{16}[0-9A-Z][0-9A-F]{8}[0-9A-Z]" n)
+       (iso7064-mod37-36-valid? (subs n 0 17))                    ; check1 over root+episode
+       (iso7064-mod37-36-valid? (str (subs n 0 16) (subs n 17))))) ; check2 over root+episode+version
 
 ;; Mexico CURP: 18 chars, weighted base-37 sum (with Ñ in the alphabet), mod-10 check.
 (def ^:private curp-val (zipmap "0123456789ABCDEFGHIJKLMNÑOPQRSTUVWXYZ" (range)))
@@ -1167,6 +1171,7 @@
    :tr-vkn      {:validate tr-vkn?}
    :mx-rfc      {:validate mx-rfc?}
    :grid        {:validate grid?}
+   :isan        {:validate isan?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}
