@@ -1,5 +1,9 @@
 # stdnum-clj
 
+[![Clojars Project](https://img.shields.io/clojars/v/net.clojars.savya/stdnum-clj.svg)](https://clojars.org/net.clojars.savya/stdnum-clj)
+[![cljdoc](https://cljdoc.org/badge/net.clojars.savya/stdnum-clj)](https://cljdoc.org/d/net.clojars.savya/stdnum-clj)
+[![test](https://github.com/jsavyasachi/stdnum-clj/actions/workflows/test.yml/badge.svg)](https://github.com/jsavyasachi/stdnum-clj/actions/workflows/test.yml)
+
 Unified validation, parsing, and formatting of standard identifier numbers for Clojure -
 credit cards, IBAN/BIC, ISBN, ISSN, ISIN, US bank routing (ABA), IMEI, and the raw Luhn
 check, behind one small API.
@@ -9,9 +13,6 @@ check, behind one small API.
 <a href="https://clojure.org"><img src="https://img.shields.io/badge/Clojure-5881D8?style=flat&logo=clojure&logoColor=white" alt="Clojure" /></a>
 <a href="https://commons.apache.org/proper/commons-validator/"><img src="https://img.shields.io/badge/Commons%20Validator-D22128?style=flat&logo=apache&logoColor=white" alt="Apache Commons Validator" /></a>
 <a href="https://github.com/arturmkrtchyan/iban4j"><img src="https://img.shields.io/badge/iban4j-2D3748?style=flat&logo=java&logoColor=white" alt="iban4j" /></a>
-
-[![Clojars Project](https://img.shields.io/clojars/v/net.clojars.savya/stdnum-clj.svg)](https://clojars.org/net.clojars.savya/stdnum-clj)
-[![cljdoc](https://cljdoc.org/badge/net.clojars.savya/stdnum-clj)](https://cljdoc.org/d/net.clojars.savya/stdnum-clj)
 
 > Unofficial, community-maintained. Not affiliated with Apache, iban4j, or any card network.
 
