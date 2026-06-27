@@ -168,4 +168,4 @@ numbers are checksum-valid but unregistered, and are labelled as algorithm examp
 
 Copyright © 2026 Savyasachi
 
-Distributed under the [Eclipse Public License 1.0](https://www.eclipse.org/legal/epl-v10.html).
+Distributed under the [Eclipse Public License 2.0](https://www.eclipse.org/legal/epl-2.0/).

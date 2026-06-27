@@ -1,7 +1,7 @@
 (defproject net.clojars.savya/stdnum-clj "0.24.0"
   :description "Unified validation, parsing, and formatting of standard identifier numbers (credit cards, IBAN/BIC, ISBN, ISIN, bank routing, and more) for Clojure - an idiomatic facade over Apache Commons Validator and iban4j."
   :url "https://github.com/jsavyasachi/stdnum-clj"
-  :license {:name "Eclipse Public License 1.0" :url "https://www.eclipse.org/legal/epl-v10.html"}
+  :license {:name "Eclipse Public License 2.0" :url "https://www.eclipse.org/legal/epl-2.0/"}
   :scm {:name "git" :url "https://github.com/jsavyasachi/stdnum-clj"}
   :dependencies [[commons-validator/commons-validator "1.10.1"]
                  [org.iban4j/iban4j "3.2.13-RELEASE"]
