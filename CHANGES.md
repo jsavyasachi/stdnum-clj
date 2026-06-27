@@ -11,6 +11,8 @@ All notable changes to this project are documented here. The format follows
   vector: PT Telkom Indonesia, IDX annual report).
 - `:tr-vkn` — Turkey VKN (vergi kimlik numarası), 10-digit entity tax number (weighted
   mod-9 algorithm; vector: Türk Hava Yolları / Turkish Airlines, ETBİS).
+- `:mx-rfc` — Mexico RFC, company (12-char) and person (13-char) taxpayer registry
+  (SAT mod-11 check over the value table; vector: Petróleos Mexicanos / PEMEX, SAT CIF).
 
 ## [0.24.1] - 2026-06-26
 

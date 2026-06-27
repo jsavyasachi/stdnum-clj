@@ -859,6 +859,14 @@
                                        c2 (mod (* c1 (bit-shift-left 1 (- 9 (long i)))) 9)]
                                    (if (and (not (zero? c1)) (zero? c2)) 9 c2)))))]
          (= (mod (- 10 (mod s 10)) 10) (d 9)))))
+(def ^:private ^String mx-rfc-alpha "0123456789ABCDEFGHIJKLMN&OPQRSTUVWXYZ Ñ")
+(defn- mx-rfc? [^String n]                            ; Mexico RFC: SAT mod-11 over a value table (final char is the check)
+  (and (re-matches #"[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}" n)
+       (let [k (dec (count n))
+             s (str "   " (subs n 0 k))
+             padded (subs s (- (count s) 12))
+             check (long (reduce + (map-indexed (fn [i c] (* (.indexOf mx-rfc-alpha (int c)) (- 13 (long i)))) padded)))]
+         (= (.charAt mx-rfc-alpha (int (mod (- 11 check) 11))) (.charAt n (int k))))))
 
 ;; Mexico CURP: 18 chars, weighted base-37 sum (with Ñ in the alphabet), mod-10 check.
 (def ^:private curp-val (zipmap "0123456789ABCDEFGHIJKLMNÑOPQRSTUVWXYZ" (range)))
@@ -1148,6 +1156,7 @@
    :nz-nzbn     {:validate nz-nzbn?}
    :id-npwp     {:validate id-npwp?}
    :tr-vkn      {:validate tr-vkn?}
+   :mx-rfc      {:validate mx-rfc?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}
