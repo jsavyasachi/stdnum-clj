@@ -907,6 +907,12 @@
 (defn- iso11649? [^String n]                          ; ISO 11649 RF Creditor Reference: rearrange + ISO 7064 mod 97,10
   (and (re-matches #"RF\d{2}[0-9A-Z]{1,21}" n)
        (= 1 (lei-mod97 (str (subs n 4) (subs n 0 4))))))
+(defn- it-aic? [^String n]                            ; Italy AIC (drug authorization code): 9 digits, leading 0, Luhn-variant mod 10
+  (and (re-matches #"0\d{8}" n)
+       (let [d (digits-of n)
+             s (long (reduce + (map (fn [x w] (let [p (* (long x) (long w))] (+ (quot p 10) (rem p 10))))
+                                    (subvec d 0 8) [1 2 1 2 1 2 1 2])))]
+         (= (mod s 10) (d 8)))))
 
 ;; Mexico CURP: 18 chars, weighted base-37 sum (with Ñ in the alphabet), mod-10 check.
 (def ^:private curp-val (zipmap "0123456789ABCDEFGHIJKLMNÑOPQRSTUVWXYZ" (range)))
@@ -1204,6 +1210,7 @@
    :upu-s10     {:validate upu-s10?}
    :si-maticna  {:validate si-maticna?}
    :iso11649    {:validate iso11649?}
+   :it-aic      {:validate it-aic?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}
