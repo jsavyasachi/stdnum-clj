@@ -161,5 +161,7 @@
  :th-moa      {:valid ["0107544000108" "0994000617721"] :invalid ["0107544000107"] :source "Thailand company tax ID (MOA, 13-digit weighted mod 11); PTT Public Company Limited 0107544000108 (PTT procurement filing)"}
  :kz-bin      {:valid ["020240000555"] :invalid ["020240000554"] :source "Kazakhstan BIN (business identification no., 12-digit weighted mod 11); JSC NC KazMunayGas 020240000555 (org-id.guide KZ-BIN)"}
  :upu-s10     {:valid ["RB123456785GB"] :invalid ["RB123456784GB"] :source "UPU S10 international postal item identifier (weighted mod 11, weights 8,6,4,2,3,5,9,7); UPU S10 standard worked example serial 12345678 -> check 5"}
+ :si-maticna  {:valid ["5043611000" "9331310"] :invalid ["5043612000"] :source "Slovenia matična številka (company registration no., weighted mod 11); Krka d.d. Novo mesto 5043611000 (AJPES / sloexport ms=5043611)"}
+ :iso11649    {:valid ["RF18539007547034"] :invalid ["RF18539007547035"] :source "ISO 11649 RF Creditor Reference (ISO 7064 Mod 97,10); ISO 11649 standard worked example RF18 5390 0754 7034"}
  :mt-vat      {:valid ["MT11679112"] :invalid ["MT11679113"] :source "Malta VAT checksum example"}
  :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}}

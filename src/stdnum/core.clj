@@ -899,6 +899,14 @@
              r (mod (long (reduce + (map * d [8 6 4 2 3 5 9 7]))) 11)
              c (cond (= r 0) 5 (= r 1) 0 :else (- 11 r))]
          (= c (- (int (.charAt n 10)) 48)))))
+(defn- si-maticna? [^String n]                        ; Slovenia matična številka: 7 or 10 digits, weighted mod 11
+  (and (re-matches #"\d{7}(\d{3})?" n)
+       (let [d (digits-of n)
+             r (mod (- (long (reduce + (map * (subvec d 0 6) [7 6 5 4 3 2])))) 11)]
+         (and (not= r 0) (= (mod r 10) (d 6))))))
+(defn- iso11649? [^String n]                          ; ISO 11649 RF Creditor Reference: rearrange + ISO 7064 mod 97,10
+  (and (re-matches #"RF\d{2}[0-9A-Z]{1,21}" n)
+       (= 1 (lei-mod97 (str (subs n 4) (subs n 0 4))))))
 
 ;; Mexico CURP: 18 chars, weighted base-37 sum (with Ñ in the alphabet), mod-10 check.
 (def ^:private curp-val (zipmap "0123456789ABCDEFGHIJKLMNÑOPQRSTUVWXYZ" (range)))
@@ -1194,6 +1202,8 @@
    :th-moa      {:validate th-moa?}
    :kz-bin      {:validate kz-bin?}
    :upu-s10     {:validate upu-s10?}
+   :si-maticna  {:validate si-maticna?}
+   :iso11649    {:validate iso11649?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}
