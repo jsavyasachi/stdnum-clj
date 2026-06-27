@@ -6,6 +6,18 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.26.0] - 2026-06-27
+
+### Added
+- `:si-maticna` — Slovenia matična številka (company registration), weighted mod 11
+  (vector: Krka d.d. Novo mesto, AJPES).
+- `:iso11649` — ISO 11649 RF Creditor Reference for structured payments (ISO 7064
+  Mod 97,10; standard worked example).
+- `:it-aic` — Italy AIC pharmaceutical authorization code (Luhn-variant mod 10; vectors:
+  Tachipirina / Angelini, AIFA registry).
+- `:ca-bn` — Canada Business Number, 9-digit Luhn with optional BN15 program account
+  (vector: Canadian Red Cross Society, CRA charity registry).
+
 ## [0.25.0] - 2026-06-27
 
 ### Added
