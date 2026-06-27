@@ -885,6 +885,14 @@
        (let [d (digits-of n)
              s (long (reduce + (map * (subvec d 0 12) [13 12 11 10 9 8 7 6 5 4 3 2])))]
          (= (mod (- 11 (mod s 11)) 10) (d 12)))))
+(defn- kz-bin? [^String n]                            ; Kazakhstan BIN/IIN: 12-digit, weighted mod 11 with fallback weights
+  (and (re-matches #"\d{12}" n)
+       (let [d (digits-of n)
+             r1 (mod (long (reduce + (map * (subvec d 0 11) [1 2 3 4 5 6 7 8 9 10 11]))) 11)
+             c (if (not= r1 10) r1
+                 (let [r2 (mod (long (reduce + (map * (subvec d 0 11) [3 4 5 6 7 8 9 10 11 1 2]))) 11)]
+                   (when (not= r2 10) r2)))]
+         (boolean (and c (= (long c) (d 11)))))))
 
 ;; Mexico CURP: 18 chars, weighted base-37 sum (with Ñ in the alphabet), mod-10 check.
 (def ^:private curp-val (zipmap "0123456789ABCDEFGHIJKLMNÑOPQRSTUVWXYZ" (range)))
@@ -1178,6 +1186,7 @@
    :grid        {:validate grid?}
    :isan        {:validate isan?}
    :th-moa      {:validate th-moa?}
+   :kz-bin      {:validate kz-bin?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}

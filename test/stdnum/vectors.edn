@@ -159,5 +159,6 @@
  :grid        {:valid ["A12425GABC1234002M"] :invalid ["A12425GABC1234002Q"] :source "GRid (Global Release Identifier, ISO 7064 Mod 37,36); standard worked example A1-2425G-ABC1234002-M (IFPI GRid standard / python-stdnum)"}
  :isan        {:valid ["000000018CFA0000I00000000K" "00000000D07A0090Q00000000X"] :invalid ["000000018CFA0000A00000000K"] :source "ISAN (ISO 15706, two ISO 7064 Mod 37,36 checks); standard worked examples 0000-0001-8CFA-0000-I-0000-0000-K / 0000-0000-D07A-0090-Q-0000-0000-X (ISAN-IA / python-stdnum)"}
  :th-moa      {:valid ["0107544000108" "0994000617721"] :invalid ["0107544000107"] :source "Thailand company tax ID (MOA, 13-digit weighted mod 11); PTT Public Company Limited 0107544000108 (PTT procurement filing)"}
+ :kz-bin      {:valid ["020240000555"] :invalid ["020240000554"] :source "Kazakhstan BIN (business identification no., 12-digit weighted mod 11); JSC NC KazMunayGas 020240000555 (org-id.guide KZ-BIN)"}
  :mt-vat      {:valid ["MT11679112"] :invalid ["MT11679113"] :source "Malta VAT checksum example"}
  :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}}
