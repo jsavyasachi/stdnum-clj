@@ -913,6 +913,8 @@
              s (long (reduce + (map (fn [x w] (let [p (* (long x) (long w))] (+ (quot p 10) (rem p 10))))
                                     (subvec d 0 8) [1 2 1 2 1 2 1 2])))]
          (= (mod s 10) (d 8)))))
+(defn- ca-bn? [^String n]                             ; Canada Business Number: 9-digit Luhn, optional 2-letter + 4-digit program account (BN15)
+  (and (re-matches #"\d{9}([A-Z]{2}\d{4})?" n) (.isValid luhn-cd (subs n 0 9))))
 
 ;; Mexico CURP: 18 chars, weighted base-37 sum (with Ñ in the alphabet), mod-10 check.
 (def ^:private curp-val (zipmap "0123456789ABCDEFGHIJKLMNÑOPQRSTUVWXYZ" (range)))
@@ -1211,6 +1213,7 @@
    :si-maticna  {:validate si-maticna?}
    :iso11649    {:validate iso11649?}
    :it-aic      {:validate it-aic?}
+   :ca-bn       {:validate ca-bn?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}

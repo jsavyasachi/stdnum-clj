@@ -164,5 +164,6 @@
  :si-maticna  {:valid ["5043611000" "9331310"] :invalid ["5043612000"] :source "Slovenia matična številka (company registration no., weighted mod 11); Krka d.d. Novo mesto 5043611000 (AJPES / sloexport ms=5043611)"}
  :iso11649    {:valid ["RF18539007547034"] :invalid ["RF18539007547035"] :source "ISO 11649 RF Creditor Reference (ISO 7064 Mod 97,10); ISO 11649 standard worked example RF18 5390 0754 7034"}
  :it-aic      {:valid ["012745093" "012745168"] :invalid ["012745094"] :source "Italy AIC drug authorization code (Luhn-variant mod 10); Tachipirina 500mg (Angelini paracetamol) AIC 012745093/012745168 (AIFA registry)"}
+ :ca-bn       {:valid ["119219814" "119219814RR0001"] :invalid ["119219815"] :source "Canada Business Number (9-digit Luhn, optional BN15 program account); Canadian Red Cross Society 119219814 (CRA charity registry 119219814RR0001)"}
  :mt-vat      {:valid ["MT11679112"] :invalid ["MT11679113"] :source "Malta VAT checksum example"}
  :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}}
