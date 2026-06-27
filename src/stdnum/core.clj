@@ -867,6 +867,15 @@
              padded (subs s (- (count s) 12))
              check (long (reduce + (map-indexed (fn [i c] (* (.indexOf mx-rfc-alpha (int c)) (- 13 (long i)))) padded)))]
          (= (.charAt mx-rfc-alpha (int (mod (- 11 check) 11))) (.charAt n (int k))))))
+(def ^:private ^String m3736-alpha "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")  ; ISO 7064 Mod 37,36 (radix 36)
+(defn- iso7064-mod37-36-valid? [^String s]            ; whole string incl. check char; valid when checksum == 1
+  (= 1 (reduce (fn [^long c ch]
+                 (let [idx (.indexOf m3736-alpha (int ch))]
+                   (if (neg? idx) (reduced -1)
+                     (mod (+ (mod (* (if (zero? c) 36 c) 2) 37) idx) 36))))
+               18 s)))
+(defn- grid? [^String n]                              ; GRid (Global Release Identifier): 18 alnum, ISO 7064 Mod 37,36
+  (and (re-matches #"[0-9A-Z]{18}" n) (iso7064-mod37-36-valid? n)))
 
 ;; Mexico CURP: 18 chars, weighted base-37 sum (with Ñ in the alphabet), mod-10 check.
 (def ^:private curp-val (zipmap "0123456789ABCDEFGHIJKLMNÑOPQRSTUVWXYZ" (range)))
@@ -1157,6 +1166,7 @@
    :id-npwp     {:validate id-npwp?}
    :tr-vkn      {:validate tr-vkn?}
    :mx-rfc      {:validate mx-rfc?}
+   :grid        {:validate grid?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}
