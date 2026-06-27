@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.24.1] - 2026-06-26
+
+### Changed
+- Relicense from EPL 1.0 to **EPL 2.0** (no code change; corrects the published POM
+  license metadata, which lagged the source).
+
 ## [0.24.0] - 2026-06-26
 
 ### Added
