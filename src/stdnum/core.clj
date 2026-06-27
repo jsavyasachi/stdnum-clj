@@ -893,6 +893,12 @@
                  (let [r2 (mod (long (reduce + (map * (subvec d 0 11) [3 4 5 6 7 8 9 10 11 1 2]))) 11)]
                    (when (not= r2 10) r2)))]
          (boolean (and c (= (long c) (d 11)))))))
+(defn- upu-s10? [^String n]                           ; UPU S10 international postal item: 2 alpha + 8 serial + check + 2 country
+  (and (re-matches #"[A-Z]{2}\d{9}[A-Z]{2}" n)
+       (let [d (digits-of (subs n 2 10))
+             r (mod (long (reduce + (map * d [8 6 4 2 3 5 9 7]))) 11)
+             c (cond (= r 0) 5 (= r 1) 0 :else (- 11 r))]
+         (= c (- (int (.charAt n 10)) 48)))))
 
 ;; Mexico CURP: 18 chars, weighted base-37 sum (with Ñ in the alphabet), mod-10 check.
 (def ^:private curp-val (zipmap "0123456789ABCDEFGHIJKLMNÑOPQRSTUVWXYZ" (range)))
@@ -1187,6 +1193,7 @@
    :isan        {:validate isan?}
    :th-moa      {:validate th-moa?}
    :kz-bin      {:validate kz-bin?}
+   :upu-s10     {:validate upu-s10?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}
