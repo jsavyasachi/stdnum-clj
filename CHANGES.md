@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.25.0] - 2026-06-27
+
 ### Added
 - `:id-npwp` — Indonesia NPWP, classic 15-digit tax number (Luhn over the first 9;
   vector: PT Telkom Indonesia, IDX annual report).
