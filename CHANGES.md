@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- `:id-npwp` — Indonesia NPWP, classic 15-digit tax number (Luhn over the first 9;
+  vector: PT Telkom Indonesia, IDX annual report).
+- `:tr-vkn` — Turkey VKN (vergi kimlik numarası), 10-digit entity tax number (weighted
+  mod-9 algorithm; vector: Türk Hava Yolları / Turkish Airlines, ETBİS).
+
 ## [0.24.1] - 2026-06-26
 
 ### Changed

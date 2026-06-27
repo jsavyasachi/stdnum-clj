@@ -849,6 +849,16 @@
 (defn- sscc?  [^String n] (and (re-matches #"\d{18}" n) (gtin-mod10? n)))
 (defn- gln?   [^String n] (and (re-matches #"\d{13}" n) (.isValid ean13-cd n)))  ; GS1 location number
 (defn- nz-nzbn? [^String n] (and (re-matches #"9429\d{9}" n) (.isValid ean13-cd n)))  ; NZ Business Number: GS1 GLN, 9429 prefix
+(defn- id-npwp? [^String n]                           ; Indonesia NPWP: classic 15-digit, Luhn over the first 9
+  (and (re-matches #"\d{15}" n) (.isValid luhn-cd (subs n 0 9))))
+(defn- tr-vkn? [^String n]                            ; Turkey VKN (tax/entity no.): 10-digit, weighted mod-9 + mod-10 check
+  (and (re-matches #"\d{10}" n)
+       (let [d (digits-of n)
+             s (long (reduce + (for [i (range 9)]
+                                 (let [c1 (mod (+ (long (d i)) (- 9 (long i))) 10)
+                                       c2 (mod (* c1 (bit-shift-left 1 (- 9 (long i)))) 9)]
+                                   (if (and (not (zero? c1)) (zero? c2)) 9 c2)))))]
+         (= (mod (- 10 (mod s 10)) 10) (d 9)))))
 
 ;; Mexico CURP: 18 chars, weighted base-37 sum (with Ñ in the alphabet), mod-10 check.
 (def ^:private curp-val (zipmap "0123456789ABCDEFGHIJKLMNÑOPQRSTUVWXYZ" (range)))
@@ -1136,6 +1146,8 @@
    :se-orgnr    {:validate se-orgnr?}
    :es-cif      {:validate es-cif?}
    :nz-nzbn     {:validate nz-nzbn?}
+   :id-npwp     {:validate id-npwp?}
+   :tr-vkn      {:validate tr-vkn?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}

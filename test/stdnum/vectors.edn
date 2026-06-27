@@ -153,5 +153,7 @@
  :se-orgnr    {:valid ["5560125790" "5560160680"] :invalid ["5560125791"] :source "Sweden organisationsnummer (10-digit Luhn); Volvo AB 556012-5790 / Ericsson AB 556016-0680 (Bolagsverket)"}
  :es-cif      {:valid ["A39000013"] :invalid ["A39000014"] :source "Spain CIF; Banco Santander S.A. A39000013 (CNMV official register, cnmv.es)"}
  :nz-nzbn     {:valid ["9429040402543" "9429036748471"] :invalid ["9429040402544"] :source "New Zealand Business Number (GS1 GLN, 9429 prefix); Air New Zealand Ltd / Fonterra Co-operative Group Ltd (nzbn.govt.nz register)"}
+ :id-npwp     {:valid ["010000131093000"] :invalid ["010000132093000"] :source "Indonesia NPWP (classic 15-digit, Luhn over first 9); PT Telkom Indonesia 01.000.013.1-093.000 (IDX annual report)"}
+ :tr-vkn      {:valid ["8760047464"] :invalid ["8760047465"] :source "Turkey VKN (vergi kimlik no.); Türk Hava Yolları (Turkish Airlines) 8760047464 (ETBİS / Ticaret Bakanlığı)"}
  :mt-vat      {:valid ["MT11679112"] :invalid ["MT11679113"] :source "Malta VAT checksum example"}
  :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}}
