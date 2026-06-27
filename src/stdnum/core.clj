@@ -880,6 +880,11 @@
   (and (re-matches #"[0-9A-F]{16}[0-9A-Z][0-9A-F]{8}[0-9A-Z]" n)
        (iso7064-mod37-36-valid? (subs n 0 17))                    ; check1 over root+episode
        (iso7064-mod37-36-valid? (str (subs n 0 16) (subs n 17))))) ; check2 over root+episode+version
+(defn- th-moa? [^String n]                            ; Thailand company tax ID (MOA): 13-digit, leading 0, weighted mod 11
+  (and (re-matches #"0\d{12}" n)
+       (let [d (digits-of n)
+             s (long (reduce + (map * (subvec d 0 12) [13 12 11 10 9 8 7 6 5 4 3 2])))]
+         (= (mod (- 11 (mod s 11)) 10) (d 12)))))
 
 ;; Mexico CURP: 18 chars, weighted base-37 sum (with Ñ in the alphabet), mod-10 check.
 (def ^:private curp-val (zipmap "0123456789ABCDEFGHIJKLMNÑOPQRSTUVWXYZ" (range)))
@@ -1172,6 +1177,7 @@
    :mx-rfc      {:validate mx-rfc?}
    :grid        {:validate grid?}
    :isan        {:validate isan?}
+   :th-moa      {:validate th-moa?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}
