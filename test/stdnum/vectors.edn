@@ -66,7 +66,13 @@
                :source "Receita Federal; Banco do Brasil CNPJ"}
  :us-ssn      {:valid ["123456789"] :invalid ["000123456" "666123456" "078051120"] :source "US SSA issuance rules"}
  :us-ein      {:valid ["123456789"] :invalid ["070000000"] :source "US IRS campus prefix list"}
+ :us-itin     {:valid ["900-70-0000"] :invalid ["900-69-0000" "800-70-0000"]
+               :source "IRS ITIN valid-range documentation (group ranges 50-65, 70-88, 90-92, 94-99)"}
+ :us-atin     {:valid ["900-93-0000"] :invalid ["900-94-0000"] :source "IRS ATIN valid range (group 93)"}
+ :us-ptin     {:valid ["P01234567"] :invalid ["P0123456" "Q01234567"] :source "IRS Form W-12 PTIN format (P + 8 digits)"}
  :gb-nino     {:valid ["AB123456C" "AB123456"] :invalid ["QQ123456C" "GB123456C"] :source "UK HMRC NINO structure"}
+ :gb-utr      {:valid ["1097172564"] :invalid ["1097172565" "2097172564"]
+               :source "HMRC UTR check-digit algorithm (weights 6-2, table 21987654321); verified against the published validation formula"}
  :ca-sin      {:valid ["046454286"] :invalid ["046454287"] :source "Canada SIN (Luhn) worked example"}
  :au-abn      {:valid ["51824753556"] :invalid ["51824753557"] :source "Australian Taxation Office published example"}
  :au-tfn      {:valid ["123456782"] :invalid ["123456789"] :source "ATO TFN algorithm example"}
@@ -115,6 +121,8 @@
  ;; NOT necessarily registered companies - VIES is the source of truth on that, and
  ;; it showed several common "example" VAT numbers are checksum-valid but unregistered.
  :de-vat      {:valid ["DE129274202"] :invalid ["DE129274203"] :source "VIES-confirmed registered (DE withholds trader name)" :vies true}
+ :de-idnr     {:valid ["86095742719"] :invalid ["86095742710" "12345678903"]
+               :source "BZSt IdNr worked example; ISO 7064 MOD 11,10 check verified"}
  :fr-vat      {:valid ["FR40303265045"] :invalid ["FR41303265045"] :source "SA Sodimas; VIES-confirmed" :vies true}
  :it-vat      {:valid ["IT00743110157"] :invalid ["IT00743110158"] :source "Motorola Solutions Italia; VIES-confirmed" :vies true}
  :be-vat      {:valid ["BE0417497106"] :invalid ["BE0417497107"] :source "AB InBev BE; VIES-confirmed" :vies true}
@@ -124,7 +132,11 @@
  :gb-vat      {:valid ["GB980780684"] :invalid ["GB980780685"] :source "HMRC weighted mod-97 example (UK left VIES)"}
  :pl-vat      {:valid ["PL7740001454"] :invalid ["PL7740001455"] :source "PKN Orlen; VIES-confirmed" :vies true}
  :dk-vat      {:valid ["DK61056416"] :invalid ["DK61056417"] :source "Carlsberg A/S; VIES-confirmed" :vies true}
+ :dk-cvr      {:valid ["61056416" "10150817"] :invalid ["61056417"]
+               :source "Danish CVR registry (virk.dk): Carlsberg A/S 61056416; mod-11 weights 2,7,6,5,4,3,2,1"}
  :fi-vat      {:valid ["FI01120389"] :invalid ["FI01120388"] :source "Nokia Oyj; VIES-confirmed" :vies true}
+ :fi-ytunnus  {:valid ["0112038-9" "0109862-8"] :invalid ["0112038-8" "00000060"]
+               :source "Finnish PRH/BIS business register: Nokia Oyj 0112038-9, Kone Oyj 0109862-8"}
  :pt-nif      {:valid ["PT500697256"] :invalid ["PT500697257"] :source "EDP S.A.; VIES-confirmed" :vies true}
  :sk-vat      {:valid ["SK2020317068"] :invalid ["SK2020317069"] :source "ESET spol. s r.o.; VIES-confirmed" :vies true}
  :lt-vat      {:valid ["LT119511515"] :invalid ["LT119511516"] :source "Klaipėda University; VIES-confirmed" :vies true}

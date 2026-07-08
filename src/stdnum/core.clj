@@ -277,6 +277,17 @@
                (not= "078051120" n)
                (not (re-matches #"98765432\d" n)))))))
 (defn- ssn-format [^String n] (str (subs n 0 3) "-" (subs n 3 5) "-" (subs n 5 9)))
+(defn- taxpayer-parse [^String n] {:valid? true :area (subs n 0 3) :group (subs n 3 5) :serial (subs n 5 9)})
+
+(defn- itin-group? [^String g]
+  (let [n (Integer/parseInt g)]
+    (or (<= 50 n 65) (<= 70 n 88) (<= 90 n 92) (<= 94 n 99))))
+(defn- itin-valid? [^String n]
+  (and (re-matches #"9\d{8}" n) (itin-group? (subs n 3 5))))
+(defn- atin-valid? [^String n]
+  (and (re-matches #"9\d{2}93\d{4}" n)))
+
+(defn- ptin-valid? [^String n] (boolean (re-matches #"P\d{8}" n)))
 
 ;; EIN: NN-NNNNNNN, valid when the two-digit prefix is an IRS campus code.
 (def ^:private ein-prefixes
@@ -302,6 +313,25 @@
                              (mod (* m 2) 11)))
                          10 (subvec d 0 8))]
            (= (mod (- 11 (long p)) 10) (d 8))))))
+
+(defn- mod11-10-check ^long [^String base]
+  (let [p (reduce (fn [^long p dig]
+                    (let [s (mod (+ (long dig) p) 10)
+                          s (if (zero? s) 10 s)]
+                      (mod (* 2 s) 11)))
+                  10 (digits-of base))]
+    (mod (- 11 p) 10)))
+
+(defn- de-idnr-repeat-rule? [^String n]
+  (let [freqs (vals (frequencies (subs n 0 10)))
+        repeats (filter #(> (long %) 1) freqs)]
+    (and (= 1 (count repeats))
+         (<= 2 (long (first repeats)) 3)
+         (every? #(<= (long %) 3) freqs))))
+(defn- de-idnr? [^String n]
+  (and (re-matches #"[1-9]\d{10}" n)
+       (de-idnr-repeat-rule? n)
+       (= (mod11-10-check (subs n 0 10)) (- (int (.charAt n 10)) 48))))
 
 (defn- fr-vat? [^String n]                          ; 2-digit key over a Luhn-valid SIREN
   (let [n (strip-cc n "FR")]
@@ -342,6 +372,17 @@
         (not (nino-bad-first (subs n 0 1)))
         (not (nino-bad-second (subs n 1 2)))
         (not (nino-bad-prefix (subs n 0 2))))))
+
+(def ^:private utr-weights [6 7 8 9 10 5 4 3 2])
+(def ^:private utr-check-table [2 1 9 8 7 6 5 4 3 2 1])
+(defn- gb-utr-body ^String [^String n]
+  (if (and (= 11 (count n)) (= \K (.charAt n 10))) (subs n 0 10) n))
+(defn- gb-utr? [^String n]
+  (let [n (gb-utr-body n)]
+    (and (re-matches #"\d{10}" n)
+         (let [d (digits-of n)
+               r (mod (long (reduce + (map * (subvec d 1 10) utr-weights))) 11)]
+           (= (nth utr-check-table r) (d 0))))))
 
 ;; other national identifiers (clean-room / engine-backed) --------------------
 (def ^:private ^VerhoeffCheckDigit verhoeff-cd (VerhoeffCheckDigit.))
@@ -434,11 +475,19 @@
   (let [n (strip-cc n "DK")]
     (and (re-matches #"\d{8}" n)
          (zero? (mod (long (reduce + (map * (digits-of n) [2 7 6 5 4 3 2 1]))) 11)))))
+(defn- dk-cvr? [^String n]                            ; Denmark CVR: VAT algorithm, no leading zero
+  (and (re-matches #"[1-9]\d{7}" n)
+       (zero? (mod (long (reduce + (map * (digits-of n) [2 7 6 5 4 3 2 1]))) 11))))
 (defn- fi-vat? [^String n]                           ; Finland: weighted mod 11
   (let [n (strip-cc n "FI")]
     (and (re-matches #"\d{8}" n)
          (let [d (digits-of n) r (mod (long (reduce + (map * (subvec d 0 7) [7 9 10 5 8 4 2]))) 11)]
            (cond (= r 0) (zero? (long (d 7))) (= r 1) false :else (= (- 11 r) (d 7)))))))
+(defn- fi-ytunnus? [^String n]                        ; Finland Business ID: same check as FI VAT, hyphenated display
+  (and (re-matches #"\d{8}" n)
+       (let [d (digits-of n)
+             r (mod (long (reduce + (map * (subvec d 0 7) [7 9 10 5 8 4 2]))) 11)]
+         (cond (= r 0) (zero? (long (d 7))) (= r 1) false :else (= (- 11 r) (d 7))))))
 (defn- se-vat? [^String n]                           ; Sweden: 10-digit Luhn org number + "01"
   (let [n (strip-cc n "SE")]
     (boolean (and (re-matches #"\d{12}" n) (= "01" (subs n 10)) (.isValid luhn-cd (subs n 0 10))))))
@@ -1233,6 +1282,7 @@
 (defn- fr-nir-format [^String n]
   (str (subs n 0 1) " " (subs n 1 3) " " (subs n 3 5) " " (subs n 5 7) " "
        (subs n 7 10) " " (subs n 10 13) " " (subs n 13 15)))
+(defn- fi-ytunnus-format [^String n] (str (subs n 0 7) "-" (subs n 7 8)))
 
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
@@ -1258,13 +1308,18 @@
    :br-cnpj     {:validate cnpj-valid? :format cnpj-format}
    :us-ssn      {:validate ssn-valid? :format ssn-format}
    :us-ein      {:validate ein-valid? :format ein-format}
+   :us-itin     {:validate itin-valid? :parse taxpayer-parse :format ssn-format}
+   :us-atin     {:validate atin-valid? :parse taxpayer-parse :format ssn-format}
+   :us-ptin     {:validate ptin-valid?}
    :de-vat      {:validate de-vat?}
+   :de-idnr     {:validate de-idnr?}
    :fr-vat      {:validate fr-vat?}
    :it-vat      {:validate it-vat?}
    :be-vat      {:validate be-vat?}
    :pl-vat      {:validate pl-vat?}
    :gb-vat      {:validate gb-vat?}
    :gb-nino     {:validate nino? :format nino-format}
+   :gb-utr      {:validate gb-utr?}
    :ca-sin      {:validate ca-sin? :format triple3-format}
    :au-abn      {:validate au-abn? :format au-abn-format}
    :in-pan      {:validate in-pan? :parse in-pan-parse}
@@ -1280,7 +1335,9 @@
    :tr-tc       {:validate tr-tc?}
    :at-vat      {:validate at-vat?}
    :dk-vat      {:validate dk-vat?}
+   :dk-cvr      {:validate dk-cvr?}
    :fi-vat      {:validate fi-vat?}
+   :fi-ytunnus  {:validate fi-ytunnus? :format fi-ytunnus-format}
    :se-vat      {:validate se-vat?}
    :gr-vat      {:validate gr-vat?}
    :pt-nif      {:validate pt-nif?}

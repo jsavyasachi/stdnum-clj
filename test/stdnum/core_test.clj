@@ -156,7 +156,24 @@
     (is (stdnum/valid? :us-ein "12-3456789"))
     (is (= "12-3456789" (stdnum/format :us-ein "123456789")))
     (is (not (stdnum/valid? :us-ein "07-0000000")))          ; 07 not an IRS prefix
-    (is (not (stdnum/valid? :us-ein "00-0000000")))))
+    (is (not (stdnum/valid? :us-ein "00-0000000"))))
+  (testing "US ITIN group-range boundaries"
+    (is (not (stdnum/valid? :us-itin "900-49-0000")))
+    (is (stdnum/valid? :us-itin "900-50-0000"))
+    (is (stdnum/valid? :us-itin "900-65-0000"))
+    (is (not (stdnum/valid? :us-itin "900-66-0000")))
+    (is (not (stdnum/valid? :us-itin "900-89-0000")))
+    (is (not (stdnum/valid? :us-itin "900-93-0000")))
+    (is (stdnum/valid? :us-atin "900-93-0000"))
+    (is (not (stdnum/valid? :us-atin "900-94-0000"))))
+  (testing "US taxpayer ID formats and parse"
+    (is (= "900-70-0000" (stdnum/format :us-itin "900700000")))
+    (is (= "900-93-0000" (stdnum/format :us-atin "900930000")))
+    (is (= {:valid? true :area "900" :group "70" :serial "0000"}
+           (stdnum/parse :us-itin "900-70-0000")))
+    (is (stdnum/valid? :us-ptin "p01234567"))
+    (is (= "P01234567" (stdnum/format :us-ptin "p01234567")))
+    (is (not (stdnum/valid? :us-ptin "Q01234567")))))
 
 (deftest eu-uk-vat-and-nino
   (testing "VAT numbers validate with and without the country prefix (real published values)"
@@ -178,7 +195,12 @@
     (is (stdnum/valid? :gb-nino "AB123456"))             ; suffix optional
     (is (not (stdnum/valid? :gb-nino "QQ123456C")))      ; Q not allowed
     (is (not (stdnum/valid? :gb-nino "GB123456C")))      ; disallowed prefix
-    (is (not (stdnum/valid? :gb-nino "AO123456C")))))    ; O not allowed as 2nd letter
+    (is (not (stdnum/valid? :gb-nino "AO123456C"))))     ; O not allowed as 2nd letter
+  (testing "UK UTR check-digit table"
+    (is (stdnum/valid? :gb-utr "1097172564"))
+    (is (stdnum/valid? :gb-utr "1097172564K"))
+    (is (not (stdnum/valid? :gb-utr "1097172565")))
+    (is (not (stdnum/valid? :gb-utr "2097172564")))))
 
 (deftest other-national-ids
   (testing "Canada SIN (Luhn)"
@@ -235,9 +257,19 @@
   (testing "Denmark VAT"
     (is (stdnum/valid? :dk-vat "DK13585628"))
     (is (not (stdnum/valid? :dk-vat "13585629"))))
+  (testing "Denmark CVR"
+    (is (stdnum/valid? :dk-cvr "61056416"))
+    (is (stdnum/valid? :dk-cvr "10150817"))
+    (is (not (stdnum/valid? :dk-cvr "01056419")))     ; arithmetic can pass, leading zero cannot
+    (is (not (stdnum/valid? :dk-cvr "61056417"))))
   (testing "Finland VAT"
     (is (stdnum/valid? :fi-vat "FI20774740"))
     (is (not (stdnum/valid? :fi-vat "20774741"))))
+  (testing "Finland Y-tunnus rejects remainder 1"
+    (is (stdnum/valid? :fi-ytunnus "0112038-9"))
+    (is (stdnum/valid? :fi-ytunnus "01098628"))
+    (is (= "0109862-8" (stdnum/format :fi-ytunnus "01098628")))
+    (is (not (stdnum/valid? :fi-ytunnus "00000060"))))
   (testing "Sweden VAT (Luhn org number + 01 suffix)"
     (is (stdnum/valid? :se-vat "SE556293998201"))
     (is (not (stdnum/valid? :se-vat "556293998101")))   ; wrong suffix
@@ -278,6 +310,10 @@
   (testing "Hungary VAT"
     (is (stdnum/valid? :hu-vat "HU10597190"))
     (is (not (stdnum/valid? :hu-vat "10597191"))))
+  (testing "German IdNr check digit plus first-ten repeat rule"
+    (is (stdnum/valid? :de-idnr "86095742719"))
+    (is (not (stdnum/valid? :de-idnr "86095742710")))
+    (is (not (stdnum/valid? :de-idnr "12345678903"))))   ; correct check, all-distinct first ten
   (testing "Croatia OIB (ISO 7064 MOD 11,10)"
     (is (stdnum/valid? :hr-oib "69435151530"))
     (is (not (stdnum/valid? :hr-oib "69435151531")))))
