@@ -238,6 +238,14 @@
     (is (stdnum/valid? :mx-clabe "002010077777777771"))
     (is (stdnum/valid? :mx-clabe "032180000118359719"))
     (is (not (stdnum/valid? :mx-clabe "002010077777777772"))))
+  (testing "Argentina CBU validates both block check digits"
+    (is (stdnum/valid? :ar-cbu "2850590940090418135201"))
+    (is (stdnum/valid? :ar-cbu "28505909 40090418135201"))
+    (is (not (stdnum/valid? :ar-cbu "2850590940090418135202")))
+    (is (not (stdnum/valid? :ar-cbu "2850590840090418135201"))))
+  (testing "Spain CCC validates both check digits"
+    (is (stdnum/valid? :es-ccc "2100-0418-45-0200051332"))
+    (is (not (stdnum/valid? :es-ccc "21000418440200051332"))))
   (testing "South Africa ID (Luhn)"
     (is (stdnum/valid? :za-id "8001015009087"))
     (is (not (stdnum/valid? :za-id "8001015009088"))))
@@ -338,6 +346,12 @@
   (testing "Belgium national number"
     (is (stdnum/valid? :be-nn "00012511148"))
     (is (not (stdnum/valid? :be-nn "00012511149"))))
+  (testing "Belgian OGM/VCS structured communication"
+    (is (stdnum/valid? :be-ogm "+++090/9337/55493+++"))
+    (is (stdnum/valid? :be-ogm "090933755493"))
+    (is (stdnum/valid? :be-ogm "000000009797"))
+    (is (not (stdnum/valid? :be-ogm "000000009700")))
+    (is (not (stdnum/valid? :be-ogm "+++090/9337/55494+++"))))
   (testing "Finland HETU (century sign optional after normalization)"
     (is (stdnum/valid? :fi-hetu "131052-308T"))
     (is (stdnum/valid? :fi-hetu "010594Y9032"))
@@ -375,6 +389,16 @@
     (is (stdnum/valid? :ie-vat "IE6388047V"))
     (is (stdnum/valid? :ie-vat "6388047V"))
     (is (not (stdnum/valid? :ie-vat "6388047W")))))
+
+(deftest energy-and-payment-references
+  (testing "ENTSO-E EIC accepts lowercase input and enforces length"
+    (is (stdnum/valid? :eu-eic "10x1001a1001a450"))
+    (is (not (stdnum/valid? :eu-eic "10X1001A1001A451")))
+    (is (not (stdnum/valid? :eu-eic "10X1001A1001A45")))
+    (is (not (stdnum/valid? :eu-eic "10X1001A1001A4500"))))
+  (testing "Swiss ESR/QRR accepts grouped display input"
+    (is (stdnum/valid? :ch-esr "21 00000 00003 13947 14300 09017"))
+    (is (not (stdnum/valid? :ch-esr "210000000003139471430009018")))))
 
 (deftest apac-and-romania-ids
   (testing "Romania VAT/CUI (key right-aligned, variable length)"
@@ -584,6 +608,15 @@
       (is (= "002" (:bank-code p)))
       (is (= "010" (:branch-code p)))
       (is (= "07777777777" (:account p)))))
+  (testing "fintech account/payment IDs expose their useful fields"
+    (is (= {:valid? true :bank "285" :branch "0590" :account "4009041813520"}
+           (stdnum/parse :ar-cbu "2850590940090418135201")))
+    (is (= {:valid? true :bank "2100" :branch "0418" :account "0200051332"}
+           (stdnum/parse :es-ccc "21000418450200051332")))
+    (is (= {:valid? true :office "10" :object-type "X"}
+           (stdnum/parse :eu-eic "10x1001a1001a450")))
+    (is (= {:valid? true :number "0909337554"}
+           (stdnum/parse :be-ogm "+++090/9337/55493+++"))))
   (testing "IMEI exposes TAC and serial; ISIN exposes country and NSIN"
     (let [p (stdnum/parse :imei "490154203237518")]
       (is (= "49015420" (:tac p)))
@@ -623,6 +656,10 @@
     (is (= "51 824 753 556" (stdnum/format :au-abn "51824753556")))
     (is (= "123 456 782" (stdnum/format :au-tfn "123456782")))
     (is (= "974 760 673" (stdnum/format :no-org "974760673"))))
+  (testing "payment references render canonical display forms"
+    (is (= "+++090/9337/55493+++" (stdnum/format :be-ogm "090933755493")))
+    (is (= "21 00000 00003 13947 14300 09017"
+           (stdnum/format :ch-esr "210000000003139471430009017"))))
   (testing "format returns nil for invalid input"
     (is (nil? (stdnum/format :ar-cuit "30703088535")))
     (is (nil? (stdnum/format :cas "7732186")))))

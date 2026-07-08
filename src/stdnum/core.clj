@@ -221,6 +221,20 @@
 (defn- cfi-valid? [^String n] (boolean (and (re-matches #"[A-Z]{6}" n) (cfi-categories (.charAt n 0)))))
 (defn- cfi-parse [^String n] {:valid? true :category (cfi-categories (.charAt n 0))})
 
+(defn- eic-value ^long [^Character c]
+  (cond
+    (Character/isDigit c) (- (int c) 48)
+    (= \- c) 36
+    :else (+ 10 (- (int c) 65))))
+(defn- eu-eic-valid? [^String n]
+  (and (re-matches #"\d{2}[A-Z][A-Z0-9-]{12}[A-Z0-9]" n)
+       (let [s (reduce + (map (fn [c w] (* (eic-value c) (long w))) (subs n 0 15) (range 16 1 -1)))
+             check (- 36 (mod (dec (long s)) 37))
+             expected (if (< check 10) (+ 48 check) (+ 65 (- check 10)))]
+         (and (not= 36 check)
+              (= expected (int (.charAt n 15)))))))
+(defn- eu-eic-parse [^String n] {:valid? true :office (subs n 0 2) :object-type (subs n 2 3)})
+
 ;; --- global / national entity & person identifiers (clean-room from public specs) ---
 
 ;; LEI (ISO 17442): 20 chars [A-Z0-9], ISO 7064 MOD 97-10 over the whole string
@@ -447,6 +461,28 @@
          (= (mod (- 10 (mod (long s) 10)) 10) (d 17)))))
 (defn- mx-clabe-parse [^String n]                    ; 3 bank + 3 branch + 11 account + 1 check
   {:valid? true :bank-code (subs n 0 3) :branch-code (subs n 3 6) :account (subs n 6 17)})
+(def ^:private cbu-bank-weights [7 1 3 9 7 1 3])
+(def ^:private cbu-account-weights [3 9 7 1 3 9 7 1 3 9 7 1 3])
+(defn- weighted-mod10-check ^long [digits weights]
+  (mod (- 10 (mod (long (reduce + (map * digits weights))) 10)) 10))
+(defn- ar-cbu? [^String n]
+  (and (re-matches #"\d{22}" n)
+       (let [d (digits-of n)]
+         (and (= (weighted-mod10-check (subvec d 0 7) cbu-bank-weights) (d 7))
+              (= (weighted-mod10-check (subvec d 8 21) cbu-account-weights) (d 21))))))
+(defn- ar-cbu-parse [^String n]
+  {:valid? true :bank (subs n 0 3) :branch (subs n 3 7) :account (subs n 8 21)})
+(def ^:private ccc-weights [1 2 4 8 5 10 9 7 3 6])
+(defn- ccc-check ^long [^String payload]
+  (let [r (mod (long (reduce + (map * (digits-of payload) ccc-weights))) 11)
+        d (- 11 r)]
+    (cond (= d 11) 0 (= d 10) 1 :else d)))
+(defn- es-ccc? [^String n]
+  (and (re-matches #"\d{20}" n)
+       (= (ccc-check (str "00" (subs n 0 8))) (- (int (.charAt n 8)) 48))
+       (= (ccc-check (subs n 10 20)) (- (int (.charAt n 9)) 48))))
+(defn- es-ccc-parse [^String n]
+  {:valid? true :bank (subs n 0 4) :branch (subs n 4 8) :account (subs n 10 20)})
 (defn- za-id? [^String n]                            ; South Africa ID: 13-digit Luhn
   (boolean (and (re-matches #"\d{13}" n) (.isValid luhn-cd n))))
 (def ^:private no-org-weights [3 2 7 6 5 4 3 2])
@@ -581,6 +617,13 @@
        (let [d (digits-of n)
              s (reduce + (map-indexed (fn [i x] (* (long x) (long (if (even? i) 1 3)))) (subvec d 0 12)))]
          (= (mod (- 10 (mod (long s) 10)) 10) (d 12)))))
+(def ^:private esr-table [0 9 4 6 8 2 7 1 3 5])
+(defn- ch-esr? [^String n]                            ; Swiss ESR/QRR reference: 27 digits, modulo 10 recursive.
+  (and (re-matches #"\d{27}" n)
+       (let [d (digits-of n)
+             carry (reduce (fn [^long carry digit] (long (nth esr-table (mod (+ carry (long digit)) 10))))
+                           0 (subvec d 0 26))]
+         (= (mod (- 10 carry) 10) (d 26)))))
 
 (def ^:private nz-w1 [3 2 7 6 5 4 3 2])
 (def ^:private nz-w2 [7 4 3 2 5 2 7 6])
@@ -597,6 +640,15 @@
        (let [base (subs n 0 9) chk (Integer/parseInt (subs n 9))]
          (or (= chk (- 97 (mod (Long/parseLong base) 97)))
              (= chk (- 97 (mod (Long/parseLong (str "2" base)) 97)))))))
+(defn- be-ogm-compact ^String [^String n] (str/replace n #"\+" ""))
+(defn- be-ogm? [^String n]                            ; Belgian OGM/VCS: 10 digits + mod-97 check, 0 -> 97.
+  (let [n (be-ogm-compact n)]
+    (and (re-matches #"\d{12}" n)
+         (let [r (mod (Long/parseLong (subs n 0 10)) 97)
+               c (if (zero? r) 97 r)]
+           (= c (Integer/parseInt (subs n 10)))))))
+(defn- be-ogm-parse [^String n]
+  {:valid? true :number (subs (be-ogm-compact n) 0 10)})
 (def ^:private ^String hetu-chk "0123456789ABCDEFHJKLMNPRSTUVWXY")
 (defn- fi-hetu? [^String n]                           ; Finland HETU: check char over date+serial mod 31
   (when-let [[_ ddmmyy zzz c] (re-matches #"(\d{6})[-+A-FU-Y]?(\d{3})([0-9A-Y])" n)]
@@ -1273,6 +1325,9 @@
 (defn- aadhaar-format [^String n] (str (subs n 0 4) " " (subs n 4 8) " " (subs n 8 12)))
 (defn- ch-ahv-format [^String n]
   (str (subs n 0 3) "." (subs n 3 7) "." (subs n 7 11) "." (subs n 11 13)))
+(defn- ch-esr-format [^String n]
+  (str (subs n 0 2) " " (subs n 2 7) " " (subs n 7 12) " " (subs n 12 17) " "
+       (subs n 17 22) " " (subs n 22 27)))
 (defn- triple3-format [^String n] (str (subs n 0 3) " " (subs n 3 6) " " (subs n 6 9)))  ; SIN/TFN/org
 (defn- hk-id-format [^String n]
   (let [k (dec (count n))] (str (subs n 0 k) "(" (subs n k) ")")))
@@ -1283,6 +1338,9 @@
   (str (subs n 0 1) " " (subs n 1 3) " " (subs n 3 5) " " (subs n 5 7) " "
        (subs n 7 10) " " (subs n 10 13) " " (subs n 13 15)))
 (defn- fi-ytunnus-format [^String n] (str (subs n 0 7) "-" (subs n 7 8)))
+(defn- be-ogm-format [^String n]
+  (let [n (be-ogm-compact n)]
+    (str "+++" (subs n 0 3) "/" (subs n 3 7) "/" (subs n 7 12) "+++")))
 
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
@@ -1302,6 +1360,7 @@
    :cusip       {:validate cusip-valid?}
    :sedol       {:validate sedol-valid?}
    :cfi         {:validate cfi-valid? :parse cfi-parse}
+   :eu-eic      {:validate eu-eic-valid? :parse eu-eic-parse}
    :isrc        {:validate isrc-valid? :parse isrc-parse :format isrc-format}
    :isil        {:validate isil-valid? :parse isil-parse}
    :br-cpf      {:validate cpf-valid? :format cpf-format}
@@ -1330,6 +1389,7 @@
    :cn-ric      {:validate cn-ric? :parse cn-ric-parse}
    :se-pnr      {:validate se-pnr? :parse se-pnr-parse :format se-pnr-format}
    :mx-clabe    {:validate mx-clabe? :parse mx-clabe-parse}
+   :es-ccc      {:validate es-ccc? :parse es-ccc-parse}
    :za-id       {:validate za-id? :parse za-id-parse}
    :no-org      {:validate no-org? :format triple3-format}
    :tr-tc       {:validate tr-tc?}
@@ -1353,8 +1413,10 @@
    :it-cf       {:validate it-cf? :parse it-cf-parse}
    :ch-uid      {:validate ch-uid?}
    :ch-ahv      {:validate ch-ahv? :format ch-ahv-format}
+   :ch-esr      {:validate ch-esr? :format ch-esr-format}
    :nz-ird      {:validate nz-ird?}
    :be-nn       {:validate be-nn? :parse be-nn-parse :format be-nn-format}
+   :be-ogm      {:validate be-ogm? :parse be-ogm-parse :format be-ogm-format}
    :fi-hetu     {:validate fi-hetu?}
    :figi        {:validate figi?}
    :mt-vat      {:validate mt-vat?}
@@ -1423,6 +1485,7 @@
    :fr-nir      {:validate fr-nir? :parse fr-nir-parse :format fr-nir-format}
    :pl-pesel    {:validate pesel? :parse pesel-parse}
    :ar-cuit     {:validate ar-cuit? :format ar-cuit-format}
+   :ar-cbu      {:validate ar-cbu? :parse ar-cbu-parse}
    :cl-rut      {:validate cl-rut? :format dash-check-format}
    :co-nit      {:validate co-nit? :format dash-check-format}
    :pe-ruc      {:validate pe-ruc? :parse pe-ruc-parse}
@@ -1451,7 +1514,10 @@
                    ". Known types: " (sort types))))))
 
 (defn- input-for ^String [type s]
-  (if (raw-input-types type) (if s (str s) "") (norm s)))
+  (cond
+    (= :eu-eic type) (if s (-> (str s) (str/replace #"\s" "") str/upper-case) "")
+    (raw-input-types type) (if s (str s) "")
+    :else (norm s)))
 
 (defn compact
   "Return `s` stripped of spaces, hyphens, and dots and upper-cased - the
