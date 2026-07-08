@@ -22,7 +22,10 @@
            [org.apache.commons.validator.routines.checkdigit
             LuhnCheckDigit ABANumberCheckDigit CUSIPCheckDigit SedolCheckDigit VerhoeffCheckDigit
             EAN13CheckDigit]
-           [org.iban4j Iban Bic]))
+           [org.iban4j Iban Bic]
+           [java.math BigInteger]
+           [java.security MessageDigest]
+           [java.util Arrays]))
 
 (defn- norm ^String [s]
   (if s (-> (str s) (str/replace #"[\s.\-/]" "") str/upper-case) ""))
@@ -90,6 +93,133 @@
 (defn- aba-valid?  [^String n] (and (re-matches #"\d{9}" n) (.isValid aba-cd n)))
 (defn- imei-valid? [^String n] (and (re-matches #"\d{15}" n) (.isValid luhn-cd n)))
 (defn- imei-parse [^String n] {:valid? true :tac (subs n 0 8) :serial (subs n 8 14)})
+
+;; --- network / mobile identifiers -------------------------------------------
+(defn- mac-compact ^String [^String n] (str/replace n #":" ""))
+(defn- mac-valid? [^String n] (boolean (re-matches #"[0-9A-F]{12}" (mac-compact n))))
+(defn- mac-parse [^String n]
+  (let [n (mac-compact n)
+        first-octet (Integer/parseInt (subs n 0 2) 16)]
+    {:valid? true
+     :oui (subs n 0 6)
+     :locally-administered? (bit-test first-octet 1)
+     :multicast? (bit-test first-octet 0)}))
+(defn- mac-format [^String n] (str/join ":" (re-seq #".{2}" (mac-compact n))))
+
+(defn- imsi-valid? [^String n]
+  (and (re-matches #"\d{6,15}" n)
+       (let [mcc (subs n 0 3)] (or (= "001" mcc) (not= \0 (.charAt ^String mcc 0))))))
+(defn- imsi-parse [^String n] {:valid? true :mcc (subs n 0 3)})
+
+(defn- hex-val ^long [^Character c] (Character/digit (char c) 16))
+(defn- meid-check ^long [^String n]
+  (let [[total _] (reduce (fn [[^long total double?] c]
+                            (let [v (hex-val c)
+                                  p (if double? (* v 2) v)]
+                              [(+ total (quot p 16) (mod p 16)) (not double?)]))
+                          [0 true] (reverse n))]
+    (mod (- 16 (mod (long total) 16)) 16)))
+(defn- meid-valid? [^String n]
+  (and (re-matches #"[0-9A-F]{14}[0-9A-F]?" n)
+       (or (= 14 (count n)) (= (meid-check (subs n 0 14)) (hex-val (.charAt n 14))))))
+(defn- meid-parse [^String n]
+  {:valid? true :regional-code (subs n 0 2) :manufacturer (subs n 2 8) :serial (subs n 8 14)})
+
+;; --- cryptocurrency addresses ------------------------------------------------
+(def ^:private ^String bitcoin-base58 "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
+(def ^:private base58-values (zipmap bitcoin-base58 (range)))
+(def ^:private ^BigInteger b58 (BigInteger/valueOf 58))
+
+(defn- sha256 ^bytes [^bytes bs]
+  (.digest (MessageDigest/getInstance "SHA-256") bs))
+
+(defn- base58-decode ^bytes [^String s]
+  (when (seq s)
+    (let [leading (count (take-while #(= \1 %) s))
+          decoded (reduce (fn [^BigInteger acc c]
+                            (if-let [v (base58-values c)]
+                              (.add (.multiply acc b58) (BigInteger/valueOf (long v)))
+                              (reduced nil)))
+                          BigInteger/ZERO s)]
+      (when decoded
+        (let [raw (.toByteArray ^BigInteger decoded)
+              raw-len (alength raw)
+              start (if (and (> raw-len 1) (zero? (aget raw 0))) 1 0)
+              body-len (if (zero? (.signum ^BigInteger decoded)) 0 (- raw-len start))
+              out (byte-array (+ leading body-len))]
+          (when (pos? body-len)
+            (System/arraycopy raw start out leading body-len))
+          out)))))
+
+(defn- bitcoin-base58-parse [^String n]
+  (when-let [bs (base58-decode n)]
+    (when (= 25 (alength bs))
+      (let [payload (Arrays/copyOfRange bs 0 21)
+            checksum (Arrays/copyOfRange bs 21 25)
+            digest (sha256 (sha256 payload))
+            expected (Arrays/copyOfRange digest 0 4)
+            version (bit-and 0xff (aget bs 0))]
+        (when (Arrays/equals checksum expected)
+          (case version
+            0 {:valid? true :encoding :base58check :type :p2pkh}
+            5 {:valid? true :encoding :base58check :type :p2sh}
+            nil))))))
+
+(def ^:private ^String bech32-charset "qpzry9x8gf2tvdw0s3jn54khce6mua7l")
+(def ^:private bech32-values (zipmap bech32-charset (range)))
+(def ^:private bech32-gen [0x3b6a57b2 0x26508e6d 0x1ea119fa 0x3d4233dd 0x2a1462b3])
+
+(defn- bech32-polymod ^long [values]
+  (reduce (fn [^long chk ^long v]
+            (let [top (bit-shift-right chk 25)
+                  chk (bit-xor (bit-shift-left (bit-and chk 0x1ffffff) 5) v)]
+              (reduce (fn [^long c i]
+                        (if (pos? (bit-and (bit-shift-right top i) 1))
+                          (bit-xor c (long (nth bech32-gen i)))
+                          c))
+                      chk (range 5))))
+          1 values))
+
+(defn- bech32-parse [^String n]
+  (let [lower (str/lower-case n)
+        upper (str/upper-case n)]
+    (when (and (or (= n lower) (= n upper)) (str/starts-with? lower "bc1"))
+      (let [sep (.lastIndexOf lower "1")]
+        (when (and (pos? sep) (<= (+ sep 7) (count lower)))
+          (let [hrp (subs lower 0 sep)
+                data (subs lower (inc sep))
+                values (reduce (fn [acc c]
+                                 (if-let [v (bech32-values c)]
+                                   (conj acc v)
+                                   (reduced nil)))
+                               [] data)]
+            (when (and (= "bc" hrp) values
+                       (= 1 (bech32-polymod
+                             (concat (map #(bit-shift-right (int %) 5) hrp)
+                                     [0]
+                                     (map #(bit-and (int %) 31) hrp)
+                                     values))))
+              {:valid? true :encoding :bech32 :type :segwit})))))))
+
+(defn- bitcoin-parse [^String n] (or (bitcoin-base58-parse n) (bech32-parse n)))
+(defn- bitcoin-valid? [^String n] (boolean (bitcoin-parse n)))
+
+;; --- ISO structural identifiers ---------------------------------------------
+(defn- isrc-valid? [^String n] (boolean (re-matches #"[A-Z]{2}[A-Z0-9]{3}\d{7}" n)))
+(defn- isrc-parse [^String n]
+  {:valid? true :country (subs n 0 2) :registrant (subs n 2 5) :year (subs n 5 7) :designation (subs n 7 12)})
+(defn- isrc-format [^String n] (str (subs n 0 2) "-" (subs n 2 5) "-" (subs n 5 7) "-" (subs n 7 12)))
+
+(defn- isil-valid? [^String n]
+  (boolean (and (<= (count n) 16) (re-matches #"[A-Za-z0-9]{1,4}-[A-Za-z0-9/:-]+" n))))
+(defn- isil-parse [^String n] {:valid? true :prefix (subs n 0 (.indexOf n "-"))})
+
+(def ^:private cfi-categories
+  {\E :equity \D :debt \C :collective-investment \R :entitlement \O :listed-option
+   \F :future \S :swap \H :non-listed-option \I :spot \J :forward \K :strategy
+   \L :financing \T :referential \M :other})
+(defn- cfi-valid? [^String n] (boolean (and (re-matches #"[A-Z]{6}" n) (cfi-categories (.charAt n 0)))))
+(defn- cfi-parse [^String n] {:valid? true :category (cfi-categories (.charAt n 0))})
 
 ;; --- global / national entity & person identifiers (clean-room from public specs) ---
 
@@ -1113,10 +1243,17 @@
    :isin        {:validate isin-valid? :parse isin-parse}
    :aba         {:validate aba-valid?}
    :imei        {:validate imei-valid? :parse imei-parse}
+   :imsi        {:validate imsi-valid? :parse imsi-parse}
+   :mac         {:validate mac-valid? :parse mac-parse :format mac-format}
+   :meid        {:validate meid-valid? :parse meid-parse}
    :luhn        {:validate luhn-valid?}
+   :bitcoin     {:validate bitcoin-valid? :parse bitcoin-parse}
    :lei         {:validate lei-valid?}
    :cusip       {:validate cusip-valid?}
    :sedol       {:validate sedol-valid?}
+   :cfi         {:validate cfi-valid? :parse cfi-parse}
+   :isrc        {:validate isrc-valid? :parse isrc-parse :format isrc-format}
+   :isil        {:validate isil-valid? :parse isil-parse}
    :br-cpf      {:validate cpf-valid? :format cpf-format}
    :br-cnpj     {:validate cnpj-valid? :format cnpj-format}
    :us-ssn      {:validate ssn-valid? :format ssn-format}
@@ -1248,11 +1385,16 @@
   "The set of identifier-type keywords this library understands."
   (set (keys registry)))
 
+(def ^:private raw-input-types #{:bitcoin :cfi :isil})
+
 (defn- entry ^clojure.lang.IPersistentMap [type]
   (or (registry type)
       (throw (IllegalArgumentException.
               (str "Unknown identifier type: " (pr-str type)
                    ". Known types: " (sort types))))))
+
+(defn- input-for ^String [type s]
+  (if (raw-input-types type) (if s (str s) "") (norm s)))
 
 (defn compact
   "Return `s` stripped of spaces, hyphens, and dots and upper-cased - the
@@ -1265,7 +1407,7 @@
   unknown `type` throws IllegalArgumentException."
   [type s]
   (let [{:keys [validate]} (entry type)]
-    (try (boolean (validate (norm s))) (catch Exception _ false))))
+    (try (boolean (validate (input-for type s))) (catch Exception _ false))))
 
 (defn parse
   "Validate `s` as `type` and return a map. On success: at least `{:valid? true}`,
@@ -1273,7 +1415,7 @@
   `:formatted`). On bad data: `{:valid? false}`. Unknown `type` throws."
   [type s]
   (let [{:keys [validate parse]} (entry type)
-        n (norm s)]
+        n (input-for type s)]
     (if (try (boolean (validate n)) (catch Exception _ false))
       (if parse (try (parse n) (catch Exception _ {:valid? true})) {:valid? true})
       {:valid? false})))
@@ -1284,7 +1426,7 @@
   `type` throws."
   [type s]
   (let [{:keys [validate format]} (entry type)
-        n (norm s)]
+        n (input-for type s)]
     (when (try (boolean (validate n)) (catch Exception _ false))
       (if format (format n) n))))
 

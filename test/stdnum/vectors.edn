@@ -24,12 +24,27 @@
  :sedol       {:valid ["0263494" "B0YBKJ7"] :invalid ["0263495"] :source "LSE SEDOL masterfile examples"}
  :figi        {:valid ["BBG000BLNNH6" "BBG000B9XRY4"] :invalid ["BBG000BLNNH7"]
                :source "OpenFIGI (Apple composite & equity)"}
+ :cfi         {:valid ["ESVUFR"] :invalid ["XSVUFR" "ESVUF1"]
+               :source "ISO 10962 worked example (common voting unrestricted fully-paid registered shares)"}
  :isbn        {:valid ["0306406152" "9780306406157"] :invalid ["9780306406158"]
                :source "ISBN International worked example"}
  :issn        {:valid ["0317-8471"] :invalid ["0317-8470"] :source "ISSN worked example"}
+ :isrc        {:valid ["USUAN1400011"] :invalid ["USUAN14A0011" "USUAN140001"]
+               :source "IFPI ISRC database (Kevin MacLeod, Monkeys Spinning Monkeys)"}
+ :isil        {:valid ["FI-Tro" "US-DLC" "DE-386"] :invalid ["ABCD-123456789012" "notadash"]
+               :source "ISO 15511; Danish Agency for Culture ISIL registry examples (Turku/Rauma FI-Tro), Library of Congress US-DLC, DE sigel 386"}
  :ismn        {:valid ["9790001148412"] :invalid ["9790001148413"] :source "ISMN International (Schott)"}
  :imei        {:valid ["490154203237518"] :invalid ["490154203237519"] :source "GSMA Luhn example"}
+ :imsi        {:valid ["001010123456063" "310150123456789"] :invalid ["000010123456063" "31015"]
+               :source "3GPP TS test-network IMSI (MCC 001 MNC 01); ITU E.212 structure, US MCC 310"}
+ :mac         {:valid ["00:00:5E:00:53:00"] :invalid ["00:00:5E:00:53:0G" "00:00:5E:00:53"]
+               :source "RFC 7042 documentation MAC range (IANA 00-00-5E)"}
+ :meid        {:valid ["AF0123450ABCDE" "AF0123450ABCDEC"] :invalid ["AF0123450ABCDED" "AF0123450ABCD"]
+               :source "TIA TR-45 MEID check-digit worked example"}
  :luhn        {:valid ["79927398713"] :invalid ["79927398714"] :source "Luhn algorithm canonical example"}
+ :bitcoin     {:valid ["1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa" "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy" "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"]
+               :invalid ["1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNb" "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLx" "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t5" "bc1Qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"]
+               :source "Bitcoin genesis-block coinbase address; BIP-13 worked P2SH example; BIP-173 test vector"}
  :aba         {:valid ["021000021"] :invalid ["021000020"] :source "US Federal Reserve routing (JPMorgan NY)"}
  :orcid       {:valid ["0000000218250097"] :invalid ["0000000218250098"]
                :source "ORCID (Josiah Carberry sandbox id); ISO 7064 Mod 11-2"}

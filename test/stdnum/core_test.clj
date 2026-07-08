@@ -68,6 +68,53 @@
     (is (stdnum/valid? :luhn "79927398713"))
     (is (not (stdnum/valid? :luhn "79927398714")))))
 
+(deftest new-device-and-network-identifiers
+  (testing "MAC accepts common display forms and exposes flags"
+    (is (stdnum/valid? :mac "00:00:5E:00:53:00"))
+    (is (stdnum/valid? :mac "00-00-5E-00-53-00"))
+    (is (stdnum/valid? :mac "0000.5E00.5300"))
+    (is (stdnum/valid? :mac "00005e005300"))
+    (is (= "00:00:5E:00:53:00" (stdnum/format :mac "0000.5e00.5300")))
+    (is (= {:valid? true :oui "00005E" :locally-administered? false :multicast? false}
+           (stdnum/parse :mac "00:00:5E:00:53:00")))
+    (let [p (stdnum/parse :mac "03:00:5E:00:53:00")]
+      (is (true? (:locally-administered? p)))
+      (is (true? (:multicast? p)))))
+  (testing "IMSI exposes MCC and keeps MCC 001 available for test networks"
+    (is (= {:valid? true :mcc "001"} (stdnum/parse :imsi "001010123456063")))
+    (is (= "310" (:mcc (stdnum/parse :imsi "310150123456789"))))
+    (is (not (stdnum/valid? :imsi "000010123456063"))))
+  (testing "MEID validates optional base-16 Luhn check digit and extracts fields"
+    (is (stdnum/valid? :meid "AF0123450ABCDE"))
+    (is (stdnum/valid? :meid "AF0123450ABCDEC"))
+    (is (not (stdnum/valid? :meid "AF0123450ABCDED")))
+    (is (= {:valid? true :regional-code "AF" :manufacturer "012345" :serial "0ABCDE"}
+           (stdnum/parse :meid "AF0123450ABCDEC")))))
+
+(deftest bitcoin-addresses
+  (testing "Base58Check and Bech32 forms validate and parse by encoding/type"
+    (is (= {:valid? true :encoding :base58check :type :p2pkh}
+           (stdnum/parse :bitcoin "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa")))
+    (is (= {:valid? true :encoding :base58check :type :p2sh}
+           (stdnum/parse :bitcoin "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy")))
+    (is (= {:valid? true :encoding :bech32 :type :segwit}
+           (stdnum/parse :bitcoin "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"))))
+  (testing "mixed-case Bech32 is rejected"
+    (is (not (stdnum/valid? :bitcoin "bc1Qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4")))))
+
+(deftest iso-identifiers
+  (testing "ISRC parses and formats"
+    (is (= {:valid? true :country "US" :registrant "UAN" :year "14" :designation "00011"}
+           (stdnum/parse :isrc "US-UAN-14-00011")))
+    (is (= "US-UAN-14-00011" (stdnum/format :isrc "USUAN1400011"))))
+  (testing "ISIL parses the prefix"
+    (is (= "FI" (:prefix (stdnum/parse :isil "FI-Tro"))))
+    (is (= "US" (:prefix (stdnum/parse :isil "US-DLC"))))
+    (is (not (stdnum/valid? :isil "notadash"))))
+  (testing "CFI maps category"
+    (is (= :equity (:category (stdnum/parse :cfi "ESVUFR"))))
+    (is (not (stdnum/valid? :cfi "XSVUFR")))))
+
 (deftest global-and-national-ids
   (testing "LEI (ISO 17442, mod-97-10) - real GLEIF values"
     (is (stdnum/valid? :lei "5493001KJTIIGC8Y1R12"))
