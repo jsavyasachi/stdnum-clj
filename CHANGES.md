@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.27.1] - 2026-07-08
+
+Docs-only release: cljdoc guide articles (Getting Started, Recipes, Adding an
+Identifier Type) under doc/. No code changes.
+
 ## [0.27.0] - 2026-07-07
 
 19 new types (138 → 157), in three groups. Every checksum verified against an
