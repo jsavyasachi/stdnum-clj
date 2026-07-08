@@ -6,6 +6,51 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.27.0] - 2026-07-07
+
+19 new types (138 → 157), in three groups. Every checksum verified against an
+independently recomputed published number, per the corpus rules.
+
+### Added - tech & media identifiers
+- `:mac` — IEEE MAC-48/EUI-48 in all four written forms; `parse` exposes OUI,
+  locally-administered and multicast bits; canonical colon `format`.
+- `:bitcoin` — Bitcoin addresses: Base58Check (P2PKH/P2SH, double-SHA-256) and
+  BIP-173 bech32 SegWit (mixed case rejected); `parse` exposes encoding/type.
+- `:isrc` — ISO 3901 recording code, hyphenated `format` (IFPI database vector).
+- `:imsi` — ITU E.212 subscriber identity, structural; `parse` exposes MCC.
+- `:meid` — 3GPP2 mobile equipment identifier, base-16 Luhn check digit
+  (TIA worked example); `parse` splits regional code/manufacturer/serial.
+- `:isil` — ISO 15511 library identifier, structural.
+- `:cfi` — ISO 10962 financial-instrument classification; `parse` maps the
+  category letter to a keyword.
+
+### Added - tax & business registries
+- `:us-itin`, `:us-atin`, `:us-ptin` — IRS ITIN (group ranges 50-65/70-88/
+  90-92/94-99), ATIN (group 93), PTIN (P + 8 digits).
+- `:gb-utr` — HMRC Unique Taxpayer Reference, leading check digit
+  (weights 6…2, lookup table); optional display "K" suffix stripped.
+- `:dk-cvr` — Danish CVR company number, mod-11 (vector: Carlsberg A/S).
+- `:fi-ytunnus` — Finnish Business ID; remainder-1 numbers rejected as never
+  issued (vectors: Nokia Oyj, Kone Oyj); hyphenated `format`.
+- `:de-idnr` — German tax IdNr, ISO 7064 MOD 11,10 plus the
+  one-repeated-digit structural rule.
+
+### Added - fintech payment formats
+- `:ar-cbu` — Argentine CBU, dual 9713-pattern check digits; `parse` exposes
+  bank/branch/account.
+- `:es-ccc` — Spanish Código Cuenta Cliente, dual weighted mod-11 check pair
+  (vector: the ISO 13616 Spanish IBAN worked example).
+- `:eu-eic` — ENTSO-E Energy Identification Code, base-37 weighted check
+  character.
+- `:be-ogm` — Belgian structured payment reference (+++xxx/xxxx/xxxxx+++),
+  mod 97 with 0 → 97; decorated `format`.
+- `:ch-esr` — Swiss ESR/QR reference number, "modulo 10 recursive" check
+  digit (SIX Annex B), grouped display `format`.
+
+Deferred (no published algorithm or no verifiable real vector yet): `:sg-uen`
+(ACRA does not publish the check-letter algorithm), `:es-cups`,
+Czech/New-Zealand domestic bank account formats.
+
 ## [0.26.0] - 2026-06-27
 
 ### Added

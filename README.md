@@ -34,13 +34,13 @@ implemented clean-room and kept under this library's EPL license.
 Leiningen / Boot:
 
 ```clojure
-[net.clojars.savya/stdnum-clj "0.26.0"]
+[net.clojars.savya/stdnum-clj "0.27.0"]
 ```
 
 deps.edn:
 
 ```clojure
-net.clojars.savya/stdnum-clj {:mvn/version "0.26.0"}
+net.clojars.savya/stdnum-clj {:mvn/version "0.27.0"}
 ```
 
 ## Usage
@@ -133,16 +133,16 @@ the only part of the library that does network I/O; it lives in its own namespac
 (`:br-cpf`, `:us-ssn`, `:de-vat`); full descriptions are on [cljdoc](https://cljdoc.org/d/net.clojars.savya/stdnum-clj).
 
 <details>
-<summary><b>All 138 types, by category</b></summary>
+<summary><b>All 157 types, by category</b></summary>
 
 | Category | Types |
 |----------|-------|
-| **Banking & cards** | `:credit-card` (+ network) · `:iban` · `:bic` · `:aba` · `:mx-clabe` · `:iso11649` |
-| **Securities** | `:isin` · `:lei` · `:cusip` · `:sedol` · `:figi` |
-| **Publishing / media / device** | `:isbn` · `:issn` · `:ismn` · `:iswc` · `:grid` · `:isan` · `:imei` · `:luhn` |
-| **Commerce / logistics / vehicle / industry** | `:ean13` · `:ean8` · `:upc` · `:gtin14` · `:sscc` · `:gln` · `:iso6346` · `:upu-s10` · `:vin` · `:imo` · `:cas` · `:nhs` · `:npi` · `:it-aic` |
+| **Banking & cards** | `:credit-card` (+ network) · `:iban` · `:bic` · `:aba` · `:mx-clabe` · `:iso11649` · `:ar-cbu` · `:es-ccc` · `:be-ogm` · `:ch-esr` |
+| **Securities** | `:isin` · `:lei` · `:cusip` · `:sedol` · `:figi` · `:cfi` |
+| **Publishing / media / device** | `:isbn` · `:issn` · `:ismn` · `:iswc` · `:grid` · `:isan` · `:imei` · `:luhn` · `:isrc` · `:isil` · `:mac` · `:imsi` · `:meid` · `:bitcoin` |
+| **Commerce / logistics / vehicle / industry** | `:ean13` · `:ean8` · `:upc` · `:gtin14` · `:sscc` · `:gln` · `:iso6346` · `:upu-s10` · `:vin` · `:imo` · `:cas` · `:nhs` · `:npi` · `:it-aic` · `:eu-eic` |
 | **Research / name** | `:orcid` · `:isni` |
-| **Tax & national IDs** | `:us-ssn` · `:us-ein` · `:gb-nino` · `:br-cpf` · `:br-cnpj` · `:ca-sin` · `:au-abn` · `:au-tfn` · `:in-pan` · `:in-aadhaar` · `:es-dni` · `:es-nie` · `:nl-bsn` · `:cn-ric` · `:se-pnr` · `:za-id` · `:no-org` · `:tr-tc` · `:pt-nif` · `:cz-ico` · `:jp-cn` · `:hr-oib` · `:it-cf` · `:ch-uid` · `:ch-ahv` · `:nz-ird` · `:be-nn` · `:fi-hetu` · `:sg-nric` · `:hk-id` · `:kr-brn` · `:fr-nir` · `:pl-pesel` · `:ar-cuit` · `:cl-rut` · `:co-nit` · `:pe-ruc` · `:ie-pps` · `:ee-ik` · `:jmbg` · `:ec-ced` · `:bg-egn` · `:mx-curp` · `:ru-inn` · `:tw-gui` · `:ua-edrpou` · `:cn-usci` · `:is-kennitala` · `:ve-rif` · `:do-rnc` · `:ru-ogrn` · `:vn-mst` · `:rs-pib` · `:pl-regon` · `:il-company` · `:au-acn` · `:sk-ico` · `:ee-rk` · `:uy-rut` · `:ec-ruc` · `:py-ruc` · `:gt-nit` · `:fr-siren` · `:fr-siret` · `:se-orgnr` · `:es-cif` · `:nz-nzbn` · `:id-npwp` · `:tr-vkn` · `:mx-rfc` · `:th-moa` · `:kz-bin` · `:ca-bn` · `:si-maticna` |
+| **Tax & national IDs** | `:us-ssn` · `:us-ein` · `:gb-nino` · `:br-cpf` · `:br-cnpj` · `:ca-sin` · `:au-abn` · `:au-tfn` · `:in-pan` · `:in-aadhaar` · `:es-dni` · `:es-nie` · `:nl-bsn` · `:cn-ric` · `:se-pnr` · `:za-id` · `:no-org` · `:tr-tc` · `:pt-nif` · `:cz-ico` · `:jp-cn` · `:hr-oib` · `:it-cf` · `:ch-uid` · `:ch-ahv` · `:nz-ird` · `:be-nn` · `:fi-hetu` · `:sg-nric` · `:hk-id` · `:kr-brn` · `:fr-nir` · `:pl-pesel` · `:ar-cuit` · `:cl-rut` · `:co-nit` · `:pe-ruc` · `:ie-pps` · `:ee-ik` · `:jmbg` · `:ec-ced` · `:bg-egn` · `:mx-curp` · `:ru-inn` · `:tw-gui` · `:ua-edrpou` · `:cn-usci` · `:is-kennitala` · `:ve-rif` · `:do-rnc` · `:ru-ogrn` · `:vn-mst` · `:rs-pib` · `:pl-regon` · `:il-company` · `:au-acn` · `:sk-ico` · `:ee-rk` · `:uy-rut` · `:ec-ruc` · `:py-ruc` · `:gt-nit` · `:fr-siren` · `:fr-siret` · `:se-orgnr` · `:es-cif` · `:nz-nzbn` · `:id-npwp` · `:tr-vkn` · `:mx-rfc` · `:th-moa` · `:kz-bin` · `:ca-bn` · `:si-maticna` · `:us-itin` · `:us-atin` · `:us-ptin` · `:gb-utr` · `:dk-cvr` · `:fi-ytunnus` · `:de-idnr` |
 | **VAT / GST** (EU-27 complete) | `:de-vat` · `:fr-vat` · `:it-vat` · `:be-vat` · `:pl-vat` · `:gb-vat` · `:at-vat` · `:dk-vat` · `:fi-vat` · `:se-vat` · `:gr-vat` · `:lu-vat` · `:si-vat` · `:ee-vat` · `:hu-vat` · `:mt-vat` · `:sk-vat` · `:lt-vat` · `:cy-vat` · `:ro-vat` · `:es-vat` · `:ie-vat` · `:nl-vat` · `:lv-vat` · `:bg-vat` · `:hr-vat` · `:cz-vat` · `:pt-vat` · `:in-gstin` |
 
 </details>
