@@ -1256,6 +1256,88 @@
               (= (.charAt dni-letters (int (mod (Long/parseLong (subs n 1 8)) 23)))
                  (.charAt n 8)))))))
 
+(def ^:private es-cae-offices
+  #{"01" "02" "03" "04" "05" "06" "07" "08" "09" "10" "11" "12" "13" "14" "15" "16"
+    "17" "18" "19" "20" "21" "22" "23" "24" "25" "26" "27" "28" "29" "30" "31" "32"
+    "33" "34" "35" "36" "37" "38" "39" "40" "41" "42" "43" "44" "45" "46" "47" "48"
+    "49" "50" "51" "52" "53" "54" "55" "56"})
+
+(def ^:private es-cae-activity-keys
+  #{"A1" "B1" "B9" "B0" "BA" "C1" "DA" "EC" "F1" "V1" "A7" "AT" "B7" "BT" "C7" "DB"
+    "E7" "M7" "OA" "OB" "OE" "OV" "V7" "B6" "A2" "A6" "A9" "A0" "AC" "AV" "AW" "AX"
+    "H1" "H2" "H4" "H6" "H9" "H0" "HD" "HH" "H7" "H8" "HB" "HF" "HI" "HJ" "HK" "HL"
+    "HM" "HN" "HT" "HU" "HV" "HX" "HZ" "OH" "HA" "HC" "HE" "HP" "HQ" "HR" "HS" "HW"
+    "T1" "OT" "T7" "TT" "L1" "L2" "L0" "L3" "L7" "AF" "DF" "DM" "DP" "OR" "PF" "RF"
+    "VD"})
+
+(defn- es-cae? [^String n]
+  (and (re-matches #"ES000[A-Z0-9]{8}" n)
+       (contains? es-cae-offices (subs n 5 7))
+       (contains? es-cae-activity-keys (subs n 7 9))
+       (re-matches #"\d{3}" (subs n 9 12))
+       (Character/isLetter (.charAt n 12))))
+
+(def ^:private ^String es-cups-check-letters "TRWAGMYFPDXBNJZSQVHLCKE")
+(defn- es-cups-check-digits ^String [^String n]
+  (let [r (mod (Long/parseLong (subs n 2 18)) 529)
+        check0 (quot r 23)
+        check1 (mod r 23)]
+    (str (.charAt es-cups-check-letters check0)
+         (.charAt es-cups-check-letters check1))))
+(defn- es-cups? [^String n]
+  (and (re-matches #"ES\d{16}[A-Z]{2}(\d[FPRCXYZ])?" n)
+       (= (es-cups-check-digits n) (subs n 18 20))))
+
+(defn- es-postalcode? [^String n]
+  (and (re-matches #"\d{5}" n)
+       (<= 1 (Integer/parseInt (subs n 0 2)) 52)))
+
+(def ^:private ^String es-cadastral-alphabet "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ0123456789")
+(def ^:private ^String es-cadastral-check-letters "MQWERTYUIOPASDFGHJKLBZX")
+(defn- es-cadastral-char-value ^long [^Character c]
+  (if (Character/isDigit (char c))
+    (- (int c) 48)
+    (inc (.indexOf es-cadastral-alphabet (int c)))))
+(defn- es-cadastral-check-digit [^String part]
+  (let [s (long (reduce + (map (fn [w c] (* (long w) (es-cadastral-char-value c)))
+                               [13 15 12 5 4 17 9 21 3 7 1] part)))]
+    (.charAt es-cadastral-check-letters (int (mod s 23)))))
+(defn- es-referenciacatastral? [^String n]
+  (and (= 20 (count n))
+       (every? #(not (neg? (.indexOf es-cadastral-alphabet (int %)))) n)
+       (= (str (es-cadastral-check-digit (str (subs n 0 7) (subs n 14 18)))
+               (es-cadastral-check-digit (str (subs n 7 14) (subs n 14 18))))
+          (subs n 18))))
+
+(defn- at-businessid? [^String n]
+  (let [n (if (str/starts-with? n "FN") (subs n 2) n)]
+    (boolean (re-matches #"\d+[A-Z]" n))))
+
+(defn- at-postleitzahl? [^String n]                   ; Austria PLZ: 4-digit structural (1000-9999)
+  (boolean (re-matches #"[1-9]\d{3}" n)))
+
+(def ^:private at-tin-offices
+  #{"03" "04" "06" "07" "08" "09" "10" "12" "15" "16" "18" "22" "23" "29" "33" "38"
+    "41" "46" "51" "52" "53" "54" "57" "59" "61" "65" "67" "68" "69" "71" "72" "81"
+    "82" "83" "84" "90" "91" "93" "97" "98"})
+(defn- at-tin-check-digit ^long [^String n]
+  (mod (- 10 (long (reduce + (map-indexed
+                              (fn [i c]
+                                (let [d (- (int c) 48)]
+                                  (if (odd? i) (- (int (.charAt "0246813579" d)) 48) d)))
+                              (subs n 0 8)))))
+       10))
+(defn- at-tin? [^String n]
+  (and (re-matches #"\d{9}" n)
+       (= (at-tin-check-digit n) (- (int (.charAt n 8)) 48))
+       (contains? at-tin-offices (subs n 0 2))))
+
+(defn- at-vnr-check-digit ^long [^String n]
+  (mod (long (reduce + (map * [3 7 9 0 5 8 4 2 1 6] (digits-of n)))) 11))
+(defn- at-vnr? [^String n]
+  (and (re-matches #"[1-9]\d{9}" n)
+       (= (at-vnr-check-digit n) (- (int (.charAt n 3)) 48))))
+
 ;; ORCID and ISNI: 16 chars, ISO 7064 MOD 11-2 check (last char may be X). Same
 ;; algorithm and shape; kept as distinct types for intent.
 (defn- mod11-2-code ^long [^String fifteen]           ; -> ASCII code of the check char
@@ -1791,6 +1873,10 @@
    :es-dni      {:validate es-dni?}
    :es-nie      {:validate es-nie?}
    :es-nif      {:validate es-nif?}
+   :es-cae      {:validate es-cae?}
+   :es-cups     {:validate es-cups?}
+   :es-postalcode {:validate es-postalcode?}
+   :es-referenciacatastral {:validate es-referenciacatastral?}
    :nl-bsn      {:validate nl-bsn?}
    :cn-ric      {:validate cn-ric? :parse cn-ric-parse}
    :se-pnr      {:validate se-pnr? :parse se-pnr-parse :format se-pnr-format}
@@ -1802,6 +1888,10 @@
    :no-fodselsnummer {:validate no-fodselsnummer?}
    :tr-tc       {:validate tr-tc?}
    :at-vat      {:validate at-vat?}
+   :at-businessid {:validate at-businessid?}
+   :at-postleitzahl {:validate at-postleitzahl?}
+   :at-tin      {:validate at-tin?}
+   :at-vnr      {:validate at-vnr?}
    :dk-vat      {:validate dk-vat?}
    :dk-cvr      {:validate dk-cvr?}
    :dk-cpr      {:validate dk-cpr?}

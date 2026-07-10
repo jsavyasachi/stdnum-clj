@@ -4,6 +4,20 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added - Spain + Austria cluster (193 -> 201)
+Eight more types ported from python-stdnum.
+- `:es-cae` — Spain excise activity code (structural).
+- `:es-cups` — Spain electricity/gas supply-point code, two check letters
+  (`int(body) % 529` split into two base-23 digits).
+- `:es-postalcode` — Spain postal code, province 01-52 (structural).
+- `:es-referenciacatastral` — Spain cadastral reference, dual check letters.
+- `:at-businessid` — Austria company register number (structural).
+- `:at-postleitzahl` — Austria postal code. Validated structurally (4-digit,
+  1000-9999); upstream checks against a bundled data file, but a partial
+  hardcoded list would reject valid codes, so this port stays structural.
+- `:at-tin` — Austria tax identification number, weighted check digit.
+- `:at-vnr` — Austria social-insurance number, weighted check digit.
+
 ### Added - Thailand PIN, Spain NIF, and structural IDs (187 -> 193)
 Six more types ported from python-stdnum.
 - `:th-pin` — Thailand Personal Identification Number, 13-digit weighted mod 11.

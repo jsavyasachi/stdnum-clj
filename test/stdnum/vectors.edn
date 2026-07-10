@@ -89,6 +89,15 @@
  :es-nie      {:valid ["X1234567L"] :invalid ["X1234567A"] :source "Spain NIE mod-23 example"}
  :es-nif      {:valid ["B64717838" "54362315K"] :invalid ["B64717839"]
                :source "python-stdnum es.nif doctest vector; check recomputed"}
+ :es-cae      {:valid ["ES00008V1488Q"] :invalid ["00008V1488"]
+               :source "python-stdnum es.cae doctest vector; structural (format/component) validation, no check digit"}
+ :es-cups     {:valid ["ES 1234-123456789012-JY"] :invalid ["ES 1234-123456789012-XY 1F"]
+               :source "python-stdnum es.cups doctest vector; check recomputed"}
+ :es-postalcode {:valid ["01000" "52000"] :invalid ["00000" "53000" "5200"]
+                 :source "python-stdnum es.postal_code doctest vector; structural (format/component) validation, no check digit"}
+ :es-referenciacatastral {:valid ["7837301-VG8173B-0001 TT"]
+                          :invalid ["783301 VG8173B 0001 TT" "7837301 VG8173B 0001 NN"]
+                          :source "python-stdnum es.referenciacatastral doctest vector; check recomputed"}
  :nl-bsn      {:valid ["111222333"] :invalid ["111222334"] :source "Netherlands BSN elfproef example"}
  :cn-ric      {:valid ["11010519491231002X" "440524188001010014"] :invalid ["11010519491231002Y"]
                :source "China GB 11643 resident ID example"}
@@ -188,6 +197,14 @@
  :lt-vat      {:valid ["LT119511515"] :invalid ["LT119511516"] :source "Klaipėda University; VIES-confirmed" :vies true}
  :ro-vat      {:valid ["RO14837428"] :invalid ["RO14837429"] :source "Borg Design SRL; VIES-confirmed" :vies true}
  :at-vat      {:valid ["ATU37675002"] :invalid ["ATU37675003"] :source "Technische Universität Wien; VIES-confirmed" :vies true}
+ :at-businessid {:valid ["FN 122119m" "122119m"] :invalid ["m123123" "abc"]
+                 :source "python-stdnum at.businessid doctest vector; structural (format/component) validation, no check digit"}
+ :at-postleitzahl {:valid ["5090"] :invalid ["0500" "ABCD" "123"]
+                   :source "Austria PLZ; structural 4-digit (1000-9999) validation. python-stdnum at.postleitzahl checks against a bundled postal-code data file; this port is structural to avoid rejecting valid codes absent from a partial list."}
+ :at-tin      {:valid ["59-119/9013"] :invalid ["591199014"]
+               :source "python-stdnum at.tin doctest valid vector; invalid constructed per python-stdnum at.tin algorithm; check recomputed"}
+ :at-vnr      {:valid ["1237 010180"] :invalid ["2237 010180"]
+               :source "python-stdnum at.vnr doctest vector; check recomputed"}
  :se-vat      {:valid ["SE556293998201"] :invalid ["SE556293998202"] :source "Björn Lundén AB; VIES-confirmed" :vies true}
  :gr-vat      {:valid ["EL094019245"] :invalid ["EL094019246"] :source "OTE (Hellenic Telecommunications Org.); VIES-confirmed" :vies true}
  :si-vat      {:valid ["SI50223054"] :invalid ["SI50223055"] :source "Postojnska Jama d.d.; VIES-confirmed" :vies true}
