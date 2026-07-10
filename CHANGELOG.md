@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+- `:es-cae` now accepts the `F7` (biodiésel/biometanol fiscal deposits) and `GP`
+  (gasóleo profesional) activity keys from Orden EHA/3482/2007 Anexo XLII, which
+  were previously rejected as invalid (python-stdnum PR #493).
+
 ## [0.28.0] - 2026-07-10
 
 89 new identifier types (157 -> 246), reaching full coverage of the

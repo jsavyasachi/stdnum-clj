@@ -1459,7 +1459,7 @@
     "H1" "H2" "H4" "H6" "H9" "H0" "HD" "HH" "H7" "H8" "HB" "HF" "HI" "HJ" "HK" "HL"
     "HM" "HN" "HT" "HU" "HV" "HX" "HZ" "OH" "HA" "HC" "HE" "HP" "HQ" "HR" "HS" "HW"
     "T1" "OT" "T7" "TT" "L1" "L2" "L0" "L3" "L7" "AF" "DF" "DM" "DP" "OR" "PF" "RF"
-    "VD"})
+    "VD" "F7" "GP"})
 
 (defn- es-cae? [^String n]
   (and (re-matches #"ES000[A-Z0-9]{8}" n)

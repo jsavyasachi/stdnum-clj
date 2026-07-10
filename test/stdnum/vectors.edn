@@ -89,8 +89,8 @@
  :es-nie      {:valid ["X1234567L"] :invalid ["X1234567A"] :source "Spain NIE mod-23 example"}
  :es-nif      {:valid ["B64717838" "54362315K"] :invalid ["B64717839"]
                :source "python-stdnum es.nif doctest vector; check recomputed"}
- :es-cae      {:valid ["ES00008V1488Q"] :invalid ["00008V1488"]
-               :source "python-stdnum es.cae doctest vector; structural (format/component) validation, no check digit"}
+ :es-cae      {:valid ["ES00008V1488Q" "ES00046F7567A" "ES00028GP567A"] :invalid ["00008V1488"]
+               :source "python-stdnum es.cae doctest vector; python-stdnum PR #493 / BOE EHA/3482/2007 activity-key cases; structural (format/component) validation, no check digit"}
  :es-cups     {:valid ["ES 1234-123456789012-JY"] :invalid ["ES 1234-123456789012-XY 1F"]
                :source "python-stdnum es.cups doctest vector; check recomputed"}
  :es-postalcode {:valid ["01000" "52000"] :invalid ["00000" "53000" "5200"]
