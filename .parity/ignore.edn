@@ -1,0 +1,17 @@
+;; Upstream python-stdnum modules we intentionally do NOT mirror as public types.
+;; Subtracted from the New-modules bucket so they never show as parity gaps.
+;;
+;; - Checksum algorithms are implemented inline in stdnum.core, not exposed as
+;;   dispatchable types (we expose :luhn only).
+;; - :ean is python's generic EAN module; we expose the finer :ean8 / :ean13 instead.
+;;
+;; Only add a module here once you've made a deliberate decision not to expose it.
+;; A genuinely-missing type belongs in the report, not here.
+#{:damm
+  :verhoeff
+  :ean
+  :iso7064-mod_11_10
+  :iso7064-mod_11_2
+  :iso7064-mod_37_2
+  :iso7064-mod_37_36
+  :iso7064-mod_97_10}

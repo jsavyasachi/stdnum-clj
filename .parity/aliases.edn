@@ -1,0 +1,59 @@
+;; Rename map: python-stdnum module keyword -> stdnum-clj type keyword.
+;; stdnum-clj deliberately localizes many names (e.g. python's it/iva.py is our
+;; :it-vat, us/rtn.py is our :aba, iso9362.py is our :bic, and python's `in_`/`is_`
+;; reserved-word dirs are our plain `in`/`is`). Without this table the parity
+;; watcher reports ~55 renames as false "missing types" every run.
+;;
+;; An entry here means "upstream module X is already covered by our type Y" — it is
+;; subtracted from both the New-modules and the Not-upstream buckets. Country IBAN
+;; modules all fold into the generic :iban.
+;;
+;; Maintenance: when you add a type that upstream names differently, add the pair
+;; here. The watcher warns if a source is no longer an upstream module or a target
+;; is no longer one of our types (stale alias).
+{:at-uid           :at-vat
+ :be-iban          :iban
+ :be-ogm_vcs       :be-ogm
+ :ca-bc_phn        :ca-bcphn
+ :casrn            :cas
+ :ch-ssn           :ch-ahv
+ :cn-uscc          :cn-usci
+ :cz-dic           :cz-vat
+ :ec-ci            :ec-ced
+ :ee-kmkr          :ee-vat
+ :ee-registrikood  :ee-rk
+ :es-iban          :iban
+ :es-postal_code   :es-postalcode
+ :eu-at_02         :eu-at02
+ :fi-alv           :fi-vat
+ :fr-tva           :fr-vat
+ :gb-nhs           :nhs
+ :gb-sedol         :sedol
+ :hu-anum          :hu-vat
+ :il-hp            :il-company
+ :in_-aadhaar      :in-aadhaar
+ :in_-epic         :in-epic
+ :in_-gstin        :in-gstin
+ :in_-pan          :in-pan
+ :in_-vid          :in-vid
+ :is_-kennitala    :is-kennitala
+ :is_-vsk          :is-vsk
+ :iso9362          :bic
+ :it-codicefiscale :it-cf
+ :it-iva           :it-vat
+ :jp-in_           :jp-in
+ :lt-pvm           :lt-vat
+ :lu-tva           :lu-vat
+ :lv-pvn           :lv-vat
+ :me-iban          :iban
+ :nl-btw           :nl-vat
+ :no-iban          :iban
+ :no-orgnr         :no-org
+ :pl-nip           :pl-vat
+ :se-personnummer  :se-pnr
+ :si-ddv           :si-vat
+ :sk-dph           :sk-vat
+ :tr-tckimlik      :tr-tc
+ :tw-ubn           :tw-gui
+ :us-rtn           :aba
+ :za-idnr          :za-id}

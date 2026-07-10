@@ -1,0 +1,41 @@
+name: parity-watch
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  parity-watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeLaGuardo/setup-clojure@13.4
+        with:
+          bb: 'latest'
+
+      - name: Build parity report
+        run: bb .parity/parity_watch.clj
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ensure parity label
+        run: gh label create parity --color 5319e7 --description "python-stdnum parity" --force || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upsert parity issue
+        run: |
+          n=$(gh issue list --search 'Upstream parity report in:title' --state open --json number --jq '.[0].number // empty')
+          if [ -z "$n" ]; then
+            gh issue create --title "Upstream parity report" --label parity --body-file .parity/report.md
+          else
+            gh issue edit "$n" --body-file .parity/report.md
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
