@@ -4,12 +4,17 @@
 ;; - Checksum algorithms are implemented inline in stdnum.core, not exposed as
 ;;   dispatchable types (we expose :luhn only).
 ;; - :ean is python's generic EAN module; we expose the finer :ean8 / :ean13 instead.
+;; - :gs1_128 is a GS1-128 barcode Application-Identifier parser (AI database, FNC1
+;;   element strings returning a parsed map), not a single-number validator; it sits
+;;   outside stdnum-clj's valid?/parse/format model, and upstream is still changing its
+;;   AI handling (PR #498). Deliberately not mirrored.
 ;;
 ;; Only add a module here once you've made a deliberate decision not to expose it.
 ;; A genuinely-missing type belongs in the report, not here.
 #{:damm
   :verhoeff
   :ean
+  :gs1_128
   :iso7064-mod_11_10
   :iso7064-mod_11_2
   :iso7064-mod_37_2

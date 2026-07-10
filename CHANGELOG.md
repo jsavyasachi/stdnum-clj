@@ -4,6 +4,18 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added
+- Ten identifier types closing the coverage gaps the parity watcher flagged
+  against python-stdnum master (246 -> 256):
+  - `:az-voen` (Azerbaijan VÖEN), `:de-leitweg` (Germany Leitweg-ID),
+    `:eu-excise` (EU Excise/SEED), `:fr-accise` (France excise),
+    `:fr-rcs` (France RCS), `:mz-nuit` (Mozambique NUIT),
+    `:sn-ninea` (Senegal NINEA).
+  - `:us-tin` — valid under any of `:us-ssn`/`:us-itin`/`:us-ein`/`:us-ptin`/`:us-atin`.
+  - `:vatin` — generic VAT id dispatching on the country-code prefix to the
+    matching `:<cc>-vat` validator (EL→gr, XI→gb); `:eu-vat` gates the same
+    dispatch to EU member states.
+
 ### Fixed
 - `:es-cae` now accepts the `F7` (biodiésel/biometanol fiscal deposits) and `GP`
   (gasóleo profesional) activity keys from Orden EHA/3482/2007 Anexo XLII, which
