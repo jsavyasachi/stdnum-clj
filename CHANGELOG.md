@@ -4,6 +4,8 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+## [0.29.0] - 2026-07-10
+
 ### Added
 - Ten identifier types closing the coverage gaps the parity watcher flagged
   against python-stdnum master (246 -> 256):
