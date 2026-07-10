@@ -87,6 +87,8 @@
  :in-gstin    {:valid ["27AAPFU0939F1ZV"] :invalid ["27AAPFU0939F1ZX"] :source "GSTN canonical example"}
  :es-dni      {:valid ["12345678Z"] :invalid ["12345678A"] :source "Spain DNI mod-23 example"}
  :es-nie      {:valid ["X1234567L"] :invalid ["X1234567A"] :source "Spain NIE mod-23 example"}
+ :es-nif      {:valid ["B64717838" "54362315K"] :invalid ["B64717839"]
+               :source "python-stdnum es.nif doctest vector; check recomputed"}
  :nl-bsn      {:valid ["111222333"] :invalid ["111222334"] :source "Netherlands BSN elfproef example"}
  :cn-ric      {:valid ["11010519491231002X" "440524188001010014"] :invalid ["11010519491231002Y"]
                :source "China GB 11643 resident ID example"}
@@ -142,6 +144,8 @@
  :co-nit      {:valid ["8909039388"] :invalid ["8909039389"] :source "DIAN; Bancolombia NIT"}
  :pe-ruc      {:valid ["20100070970"] :invalid ["20100070971"] :source "SUNAT; Banco de Crédito del Perú RUC"}
  :sg-nric     {:valid ["S1234567D" "F1234567N"] :invalid ["S1234567A"] :source "Singapore NRIC/FIN algorithm"}
+ :sg-uen      {:valid ["00192200M" "197401143C" "S16FC0121D"] :invalid ["123456"]
+               :source "python-stdnum sg.uen doctest vector; structural (format/component) validation, no check digit"}
  :hk-id       {:valid ["A1234563"] :invalid ["A1234564"] :source "Hong Kong HKID worked example"}
  :kr-brn      {:valid ["1248100998"] :invalid ["1248100999"] :source "South Korea BRN; Samsung Electronics"}
  :jp-cn       {:valid ["7000012050002"] :invalid ["7000012050003"] :source "Japan corporate number (NTA)"}
@@ -238,6 +242,8 @@
  :grid        {:valid ["A12425GABC1234002M"] :invalid ["A12425GABC1234002Q"] :source "GRid (Global Release Identifier, ISO 7064 Mod 37,36); standard worked example A1-2425G-ABC1234002-M (IFPI GRid standard / python-stdnum)"}
  :isan        {:valid ["000000018CFA0000I00000000K" "00000000D07A0090Q00000000X"] :invalid ["000000018CFA0000A00000000K"] :source "ISAN (ISO 15706, two ISO 7064 Mod 37,36 checks); standard worked examples 0000-0001-8CFA-0000-I-0000-0000-K / 0000-0000-D07A-0090-Q-0000-0000-X (ISAN-IA / python-stdnum)"}
  :th-moa      {:valid ["0107544000108" "0994000617721"] :invalid ["0107544000107"] :source "Thailand company tax ID (MOA, 13-digit weighted mod 11); PTT Public Company Limited 0107544000108 (PTT procurement filing)"}
+ :th-pin      {:valid ["3100600445635" "1-2345-45678-78-1"] :invalid ["1-2345-45678-78-9"]
+               :source "python-stdnum th.pin doctest vector; check recomputed"}
  :kz-bin      {:valid ["020240000555"] :invalid ["020240000554"] :source "Kazakhstan BIN (business identification no., 12-digit weighted mod 11); JSC NC KazMunayGas 020240000555 (org-id.guide KZ-BIN)"}
  :upu-s10     {:valid ["RB123456785GB"] :invalid ["RB123456784GB"] :source "UPU S10 international postal item identifier (weighted mod 11, weights 8,6,4,2,3,5,9,7); UPU S10 standard worked example serial 12345678 -> check 5"}
  :si-maticna  {:valid ["5043611000" "9331310"] :invalid ["5043612000"] :source "Slovenia matična številka (company registration no., weighted mod 11); Krka d.d. Novo mesto 5043611000 (AJPES / sloexport ms=5043611)"}
@@ -256,6 +262,12 @@
                :source "python-stdnum my.nric doctest vector; structural (date/component) validation, no check digit"}
  :ke-pin      {:valid ["P051365947M" "A004416331M"] :invalid ["12345" "V1234567890"]
                :source "python-stdnum ke.pin doctest vector; structural (date/component) validation, no check digit"}
+ :cu-ni       {:valid ["91021027775"] :invalid ["9102102777A"]
+               :source "python-stdnum cu.ni doctest vector; structural (format/component) validation, no check digit"}
+ :ad-nrt      {:valid ["U-132950-X"] :invalid ["A123B" "I 706193 G"]
+               :source "python-stdnum ad.nrt doctest vector; structural (format/component) validation, no check digit"}
+ :de-wkn      {:valid ["A0MNRK"] :invalid ["AOMNRK"]
+               :source "python-stdnum de.wkn doctest vector; structural (format/component) validation, no check digit"}
  :za-tin      {:valid ["0001339050"] :invalid ["2449/494/16/0" "9125568"]
                :source "python-stdnum za.tin doctest vector; check recomputed"}
  :mu-nid      {:valid ["A3112991234567"] :invalid ["A3112991234565"]

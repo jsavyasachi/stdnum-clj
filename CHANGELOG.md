@@ -4,6 +4,15 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added - Thailand PIN, Spain NIF, and structural IDs (187 -> 193)
+Six more types ported from python-stdnum.
+- `:th-pin` — Thailand Personal Identification Number, 13-digit weighted mod 11.
+- `:es-nif` — Spain NIF, dispatching over the existing DNI / NIE / CIF checks.
+- `:sg-uen` — Singapore Unique Entity Number, three structural formats.
+- `:cu-ni` — Cuba national identifier, embedded-date structural validation.
+- `:ad-nrt` — Andorra NRT, leading category letter + 6 digits + trailing letter.
+- `:de-wkn` — Germany WKN securities id, 6-char alphabet excluding `I`/`O`.
+
 ### Added - structural national IDs (181 -> 187)
 Six more types ported from python-stdnum. These validate primarily by format,
 embedded date, and component-code ranges/tables (most have no check digit), so

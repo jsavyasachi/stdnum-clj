@@ -276,6 +276,7 @@
 (def ^:private ^SedolCheckDigit sedol-cd (SedolCheckDigit.))
 (defn- cusip-valid? [^String n] (and (re-matches #"[0-9A-Z]{9}" n) (.isValid cusip-cd n)))
 (defn- sedol-valid? [^String n] (and (re-matches #"[0-9A-Z]{7}" n) (.isValid sedol-cd n)))
+(defn- de-wkn? [^String n] (boolean (re-matches #"[0-9A-HJ-NP-Z]{6}" n)))
 
 ;; US national numbers (clean-room from the public structural rules) ----------
 ;; SSN: AAA-GG-SSSS. Area not 000/666/900-999; group not 00; serial not 0000;
@@ -747,6 +748,38 @@
           off (case p \S 0 \T 4 \F 0 \G 4)
           r (mod (+ (long off) (long (reduce + (map * (digits-of (subs n 1 8)) sg-weights)))) 11)]
       (= (.charAt ^String (if (#{\S \T} p) sg-st-letters sg-fg-letters) r) (.charAt n 8)))))
+(def ^:private sg-uen-other-entity-types
+  #{"CC" "CD" "CH" "CL" "CM" "CP" "CS" "CX" "DP" "FB" "FC" "FM" "FN"
+    "GA" "GB" "GS" "HS" "LL" "LP" "MB" "MC" "MD" "MH" "MM" "MQ" "NB"
+    "NR" "PA" "PB" "PF" "RF" "RP" "SM" "SS" "TC" "TU" "VH" "XL"})
+(def ^:private sg-uen-business-weights [10 4 9 3 8 2 7 1])
+(def ^:private sg-uen-local-company-weights [10 8 6 4 9 7 5 3 1])
+(def ^:private sg-uen-other-weights [4 3 5 3 10 2 2 5 7])
+(def ^:private ^String sg-uen-business-letters "XMKECAWLJDB")
+(def ^:private ^String sg-uen-local-company-letters "ZKCMDNERGWH")
+(def ^:private ^String sg-uen-other-alphabet "ABCDEFGHJKLMNPQRSTUVWX0123456789")
+(defn- sg-uen? [^String n]
+  (let [year (str (.getYear (java.time.LocalDate/now)))
+        yy (subs year 2)]
+    (cond
+      (re-matches #"\d{8}[A-Z]" n)
+      (let [r (mod (long (reduce + (map * (digits-of (subs n 0 8)) sg-uen-business-weights))) 11)]
+        (= (.charAt sg-uen-business-letters (int r)) (.charAt n 8)))
+
+      (re-matches #"\d{9}[A-Z]" n)
+      (and (not (pos? (compare (subs n 0 4) year)))
+           (let [r (mod (long (reduce + (map * (digits-of (subs n 0 9)) sg-uen-local-company-weights))) 11)]
+             (= (.charAt sg-uen-local-company-letters (int r)) (.charAt n 9))))
+
+      (re-matches #"[RST]\d{2}[A-Z]{2}\d{4}[A-Z]" n)
+      (and (or (not= \T (.charAt n 0)) (not (pos? (compare (subs n 1 3) yy))))
+           (contains? sg-uen-other-entity-types (subs n 3 5))
+           (let [s (reduce + (map (fn [ch w] (* (long (.indexOf sg-uen-other-alphabet (int ch))) (long w)))
+                                  (subs n 0 9) sg-uen-other-weights))
+                 r (mod (- (long s) 5) 11)]
+             (= (.charAt sg-uen-other-alphabet (int r)) (.charAt n 9))))
+
+      :else false)))
 
 ;; Hong Kong HKID: one or two letters (a single letter counts as 36 in the first
 ;; slot) + 6 digits + a check char (0-9, or A for 10), weighted 9..2 mod 11.
@@ -1213,6 +1246,15 @@
              ctrl (.charAt n 8)]
          (or (= (int ctrl) (+ 48 c))
              (= (int ctrl) (int (.charAt "JABCDEFGHI" c)))))))
+(defn- es-nif? [^String n]                            ; Spain NIF: DNI, NIE, CIF, or K/L/M DNI-check form
+  (let [n (strip-cc n "ES")]
+    (boolean
+     (or (es-dni? n)
+         (es-nie? n)
+         (es-cif? n)
+         (and (re-matches #"[KLM]\d{7}[A-Z]" n)
+              (= (.charAt dni-letters (int (mod (Long/parseLong (subs n 1 8)) 23)))
+                 (.charAt n 8)))))))
 
 ;; ORCID and ISNI: 16 chars, ISO 7064 MOD 11-2 check (last char may be X). Same
 ;; algorithm and shape; kept as distinct types for intent.
@@ -1402,6 +1444,11 @@
        (let [d (digits-of n)
              s (long (reduce + (map * (subvec d 0 12) [13 12 11 10 9 8 7 6 5 4 3 2])))]
          (= (mod (- 11 (mod s 11)) 10) (d 12)))))
+(defn- th-pin? [^String n]                            ; Thailand personal ID: 13-digit, weighted mod 11
+  (and (re-matches #"[1-8]\d{12}" n)
+       (let [d (digits-of n)
+             s (long (reduce + (map * (subvec d 0 12) [13 12 11 10 9 8 7 6 5 4 3 2])))]
+         (= (mod (- 11 (mod s 11)) 10) (d 12)))))
 (defn- kz-bin? [^String n]                            ; Kazakhstan BIN/IIN: 12-digit, weighted mod 11 with fallback weights
   (and (re-matches #"\d{12}" n)
        (let [d (digits-of n)
@@ -1481,6 +1528,24 @@
                               (subs n 0 13)))
              check (mod (- 17 (long check)) 17)]
          (= (.charAt m3736-alpha (int check)) (.charAt n 13)))))
+(defn- cu-ni? [^String n]                             ; Cuba NI: 11 digits with YYMMDD birth date
+  (and (re-matches #"\d{11}" n)
+       (let [century (cond
+                       (= \9 (.charAt n 6)) 1800
+                       (<= (int \0) (int (.charAt n 6)) (int \5)) 1900
+                       :else 2000)
+             year (+ century (Integer/parseInt (subs n 0 2)))]
+         (valid-date? year (Integer/parseInt (subs n 2 4)) (Integer/parseInt (subs n 4 6))))))
+(def ^:private ad-nrt-leading-letters #{\A \C \D \E \F \G \L \O \P \U})
+(defn- ad-nrt? [^String n]                            ; Andorra NRT: type letter + 6 digits + trailing letter
+  (and (re-matches #"[A-Z]\d{6}[A-Z]" n)
+       (contains? ad-nrt-leading-letters (.charAt n 0))
+       (let [digits (subs n 1 7)
+             leading (.charAt n 0)]
+         (and (or (not= \F leading) (not (pos? (compare digits "699999"))))
+              (or (not (#{\A \L} leading))
+                  (and (pos? (compare digits "699999"))
+                       (neg? (compare digits "800000"))))))))
 
 ;; Mexico CURP: 18 chars, weighted base-37 sum (with Ñ in the alphabet), mod-10 check.
 (def ^:private curp-val (zipmap "0123456789ABCDEFGHIJKLMNÑOPQRSTUVWXYZ" (range)))
@@ -1694,6 +1759,7 @@
    :lei         {:validate lei-valid?}
    :cusip       {:validate cusip-valid?}
    :sedol       {:validate sedol-valid?}
+   :de-wkn      {:validate de-wkn?}
    :cfi         {:validate cfi-valid? :parse cfi-parse}
    :eu-eic      {:validate eu-eic-valid? :parse eu-eic-parse}
    :eu-ecnumber {:validate eu-ecnumber?}
@@ -1724,6 +1790,7 @@
    :in-aadhaar  {:validate in-aadhaar? :format aadhaar-format}
    :es-dni      {:validate es-dni?}
    :es-nie      {:validate es-nie?}
+   :es-nif      {:validate es-nif?}
    :nl-bsn      {:validate nl-bsn?}
    :cn-ric      {:validate cn-ric? :parse cn-ric-parse}
    :se-pnr      {:validate se-pnr? :parse se-pnr-parse :format se-pnr-format}
@@ -1814,6 +1881,7 @@
    :grid        {:validate grid?}
    :isan        {:validate isan?}
    :th-moa      {:validate th-moa?}
+   :th-pin      {:validate th-pin?}
    :kz-bin      {:validate kz-bin?}
    :upu-s10     {:validate upu-s10?}
    :si-maticna  {:validate si-maticna?}
@@ -1826,9 +1894,12 @@
    :pk-cnic     {:validate pk-cnic?}
    :my-nric     {:validate my-nric?}
    :ke-pin      {:validate ke-pin?}
+   :cu-ni       {:validate cu-ni?}
+   :ad-nrt      {:validate ad-nrt?}
    :za-tin      {:validate za-tin?}
    :mu-nid      {:validate mu-nid?}
    :sg-nric     {:validate sg-nric?}
+   :sg-uen      {:validate sg-uen?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}
    :ean13       {:validate ean13?}
