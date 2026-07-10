@@ -1090,6 +1090,8 @@
        (let [d (digits-of n)
              s (long (reduce + (map * [7 9 8 6 5 4 3 2] (subvec d 0 8))))]
          (= (inc (mod (- 10 (mod s 11)) 9)) (d 8)))))
+(defn- do-cedula? [^String n]                         ; Dominican Republic cédula: 11-digit Luhn
+  (boolean (and (re-matches #"\d{11}" n) (.isValid luhn-cd n))))
 (def ^:private ve-rif-letter {\V 1 \E 2 \J 3 \P 4 \G 5})
 (defn- ve-rif? [^String n]                            ; Venezuela RIF: letter-weighted mod 11
   (and (re-matches #"[VEJPG]\d{9}" n)
@@ -1116,6 +1118,17 @@
                                  (mod (* s 2) 11)))
                              10 (range 8)))]
          (= (mod (- 11 p) 10) (d 8)))))
+(defn- me-pib? [^String n]                            ; Montenegro PIB: weighted mod 11 then mod 10
+  (and (re-matches #"\d{8}" n)
+       (let [d (digits-of n)
+             s (long (reduce + (map * (subvec d 0 7) [8 7 6 5 4 3 2])))]
+         (= (mod (mod (- s) 11) 10) (d 7)))))
+(defn- mk-edb? [^String n]                            ; North Macedonia EDB: optional MK + weighted mod 11 then mod 10
+  (let [n (strip-cc n "MK")]
+    (and (re-matches #"\d{13}" n)
+         (let [d (digits-of n)
+               s (long (reduce + (map * (subvec d 0 12) [7 6 5 4 3 2 7 6 5 4 3 2])))]
+           (= (mod (mod (- s) 11) 10) (d 12))))))
 (defn- pl-regon? [^String n]                          ; Poland REGON (9-digit): weighted mod 11
   (and (re-matches #"\d{9}" n)
        (let [d (digits-of n)
@@ -1311,6 +1324,39 @@
          (= (mod s 10) (d 8)))))
 (defn- ca-bn? [^String n]                             ; Canada Business Number: 9-digit Luhn, optional 2-letter + 4-digit program account (BN15)
   (and (re-matches #"\d{9}([A-Z]{2}\d{4})?" n) (.isValid luhn-cd (subs n 0 9))))
+(defn- md-idno? [^String n]                           ; Moldova IDNO: weighted mod 10
+  (and (re-matches #"\d{13}" n)
+       (let [d (digits-of n)
+             c (mod (long (reduce + (map * (subvec d 0 12) [7 3 1 7 3 1 7 3 1 7 3 1]))) 10)]
+         (= c (d 12)))))
+(defn- lt-asmens? [^String n]                         ; Lithuania asmens kodas: Estonian-style mod-11 reweight + birth date
+  (and (re-matches #"\d{11}" n)
+       (let [d (digits-of n)
+             g (long (d 0))
+             century (case g 1 1800 2 1800 3 1900 4 1900 5 2000 6 2000 7 2100 8 2100 9 nil nil)
+             year (when century (+ century (Integer/parseInt (subs n 1 3))))
+             w (fn [ws] (mod (long (reduce + (map * (subvec d 0 10) ws))) 11))
+             r (w [1 2 3 4 5 6 7 8 9 1])
+             r (if (= r 10) (w [3 4 5 6 7 8 9 1 2 3]) r)]
+         (and (or (= 9 g)
+                  (and year
+                       (valid-date? year (Integer/parseInt (subs n 3 5)) (Integer/parseInt (subs n 5 7)))))
+              (= (if (= r 10) 0 r) (d 10))))))
+(def ^:private ^String by-unp-letters "ABCEHKMOPT")
+(def ^:private by-unp-first-chars (set "1234567ABCEHKM"))
+(defn- by-unp? [^String n]                            ; Belarus UNP: digits or 2-letter prefix, weighted mod 11
+  (let [n (strip-cc n "UNP")]
+    (and (re-matches #"[0-9A-Z]{9}" n)
+         (re-matches #"\d{7}" (subs n 2))
+         (or (re-matches #"\d{2}" (subs n 0 2))
+             (every? (set by-unp-letters) (subs n 0 2)))
+         (contains? by-unp-first-chars (.charAt n 0))
+         (let [s (if (re-matches #"\d{9}" n)
+                   n
+                   (str (.charAt n 0) (.indexOf by-unp-letters (int (.charAt n 1))) (subs n 2)))
+               v (fn [^Character c] (Character/digit (char c) 36))
+               c (mod (long (reduce + (map * [29 23 19 17 13 7 5 3] (map v (subs s 0 8))))) 11)]
+           (and (<= c 9) (= c (Character/digit (.charAt n 8) 10)))))))
 (defn- ua-rntrc? [^String n]                          ; Ukraine RNTRC: weighted mod 11 over first 9 digits
   (and (re-matches #"\d{10}" n)
        (let [d (digits-of n)]
@@ -1631,9 +1677,12 @@
    :is-kennitala {:validate is-kennitala?}
    :ve-rif      {:validate ve-rif?}
    :do-rnc      {:validate do-rnc?}
+   :do-cedula   {:validate do-cedula?}
    :ru-ogrn     {:validate ru-ogrn?}
    :vn-mst      {:validate vn-mst?}
    :rs-pib      {:validate rs-pib?}
+   :me-pib      {:validate me-pib?}
+   :mk-edb      {:validate mk-edb?}
    :pl-regon    {:validate pl-regon?}
    :il-company  {:validate il-company?}
    :au-acn      {:validate au-acn?}
@@ -1661,6 +1710,9 @@
    :iso11649    {:validate iso11649?}
    :it-aic      {:validate it-aic?}
    :ca-bn       {:validate ca-bn?}
+   :md-idno     {:validate md-idno?}
+   :lt-asmens   {:validate lt-asmens?}
+   :by-unp      {:validate by-unp?}
    :mu-nid      {:validate mu-nid?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}

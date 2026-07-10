@@ -205,9 +205,15 @@
  :is-kennitala {:valid ["4612023490"] :invalid ["4612023480"] :source "Iceland kennitala; Icelandair ehf (public company registry no.)"}
  :ve-rif      {:valid ["J000950369" "J001230726"] :invalid ["J000950368"] :source "Venezuela RIF; PDVSA / PDVSA Petróleo (public)"}
  :do-rnc      {:valid ["101027797" "101001577"] :invalid ["101027798"] :source "Dominican Republic RNC; DGII published list (3M Dominicana) / Claro"}
+ :do-cedula   {:valid ["00113918205"] :invalid ["00113918204"]
+               :source "python-stdnum do.cedula doctest vector; check recomputed"}
  :ru-ogrn     {:valid ["1027700132195" "1027700070518"] :invalid ["1027700132196"] :source "Russia OGRN; Sberbank / Gazprom (public EGRUL registration numbers)"}
  :vn-mst      {:valid ["0100112437" "0300588569"] :invalid ["0100112438"] :source "Vietnam tax code (MST); Vietcombank / Vinamilk (public listed companies)"}
  :rs-pib      {:valid ["104052135"] :invalid ["104052136"] :source "Serbia PIB; NIS a.d. Novi Sad (public; PIB on belex.rs / business registries)"}
+ :me-pib      {:valid ["02655284"] :invalid ["02655283"]
+               :source "python-stdnum me.pib doctest vector; check recomputed"}
+ :mk-edb      {:valid ["4030000375897"] :invalid ["4030000375890"]
+               :source "python-stdnum mk.edb doctest vector; check recomputed"}
  :pl-regon    {:valid ["610188201"] :invalid ["610188202"] :source "Poland REGON (9-digit); PKN Orlen S.A. (public; KRS 0000028860)"}
  :il-company  {:valid ["520013954"] :invalid ["520013955"] :source "Israel company/ID number (9-digit Luhn); Teva Pharmaceutical Industries Ltd (public registrar no.)"}
  :au-acn      {:valid ["004028077"] :invalid ["004028078"] :source "Australia Company Number (ACN); BHP Group Ltd (public; ABN Lookup 49 004 028 077)"}
@@ -234,6 +240,12 @@
  :iso11649    {:valid ["RF18539007547034"] :invalid ["RF18539007547035"] :source "ISO 11649 RF Creditor Reference (ISO 7064 Mod 97,10); ISO 11649 standard worked example RF18 5390 0754 7034"}
  :it-aic      {:valid ["012745093" "012745168"] :invalid ["012745094"] :source "Italy AIC drug authorization code (Luhn-variant mod 10); Tachipirina 500mg (Angelini paracetamol) AIC 012745093/012745168 (AIFA registry)"}
  :ca-bn       {:valid ["119219814" "119219814RR0001"] :invalid ["119219815"] :source "Canada Business Number (9-digit Luhn, optional BN15 program account); Canadian Red Cross Society 119219814 (CRA charity registry 119219814RR0001)"}
+ :md-idno     {:valid ["1008600038413"] :invalid ["1008600038412"]
+               :source "python-stdnum md.idno doctest vector; check recomputed"}
+ :lt-asmens   {:valid ["33309240064"] :invalid ["33309240164"]
+               :source "python-stdnum lt.asmens doctest vector; check recomputed"}
+ :by-unp      {:valid ["200988541"] :invalid ["200988542"]
+               :source "python-stdnum by.unp doctest vector; check recomputed"}
  :mu-nid      {:valid ["A3112991234567"] :invalid ["A3112991234565"]
                :source "constructed per python-stdnum mu.nid check-letter algorithm (ISO 7064 Mod 37,36 radix-36); check digit recomputed"}
  :gb-upn      {:valid ["B801200005001"] :invalid ["A801200005001"]

@@ -4,6 +4,19 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added - more checksummed tax/personal IDs (175 -> 181)
+Six more types ported from python-stdnum; every vector is the module's own
+doctest number with its checksum independently recomputed and each validator
+confirmed a faithful port of the upstream algorithm.
+- `:do-cedula` — Dominican Republic cédula, 11-digit Luhn.
+- `:md-idno` — Moldova company IDNO, weighted mod 10 (weights 7-3-1 repeating).
+- `:lt-asmens` — Lithuania personal code, reusing the Estonian `ee.ik` mod-11
+  reweight plus embedded-date validation.
+- `:by-unp` — Belarus payer number, radix-36 weighted mod 11 handling both the
+  all-digit and the two-letter-prefixed forms.
+- `:me-pib` — Montenegro tax number, weighted mod 11.
+- `:mk-edb` — North Macedonia tax number, weighted mod 11 (optional `MK` prefix).
+
 ### Added - VAT completions and EU/misc checksummed (169 -> 175)
 Six more types ported from python-stdnum; every vector is the module's own
 doctest number with its checksum independently recomputed.
