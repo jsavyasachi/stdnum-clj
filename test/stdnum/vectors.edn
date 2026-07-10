@@ -149,6 +149,8 @@
                :source "python-stdnum fr.nif doctest vector; check digits recomputed"}
  :pl-pesel    {:valid ["44051401359"] :invalid ["44051401358"] :source "Poland PESEL worked example"}
  :ar-cuit     {:valid ["30703088534"] :invalid ["30703088535"] :source "AFIP; MercadoLibre CUIT"}
+ :ar-dni      {:valid ["20.123.456"] :invalid ["2012345699"]
+               :source "python-stdnum ar.dni doctest vector; structural (format/component) validation, no check digit"}
  :ar-cbu      {:valid ["2850590940090418135201"] :invalid ["2850590940090418135202" "2850590840090418135201"]
                :source "BCRA CBU check-digit scheme (weights 9713 pattern); published worked example, both check digits recomputed"}
  :cl-rut      {:valid ["970040005"] :invalid ["970040006"] :source "SII; Banco de Chile RUT"}
@@ -250,6 +252,8 @@
  :do-rnc      {:valid ["101027797" "101001577"] :invalid ["101027798"] :source "Dominican Republic RNC; DGII published list (3M Dominicana) / Claro"}
  :do-cedula   {:valid ["00113918205"] :invalid ["00113918204"]
                :source "python-stdnum do.cedula doctest vector; check recomputed"}
+ :do-ncf      {:valid ["E310000000005" "B0100000005" "A020010210100000005"] :invalid ["Z0100000005"]
+               :source "python-stdnum do.ncf doctest vector; structural (format/component) validation, no check digit"}
  :ru-ogrn     {:valid ["1027700132195" "1027700070518"] :invalid ["1027700132196"] :source "Russia OGRN; Sberbank / Gazprom (public EGRUL registration numbers)"}
  :vn-mst      {:valid ["0100112437" "0300588569"] :invalid ["0100112438"] :source "Vietnam tax code (MST); Vietcombank / Vinamilk (public listed companies)"}
  :rs-pib      {:valid ["104052135"] :invalid ["104052136"] :source "Serbia PIB; NIS a.d. Novi Sad (public; PIB on belex.rs / business registries)"}
@@ -303,10 +307,32 @@
                :source "python-stdnum cu.ni doctest vector; structural (format/component) validation, no check digit"}
  :ad-nrt      {:valid ["U-132950-X"] :invalid ["A123B" "I 706193 G"]
                :source "python-stdnum ad.nrt doctest vector; structural (format/component) validation, no check digit"}
+ :al-nipt     {:valid ["AL J 91402501 L" "K22218003V"] :invalid ["(AL) J 91402501" "Z 22218003 V"]
+               :source "python-stdnum al.nipt doctest vector; structural (format/component) validation, no check digit"}
  :de-wkn      {:valid ["A0MNRK"] :invalid ["AOMNRK"]
                :source "python-stdnum de.wkn doctest vector; structural (format/component) validation, no check digit"}
  :za-tin      {:valid ["0001339050"] :invalid ["2449/494/16/0" "9125568"]
                :source "python-stdnum za.tin doctest vector; check recomputed"}
+ :ca-bcphn    {:valid ["9698 658 215"] :invalid ["9698648215" "5736504210" "9736A04212"]
+               :source "python-stdnum ca.bc_phn doctest vector; check recomputed"}
+ :dz-nif      {:valid ["416001000000007" "408 020 000 150 039" "41201600000606600001" "000 216 001 808 337 13010"] :invalid ["12345" "X1600100000000V"]
+               :source "python-stdnum dz.nif doctest vector; structural (format/component) validation, no check digit"}
+ :eg-tn       {:valid ["100-531-385" "٣٣١-١٠٥-٢٦٨"] :invalid ["12345" "VV3456789"]
+               :source "python-stdnum eg.tn doctest vector; structural (format/component) validation, no check digit"}
+ :gh-tin      {:valid ["C0000803561"] :invalid ["C0000803562"]
+               :source "python-stdnum gh.tin doctest vector; check recomputed"}
+ :gn-nifp     {:valid ["693770885" "693-770-885"] :invalid ["12345" "693770880"]
+               :source "python-stdnum gn.nifp doctest vector; check recomputed"}
+ :li-peid     {:valid ["1234567" "00001234567"] :invalid ["00001234568913454545"]
+               :source "python-stdnum li.peid doctest vector; structural (format/component) validation, no check digit"}
+ :ma-ice      {:valid ["001561191000066" "00 21 36 09 30 00 040"] :invalid ["12345" "001561191000065"]
+               :source "python-stdnum ma.ice doctest vector; check recomputed"}
+ :sm-coe      {:valid ["51" "024165"] :invalid ["2416A" "1124165"]
+               :source "python-stdnum sm.coe doctest vector; structural (format/component) validation, no check digit"}
+ :sv-nit      {:valid ["0614-050707-104-8" "SV 0614-050707-104-8"] :invalid ["0614-050707-104-0" "12345678"]
+               :source "python-stdnum sv.nit doctest vector; check recomputed"}
+ :tn-mf       {:valid ["1234567/M/A/E/001" "1282182 W" "121J"] :invalid ["1219773U" "1234567/M/A/X/000"]
+               :source "python-stdnum tn.mf doctest vector; structural (format/component) validation, no check digit"}
  :mu-nid      {:valid ["A3112991234567"] :invalid ["A3112991234565"]
                :source "constructed per python-stdnum mu.nid check-letter algorithm (ISO 7064 Mod 37,36 radix-36); check digit recomputed"}
  :gb-upn      {:valid ["B801200005001"] :invalid ["A801200005001"]

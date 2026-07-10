@@ -4,6 +4,15 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added - misc national IDs and tax numbers (221 -> 234)
+Thirteen more types ported from python-stdnum.
+- Checksummed: `:ca-bcphn` (BC health number, mod 11), `:gh-tin` (Ghana),
+  `:gn-nifp` (Guinea, Luhn), `:ma-ice` (Morocco, ISO 7064 Mod 97-10),
+  `:sv-nit` (El Salvador).
+- Structural: `:al-nipt` (Albania), `:ar-dni` (Argentina), `:dz-nif` (Algeria),
+  `:eg-tn` (Egypt), `:tn-mf` (Tunisia), `:li-peid` (Liechtenstein),
+  `:sm-coe` (San Marino), `:do-ncf` (Dominican fiscal receipt).
+
 ### Added - Romania, Costa Rica, Belgium, Bulgaria (211 -> 221)
 Ten more types ported from python-stdnum.
 - `:ro-cf` / `:ro-cui` — Romania fiscal / unique registration code, mod-11 CUI

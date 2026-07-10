@@ -1231,6 +1231,14 @@
          (= (inc (mod (- 10 (mod s 11)) 9)) (d 8)))))
 (defn- do-cedula? [^String n]                         ; Dominican Republic cédula: 11-digit Luhn
   (boolean (and (re-matches #"\d{11}" n) (.isValid luhn-cd n))))
+(def ^:private do-ncf-types #{"01" "02" "03" "04" "11" "12" "13" "14" "15" "16" "17"})
+(def ^:private do-ecf-types #{"31" "32" "33" "34" "41" "43" "44" "45" "46" "47"})
+(defn- do-ncf? [^String n]                            ; Dominican Republic NCF/e-CF: structural document type
+  (case (count n)
+    13 (and (= \E (.charAt n 0)) (re-matches #"\d{12}" (subs n 1)) (contains? do-ecf-types (subs n 1 3)))
+    11 (and (= \B (.charAt n 0)) (re-matches #"\d{10}" (subs n 1)) (contains? do-ncf-types (subs n 1 3)))
+    19 (and (contains? #{\A \P} (.charAt n 0)) (re-matches #"\d{18}" (subs n 1)) (contains? do-ncf-types (subs n 9 11)))
+    false))
 (def ^:private ve-rif-letter {\V 1 \E 2 \J 3 \P 4 \G 5})
 (defn- ve-rif? [^String n]                            ; Venezuela RIF: letter-weighted mod 11
   (and (re-matches #"[VEJPG]\d{9}" n)
@@ -1339,6 +1347,83 @@
   (and (re-matches #"[0-3]\d{12}" n)
        (= (mod (Long/parseLong (subs n 0 10)) 511)
           (Integer/parseInt (subs n 10)))))
+(defn- al-nipt? [^String n]                           ; Albania NIPT/NUIS: structural, optional AL country marker
+  (let [n (strip-cc n "AL")]
+    (boolean (re-matches #"[A-M][0-9]{8}[A-Z]" n))))
+(defn- ar-dni? [^String n]                            ; Argentina DNI: 7 or 8 digits
+  (boolean (re-matches #"\d{7,8}" n)))
+(def ^:private ca-bcphn-weights [2 4 8 5 10 9 7 3])
+(defn- ca-bcphn-check-digit ^long [^String n]
+  (mod (- 11 (mod (long (reduce + (map (fn [w d] (mod (* (long w) (long d)) 11))
+                                        ca-bcphn-weights
+                                        (digits-of n))))
+                  11))
+       11))
+(defn- ca-bcphn? [^String n]                          ; British Columbia PHN: 9 + MOD-11 check
+  (and (re-matches #"9\d{9}" n)
+       (= (ca-bcphn-check-digit (subs n 1 9)) (- (int (.charAt n 9)) 48))))
+(defn- dz-nif? [^String n]                            ; Algeria NIF: 15 or 20 digits
+  (boolean (re-matches #"\d{15}(\d{5})?" n)))
+(def ^:private arabic-digits
+  {\٠ \0 \١ \1 \٢ \2 \٣ \3 \٤ \4 \٥ \5 \٦ \6 \٧ \7 \٨ \8 \٩ \9
+   \۰ \0 \۱ \1 \۲ \2 \۳ \3 \۴ \4 \۵ \5 \۶ \6 \۷ \7 \۸ \8 \۹ \9})
+(defn- ascii-digits ^String [^String n]
+  (apply str (map #(get arabic-digits % %) n)))
+(defn- eg-tn? [^String n]                             ; Egypt tax number: 9 digits, Arabic digits accepted
+  (boolean (re-matches #"\d{9}" (ascii-digits n))))
+(defn- gh-tin-check-digit [^String n]
+  (let [check (mod (long (reduce + (map-indexed (fn [i c] (* (inc (long i)) (- (int c) 48)))
+                                                (subs n 1 10))))
+                   11)]
+    (if (= 10 check) \X (char (+ 48 check)))))
+(defn- gh-tin? [^String n]                            ; Ghana TIN: prefix + mod-11 check
+  (and (re-matches #"[PCGQV]00[A-Z0-9]{8}" n)
+       (= (int (gh-tin-check-digit n)) (int (.charAt n 10)))))
+(defn- gn-nifp? [^String n]                           ; Guinea NIFp: 9-digit Luhn
+  (boolean (and (re-matches #"\d{9}" n) (.isValid luhn-cd n))))
+(defn- ma-ice? [^String n]                            ; Morocco ICE: 15 digits, ISO 7064 MOD 97-10
+  (and (re-matches #"\d{15}" n)
+       (zero? (reduce (fn [^long r c] (mod (+ (* r 10) (- (int c) 48)) 97)) 0 n))))
+(def ^:private tn-mf-control-keys (set "ABCDEFGHJKLMNPQRSTVWXYZ"))
+(def ^:private tn-mf-tva-codes #{\A \P \B \D \N})
+(def ^:private tn-mf-category-codes #{\M \P \C \N \E})
+(defn- tn-mf-compact ^String [^String n]
+  (if-let [[_ serial rest] (re-matches #"([0-9]+)(.*)" n)]
+    (str (clojure.core/format "%07d" (Long/parseLong serial)) rest)
+    n))
+(defn- tn-mf? [^String n]                             ; Tunisia MF: serial/control and optional TVA/category/branch
+  (let [n (tn-mf-compact n)]
+    (and (or (= 8 (count n)) (= 13 (count n)))
+         (re-matches #"\d{7}.*" n)
+         (contains? tn-mf-control-keys (.charAt n 7))
+         (or (= 8 (count n))
+             (and (contains? tn-mf-tva-codes (.charAt n 8))
+                  (contains? tn-mf-category-codes (.charAt n 9))
+                  (re-matches #"\d{3}" (subs n 10))
+                  (or (= "000" (subs n 10)) (= \E (.charAt n 9))))))))
+(defn- sv-nit-check-digit ^long [^String n]
+  (let [weights (if (not (pos? (compare (subs n 10 13) "100")))
+                  [14 13 12 11 10 9 8 7 6 5 4 3 2]
+                  [2 7 6 5 4 3 2 7 6 5 4 3 2])
+        total (long (reduce + (map * (digits-of (subs n 0 13)) weights)))]
+    (if (not (pos? (compare (subs n 10 13) "100")))
+      (mod (mod total 11) 10)
+      (mod (mod (- total) 11) 10))))
+(defn- sv-nit? [^String n]                            ; El Salvador NIT: component + old/new weighted check
+  (let [n (strip-cc n "SV")]
+    (and (re-matches #"[019]\d{13}" n)
+         (= (sv-nit-check-digit n) (- (int (.charAt n 13)) 48)))))
+(defn- li-peid? [^String n]                           ; Liechtenstein PEID: 4-12 digits after leading zero trim
+  (let [n (str/replace n #"^0+" "")]
+    (boolean (and (<= 4 (count n) 12) (re-matches #"\d+" n)))))
+(def ^:private sm-coe-low-numbers
+  #{2 4 6 7 8 9 10 11 13 16 18 19 20 21 25 26 30 32 33 35 36 37 38 39 40
+    42 45 47 49 51 52 55 56 57 58 59 61 62 64 65 66 67 68 69 70 71 72 73
+    74 75 76 79 80 81 84 85 87 88 91 92 94 95 96 97 99})
+(defn- sm-coe? [^String n]                            ; San Marino COE: 1-5 digits, low-number registry check
+  (let [n (str/replace n #"^0+" "")]
+    (and (re-matches #"\d{1,5}" n)
+         (or (>= (count n) 3) (contains? sm-coe-low-numbers (Integer/parseInt n))))))
 (defn- se-orgnr? [^String n]                          ; Sweden organisationsnummer: 10-digit Luhn, 3rd digit >= 2
   (boolean (and (re-matches #"\d{10}" n) (>= (- (int (.charAt n 2)) 48) 2) (.isValid luhn-cd n))))
 (defn- es-cif? [^String n]                            ; Spain CIF: org-letter + 7 digits + control (digit or letter)
@@ -2066,6 +2151,7 @@
    :ve-rif      {:validate ve-rif?}
    :do-rnc      {:validate do-rnc?}
    :do-cedula   {:validate do-cedula?}
+   :do-ncf      {:validate do-ncf?}
    :ru-ogrn     {:validate ru-ogrn?}
    :vn-mst      {:validate vn-mst?}
    :rs-pib      {:validate rs-pib?}
@@ -2083,6 +2169,18 @@
    :fr-siren    {:validate fr-siren?}
    :fr-siret    {:validate fr-siret?}
    :fr-nif      {:validate fr-nif?}
+   :al-nipt     {:validate al-nipt?}
+   :ar-dni      {:validate ar-dni?}
+   :ca-bcphn    {:validate ca-bcphn?}
+   :dz-nif      {:validate dz-nif?}
+   :eg-tn       {:validate eg-tn?}
+   :gh-tin      {:validate gh-tin?}
+   :gn-nifp     {:validate gn-nifp?}
+   :li-peid     {:validate li-peid?}
+   :ma-ice      {:validate ma-ice?}
+   :sm-coe      {:validate sm-coe?}
+   :sv-nit      {:validate sv-nit?}
+   :tn-mf       {:validate tn-mf?}
    :se-orgnr    {:validate se-orgnr?}
    :es-cif      {:validate es-cif?}
    :nz-nzbn     {:validate nz-nzbn?}
