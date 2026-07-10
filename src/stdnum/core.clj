@@ -709,6 +709,17 @@
        (let [base (subs n 0 9) chk (Integer/parseInt (subs n 9))]
          (or (= chk (- 97 (mod (Long/parseLong base) 97)))
              (= chk (- 97 (mod (Long/parseLong (str "2" base)) 97)))))))
+(defn- be-bis? [^String n]                            ; Belgium BIS: national-number checksum, month +20 or +40
+  (and (be-nn? n)
+       (let [m (Integer/parseInt (subs n 2 4))]
+         (or (<= 20 m 32) (<= 40 m 52)))))
+(defn- be-ssn? [^String n] (or (be-bis? n) (be-nn? n)))
+(defn- be-eid? [^String n]                            ; Belgian eID card: first 10 digits mod 97, 0 -> 97
+  (and (re-matches #"\d{12}" n)
+       (pos? (Long/parseLong n))
+       (let [r (mod (Long/parseLong (subs n 0 10)) 97)
+             c (if (zero? r) 97 r)]
+         (= c (Integer/parseInt (subs n 10))))))
 (defn- be-ogm-compact ^String [^String n] (str/replace n #"\+" ""))
 (defn- be-ogm? [^String n]                            ; Belgian OGM/VCS: 10 digits + mod-97 check, 0 -> 97.
   (let [n (be-ogm-compact n)]
@@ -925,6 +936,21 @@
        (let [d (digits-of n)
              c (- 11 (mod (long (reduce + (map * (subvec d 0 10) [5 4 3 2 7 6 5 4 3 2]))) 11))]
          (= (cond (= c 11) 1 (= c 10) 0 :else c) (d 10)))))
+(defn- cr-cpf? [^String n]                           ; Costa Rica physical person ID: 0P + tomo + asiento
+  (boolean (re-matches #"0\d{9}" n)))
+(def ^:private cr-cpj-class-three-types
+  #{"002" "003" "004" "005" "006" "007" "008" "009" "010" "011" "012" "013"
+    "014" "101" "102" "103" "104" "105" "106" "107" "108" "109" "110"})
+(defn- cr-cpj? [^String n]                           ; Costa Rica legal person ID: structural class/type rules
+  (and (re-matches #"\d{10}" n)
+       (case (.charAt n 0)
+         \2 (#{"100" "200" "300" "400"} (subs n 1 4))
+         \3 (contains? cr-cpj-class-three-types (subs n 1 4))
+         \4 (= "000" (subs n 1 4))
+         \5 (= "001" (subs n 1 4))
+         false)))
+(defn- cr-cr? [^String n]                            ; Costa Rica resident/DIMEX ID: structural
+  (boolean (re-matches #"1\d{10,11}" n)))
 
 ;; Ireland PPS: 7 digits + check letter + optional 2nd letter (folded in as value*9),
 ;; check letter from a mod-23 table whose index 0 is 'W'.
@@ -1013,6 +1039,42 @@
          (and (valid-date? year month day)
               (= (if (= r 10) 1 r) (d 12))))))
 
+(defn- ro-cui? [^String n]                            ; Romania CUI/CIF: same checksum as RO VAT
+  (let [n (strip-cc n "RO")]
+    (and (re-matches #"[1-9]\d{1,9}" n)
+         (ro-vat? n))))
+(defn- ro-cf? [^String n]                             ; Romania CF: CUI/CIF, or a 13-digit CNP
+  (let [c (strip-cc n "RO")]
+    (if (= 13 (count c))
+      (ro-cnp? c)
+      (ro-cui? n))))
+(def ^:private ro-onrc-counties
+  (set (concat (range 1 41) [51 52])))
+(defn- ro-onrc-old? [^String n]
+  (when-let [[_ county serial year] (re-matches #"[JFC](\d{2})(\d{1,5})(\d{4})" n)]
+    (let [county (Integer/parseInt county)
+          year (Integer/parseInt year)]
+      (and (contains? ro-onrc-counties county)
+           (<= 1990 year 2024)))))
+(defn- ro-onrc-check ^long [^String n]
+  (let [letter-digit (mod (int (.charAt n 0)) 10)
+        digits (digits-of (str letter-digit (subs n 1 (dec (count n)))))]
+    (mod (long (reduce + digits)) 10)))
+(defn- ro-onrc-new? [^String n]
+  (and (re-matches #"[JFC]\d{13}" n)
+       (let [year (Integer/parseInt (subs n 1 5))
+             county (Integer/parseInt (subs n 11 13))
+             this-year (.getYear (java.time.LocalDate/now))]
+         (and (<= 1990 year this-year)
+              (cond
+                (< year 2024) (contains? ro-onrc-counties county)
+                (= year 2024) (or (zero? county) (contains? ro-onrc-counties county))
+                :else (zero? county))
+              (= (ro-onrc-check n) (- (int (.charAt n 13)) 48))))))
+(defn- ro-onrc? [^String n]
+  (and (re-matches #"[JFC].+" n)
+       (or (ro-onrc-new? n) (ro-onrc-old? n))))
+
 (defn- cz-rc? [^String n]                            ; Czech/Slovak RČ: date plus 10-digit mod-11 check
   (and (re-matches #"\d{9,10}" n)
        (let [yy (Integer/parseInt (subs n 0 2))
@@ -1072,6 +1134,11 @@
        (let [d (digits-of n)
              r (mod (long (reduce + (map * (subvec d 0 9) [2 4 8 5 10 9 7 3 6]))) 11)]
          (= (if (= r 10) 0 r) (d 9)))))
+(defn- bg-pnf? [^String n]                            ; Bulgaria PNF/LNCh: weighted mod 10
+  (and (re-matches #"\d{10}" n)
+       (let [d (digits-of n)]
+         (= (mod (long (reduce + (map * (subvec d 0 9) [21 19 17 13 11 9 7 3 1]))) 10)
+            (d 9)))))
 (defn- nl-vat? [^String n]                            ; Netherlands: 9-digit mod-11 + "B" + 2-digit suffix
   (let [n (strip-cc n "NL")]
     (and (re-matches #"\d{9}B\d{2}" n)
@@ -1965,6 +2032,9 @@
    :ch-esr      {:validate ch-esr? :format ch-esr-format}
    :nz-ird      {:validate nz-ird?}
    :be-nn       {:validate be-nn? :parse be-nn-parse :format be-nn-format}
+   :be-bis      {:validate be-bis? :format be-nn-format}
+   :be-ssn      {:validate be-ssn? :format be-nn-format}
+   :be-eid      {:validate be-eid?}
    :be-ogm      {:validate be-ogm? :parse be-ogm-parse :format be-ogm-format}
    :fi-hetu     {:validate fi-hetu?}
    :is-vsk      {:validate is-vsk?}
@@ -1974,6 +2044,9 @@
    :lt-vat      {:validate lt-vat?}
    :cy-vat      {:validate cy-vat?}
    :ro-vat      {:validate ro-vat?}
+   :ro-cf       {:validate ro-cf?}
+   :ro-cui      {:validate ro-cui?}
+   :ro-onrc     {:validate ro-onrc?}
    :es-vat      {:validate es-vat?}
    :ie-vat      {:validate ie-vat?}
    :nl-vat      {:validate nl-vat?}
@@ -2057,6 +2130,9 @@
    :cl-rut      {:validate cl-rut? :format dash-check-format}
    :co-nit      {:validate co-nit? :format dash-check-format}
    :pe-ruc      {:validate pe-ruc? :parse pe-ruc-parse}
+   :cr-cpf      {:validate cr-cpf?}
+   :cr-cpj      {:validate cr-cpj?}
+   :cr-cr       {:validate cr-cr?}
    :ie-pps      {:validate ie-pps?}
    :ee-ik       {:validate ee-ik? :parse ee-ik-parse}
    :jmbg        {:validate jmbg? :parse jmbg-parse}
@@ -2069,6 +2145,7 @@
    :il-idnr     {:validate il-idnr?}
    :ec-ced      {:validate ec-ced? :parse ec-ced-parse}
    :bg-egn      {:validate bg-egn? :parse bg-egn-parse}
+   :bg-pnf      {:validate bg-pnf?}
    :orcid       {:validate orcid? :format orcid-format}
    :isni        {:validate orcid? :format isni-format}
    :gtin14      {:validate gtin14?}

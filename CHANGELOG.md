@@ -4,6 +4,18 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added - Romania, Costa Rica, Belgium, Bulgaria (211 -> 221)
+Ten more types ported from python-stdnum.
+- `:ro-cf` / `:ro-cui` — Romania fiscal / unique registration code, mod-11 CUI
+  check (`:ro-cf` also accepts a 13-digit CNP, per upstream).
+- `:ro-onrc` — Romania trade register number, structural + new-format check.
+- `:cr-cpf` / `:cr-cpj` / `:cr-cr` — Costa Rica physical / legal / resident ids
+  (structural).
+- `:be-bis` — Belgium BIS number, mod-97 check with month offset.
+- `:be-ssn` — Belgium SSN, accepting a national number or a BIS number.
+- `:be-eid` — Belgium eID card number, mod-97 check.
+- `:bg-pnf` — Bulgaria foreigner number, weighted mod-10 check.
+
 ### Added - Netherlands + Nordic cluster (201 -> 211)
 Ten more types ported from python-stdnum.
 - `:nl-brin` — Netherlands institution id (structural).

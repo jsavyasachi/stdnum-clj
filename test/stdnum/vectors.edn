@@ -137,6 +137,8 @@
                :source "python-stdnum il.idnr test vector; checksum recomputed"}
  :ec-ced      {:valid ["1710034065"] :invalid ["1710034066"] :source "Ecuador cédula algorithm"}
  :bg-egn      {:valid ["7523169263"] :invalid ["7523169264"] :source "Bulgaria EGN (Wikipedia worked example)"}
+ :bg-pnf      {:valid ["7111042925"] :invalid ["7111042922" "71110A2922"]
+               :source "python-stdnum bg.pnf doctest vector; check recomputed"}
  :mx-curp     {:valid ["HEGG560427MVZRRL04"] :invalid ["HEGG560427MVZRRL05"] :source "RENAPO CURP worked example"}
  :mx-clabe    {:valid ["002010077777777771" "032180000118359719"] :invalid ["002010077777777772"]
                :source "Banxico CLABE worked example"}
@@ -152,6 +154,12 @@
  :cl-rut      {:valid ["970040005"] :invalid ["970040006"] :source "SII; Banco de Chile RUT"}
  :co-nit      {:valid ["8909039388"] :invalid ["8909039389"] :source "DIAN; Bancolombia NIT"}
  :pe-ruc      {:valid ["20100070970"] :invalid ["20100070971"] :source "SUNAT; Banco de Crédito del Perú RUC"}
+ :cr-cpf      {:valid ["0304550175"] :invalid ["3012341234" "12345678"]
+               :source "python-stdnum cr.cpf doctest vector; structural (format/component) validation, no check digit"}
+ :cr-cpj      {:valid ["3101999999"] :invalid ["3534123559" "310132541"]
+               :source "python-stdnum cr.cpj doctest vector; structural (format/component) validation, no check digit"}
+ :cr-cr       {:valid ["155812994816"] :invalid ["30123456789" "12345678"]
+               :source "python-stdnum cr.cr doctest vector; structural (format/component) validation, no check digit"}
  :sg-nric     {:valid ["S1234567D" "F1234567N"] :invalid ["S1234567A"] :source "Singapore NRIC/FIN algorithm"}
  :sg-uen      {:valid ["00192200M" "197401143C" "S16FC0121D"] :invalid ["123456"]
                :source "python-stdnum sg.uen doctest vector; structural (format/component) validation, no check digit"}
@@ -160,6 +168,12 @@
  :jp-cn       {:valid ["7000012050002"] :invalid ["7000012050003"] :source "Japan corporate number (NTA)"}
  :nz-ird      {:valid ["049098576" "49091850"] :invalid ["049098577"] :source "NZ IRD number algorithm (IRD)"}
  :be-nn       {:valid ["00012511148"] :invalid ["00012511149"] :source "Belgium national number (mod-97) algorithm"}
+ :be-bis      {:valid ["98472899765" "01490700185"] :invalid ["12345678901"]
+               :source "python-stdnum be.bis doctest vector; check recomputed"}
+ :be-ssn      {:valid ["85073003328" "98472899765" "17073003384" "01490700185"] :invalid ["12345678901"]
+               :source "python-stdnum be.ssn doctest vector; check recomputed"}
+ :be-eid      {:valid ["000001103271" "591191706458" "591201099997"] :invalid ["000001103225"]
+               :source "python-stdnum be.eid doctest vector; check recomputed"}
  :be-ogm      {:valid ["+++090/9337/55493+++" "090933755493"] :invalid ["+++090/9337/55494+++"]
                :source "Febelfin structured communication (OGM-VCS) mod-97 rule; worked example recomputed (0909337554 mod 97 = 93)"}
  :fi-hetu     {:valid ["131052-308T" "010594Y9032"] :invalid ["131052-308U"] :source "Finland HETU (DVV) example"}
@@ -196,6 +210,12 @@
  :sk-vat      {:valid ["SK2020317068"] :invalid ["SK2020317069"] :source "ESET spol. s r.o.; VIES-confirmed" :vies true}
  :lt-vat      {:valid ["LT119511515"] :invalid ["LT119511516"] :source "Klaipėda University; VIES-confirmed" :vies true}
  :ro-vat      {:valid ["RO14837428"] :invalid ["RO14837429"] :source "Borg Design SRL; VIES-confirmed" :vies true}
+ :ro-cf       {:valid ["RO18547290" "18547290" "1630615123457"] :invalid ["18547291"]
+               :source "python-stdnum ro.cf doctest vector; check recomputed"}
+ :ro-cui      {:valid ["18547290" "RO18547290"] :invalid ["18547291"]
+               :source "python-stdnum ro.cui doctest vector; check recomputed"}
+ :ro-onrc     {:valid ["J527502012" "J2012000750528"] :invalid ["X527502012" "J2012000750529"]
+               :source "python-stdnum ro.onrc doctest vector; check recomputed"}
  :at-vat      {:valid ["ATU37675002"] :invalid ["ATU37675003"] :source "Technische Universität Wien; VIES-confirmed" :vies true}
  :at-businessid {:valid ["FN 122119m" "122119m"] :invalid ["m123123" "abc"]
                  :source "python-stdnum at.businessid doctest vector; structural (format/component) validation, no check digit"}
