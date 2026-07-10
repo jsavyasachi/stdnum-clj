@@ -89,10 +89,14 @@
  :se-pnr      {:valid ["8112189876"] :invalid ["8112189877"] :source "Sweden personnummer (Luhn) example"}
  :za-id       {:valid ["8001015009087"] :invalid ["8001015009088"] :source "South Africa ID (Luhn) example"}
  :no-org      {:valid ["974760673"] :invalid ["974760674"] :source "Brønnøysund Register org. number"}
+ :no-fodselsnummer {:valid ["15108695088"] :invalid ["15108695077"]
+                    :source "python-stdnum no.fodselsnummer doctest vector; check digits recomputed"}
  :tr-tc       {:valid ["10000000146"] :invalid ["10000000147"] :source "Turkey T.C. Kimlik No algorithm"}
  :it-cf       {:valid ["RSSMRA80A01H501U" "MRTMTT25D09F205Z"] :invalid ["RSSMRA80A01H501A"]
                :source "Agenzia delle Entrate codice fiscale example"}
  :ch-uid      {:valid ["CHE116281710"] :invalid ["116281711"] :source "Switzerland UID register"}
+ :ch-vat      {:valid ["CHE107787577IVA"] :invalid ["CHE107787578IVA"]
+               :source "python-stdnum ch.vat doctest vector; UID check digit recomputed"}
  :ch-ahv      {:valid ["7569217076985"] :invalid ["7569217076986"] :source "Switzerland AHV (EAN-13) example"}
  :ch-esr      {:valid ["210000000003139471430009017"] :invalid ["210000000003139471430009018"]
                :source "SIX Swiss Payment Standards, check digit 'modulo 10 recursive' (Annex B); classic worked example recomputed"}
@@ -100,6 +104,8 @@
  :ee-ik       {:valid ["37605030299"] :invalid ["37605030298"] :source "Estonia isikukood example"}
  :ie-pps      {:valid ["6433435F" "6433435OA"] :invalid ["6433435FA"] :source "Ireland PPSN algorithm"}
  :jmbg        {:valid ["0101006500006"] :invalid ["0101006500007"] :source "ex-Yugoslav JMBG algorithm"}
+ :si-emso     {:valid ["0101006500006"] :invalid ["0101006500007"]
+               :source "python-stdnum si.emso doctest vector; check digit recomputed"}
  :ro-cnp      {:valid ["1630615123457"] :invalid ["1630615123458"]
                :source "python-stdnum ro.cnp test vector; checksum recomputed"}
  :cz-rc       {:valid ["7103192745"] :invalid ["7103192746"]
@@ -120,6 +126,8 @@
  :es-ccc      {:valid ["21000418450200051332"] :invalid ["21000418440200051332"]
                :source "ISO 13616 Spanish IBAN worked example (ES91 2100 0418 4502 0005 1332), CCC check digits 45 recomputed"}
  :fr-nir      {:valid ["255081416802538"] :invalid ["255081416802539"] :source "INSEE NIR worked example"}
+ :fr-nif      {:valid ["3023217600053"] :invalid ["3023217600054"]
+               :source "python-stdnum fr.nif doctest vector; check digits recomputed"}
  :pl-pesel    {:valid ["44051401359"] :invalid ["44051401358"] :source "Poland PESEL worked example"}
  :ar-cuit     {:valid ["30703088534"] :invalid ["30703088535"] :source "AFIP; MercadoLibre CUIT"}
  :ar-cbu      {:valid ["2850590940090418135201"] :invalid ["2850590940090418135202" "2850590840090418135201"]
@@ -214,5 +222,9 @@
  :iso11649    {:valid ["RF18539007547034"] :invalid ["RF18539007547035"] :source "ISO 11649 RF Creditor Reference (ISO 7064 Mod 97,10); ISO 11649 standard worked example RF18 5390 0754 7034"}
  :it-aic      {:valid ["012745093" "012745168"] :invalid ["012745094"] :source "Italy AIC drug authorization code (Luhn-variant mod 10); Tachipirina 500mg (Angelini paracetamol) AIC 012745093/012745168 (AIFA registry)"}
  :ca-bn       {:valid ["119219814" "119219814RR0001"] :invalid ["119219815"] :source "Canada Business Number (9-digit Luhn, optional BN15 program account); Canadian Red Cross Society 119219814 (CRA charity registry 119219814RR0001)"}
+ :mu-nid      {:valid ["A3112991234567"] :invalid ["A3112991234565"]
+               :source "constructed per python-stdnum mu.nid check-letter algorithm (ISO 7064 Mod 37,36 radix-36); check digit recomputed"}
+ :gb-upn      {:valid ["B801200005001"] :invalid ["A801200005001"]
+               :source "python-stdnum gb.upn doctest vector; check letter recomputed"}
  :mt-vat      {:valid ["MT11679112"] :invalid ["MT11679113"] :source "Malta VAT checksum example"}
  :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}}

@@ -4,6 +4,22 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added - more national IDs and tax/VAT (163 -> 169)
+Six further types ported from python-stdnum; each checksum recomputed against the
+module's own doctest vector (Mauritius NID has no upstream doctest, so its vector
+is constructed from the published check-letter algorithm).
+- `:no-fodselsnummer` — Norway birth number, two mod-11 control digits plus the
+  individual-number century table and date.
+- `:si-emso` — Slovenia EMŠO, the Slovenian JMBG (shares the `:jmbg` mod-11
+  check) with an added date validation.
+- `:mu-nid` — Mauritius National Identity number, ISO 7064 Mod 37,36 radix-36
+  check letter.
+- `:fr-nif` — France numéro fiscal, `first-10-digits mod 511 == last 3`.
+- `:ch-vat` — Switzerland VAT (`CHE` + UID + MWST/TVA/IVA/TPV suffix), reusing
+  the `:ch-uid` mod-11 check.
+- `:gb-upn` — UK Unique Pupil Number, leading mod-23 check letter over the
+  12-digit body with LA-code validation.
+
 ### Added - national personal-ID numbers (157 -> 163)
 Six national identity numbers, ported from python-stdnum with each checksum
 independently recomputed against the module's own test vector.

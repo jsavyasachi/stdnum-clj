@@ -397,6 +397,26 @@
          (let [d (digits-of n)
                r (mod (long (reduce + (map * (subvec d 1 10) utr-weights))) 11)]
            (= (nth utr-check-table r) (d 0))))))
+(def ^:private ^String upn-alphabet "ABCDEFGHJKLMNPQRTUVWXYZ0123456789")
+(def ^:private upn-la-numbers
+  #{201 202 203 204 205 206 207 208 209 210 211 212 213 301 302 303 304
+    305 306 307 308 309 310 311 312 313 314 315 316 317 318 319 320 330
+    331 332 333 334 335 336 340 341 342 343 344 350 351 352 353 354 355
+    356 357 358 359 370 371 372 373 380 381 382 383 384 390 391 392 393
+    394 420 800 801 802 803 805 806 807 808 810 811 812 813 815 816 821
+    822 823 825 826 830 831 835 836 837 840 841 845 846 850 851 852 855
+    856 857 860 861 865 866 867 868 869 870 871 872 873 874 876 877 878
+    879 880 881 882 883 884 885 886 887 888 889 890 891 892 893 894 895
+    896 908 909 916 919 921 925 926 928 929 931 933 935 936 937 938})
+(defn- gb-upn? [^String n]                            ; UK Unique Pupil Number
+  (and (re-matches #"[A-Z]\d{11}[A-Z0-9]" n)
+       (contains? upn-la-numbers (Integer/parseInt (subs n 1 4)))
+       (let [check (mod (long (reduce + (map-indexed
+                                          (fn [i ch] (* (+ 2 (long i))
+                                                        (.indexOf upn-alphabet (int ch))))
+                                          (subs n 1 13))))
+                        23)]
+         (= (.charAt upn-alphabet (int check)) (.charAt n 0)))))
 
 ;; other national identifiers (clean-room / engine-backed) --------------------
 (def ^:private ^VerhoeffCheckDigit verhoeff-cd (VerhoeffCheckDigit.))
@@ -612,6 +632,9 @@
          (let [d (digits-of n)
                c (- 11 (mod (long (reduce + (map * (subvec d 0 8) [5 4 3 2 7 6 5 4]))) 11))]
            (cond (= c 10) false (= c 11) (zero? (long (d 8))) :else (= c (d 8)))))))
+(defn- ch-vat? [^String n]                            ; Swiss VAT = UID + MWST/TVA/IVA/TPV suffix
+  (and (re-matches #"CHE\d{9}(MWST|TVA|IVA|TPV)" n)
+       (ch-uid? (subs n 0 12))))
 (defn- ch-ahv? [^String n]                            ; 756 + 10 digits, EAN-13 check
   (and (re-matches #"756\d{10}" n)
        (let [d (digits-of n)
@@ -855,6 +878,41 @@
        (let [d (digits-of n)
              m (- 11 (mod (long (reduce + (map * (subvec d 0 12) [7 6 5 4 3 2 7 6 5 4 3 2]))) 11))]
          (= (if (>= m 10) 0 m) (d 12)))))
+
+(defn- si-emso? [^String n]                           ; Slovenia EMŠO: JMBG checksum + date
+  (and (jmbg? n)
+       (let [year (Integer/parseInt (subs n 4 7))
+             year (+ year (if (< year 800) 2000 1000))]
+         (valid-date? year (Integer/parseInt (subs n 2 4)) (Integer/parseInt (subs n 0 2))))))
+
+(defn- no-fodselsnummer? [^String n]                  ; Norway birth number: date + two mod-11 checks
+  (and (re-matches #"\d{11}" n)
+       (let [d (digits-of n)
+             cd (fn [digits weights]
+                  (let [c (- 11 (mod (long (reduce + (map * digits weights))) 11))]
+                    (cond (= c 11) 0 (= c 10) nil :else c)))
+             c1 (cd (subvec d 0 9) [3 7 6 1 8 9 4 5 2])
+             c2 (when c1 (cd (subvec d 0 10) [5 4 3 2 7 6 5 4 3 2]))]
+         (and (= c1 (d 9))
+              (= c2 (d 10))
+              (let [raw-day (Integer/parseInt (subs n 0 2))
+                    day (cond-> raw-day (> raw-day 40) (- 40))
+                    raw-month (Integer/parseInt (subs n 2 4))
+                    month (cond-> raw-month (> raw-month 40) (- 40))
+                    yy (Integer/parseInt (subs n 4 6))
+                    individ (Integer/parseInt (subs n 6 9))
+                    year (cond
+                           (< individ 500) (+ 1900 yy)
+                           (and (< individ 750) (>= yy 54)) (+ 1800 yy)
+                           (and (< individ 1000) (< yy 40)) (+ 2000 yy)
+                           (and (<= 900 individ) (< individ 1000) (>= yy 40)) (+ 1900 yy)
+                           :else nil)]
+                (and (< raw-day 80)
+                     year
+                     (valid-date? year month day)
+                     (let [^java.time.LocalDate birth-date
+                           (java.time.LocalDate/of (long year) (long month) (long day))]
+                       (not (.isAfter birth-date (java.time.LocalDate/now))))))))))
 
 (def ^:private ro-cnp-counties
   #{"01" "02" "03" "04" "05" "06" "07" "08" "09" "10" "11" "12" "13" "14"
@@ -1116,6 +1174,10 @@
   (boolean (and (re-matches #"\d{9}" n) (.isValid luhn-cd n))))
 (defn- fr-siret? [^String n]                          ; France SIRET: SIREN + 5-digit NIC, 14-digit Luhn
   (boolean (and (re-matches #"\d{14}" n) (.isValid luhn-cd n))))
+(defn- fr-nif? [^String n]                            ; France NIF: first 10 digits mod 511 == last 3
+  (and (re-matches #"[0-3]\d{12}" n)
+       (= (mod (Long/parseLong (subs n 0 10)) 511)
+          (Integer/parseInt (subs n 10)))))
 (defn- se-orgnr? [^String n]                          ; Sweden organisationsnummer: 10-digit Luhn, 3rd digit >= 2
   (boolean (and (re-matches #"\d{10}" n) (>= (- (int (.charAt n 2)) 48) 2) (.isValid luhn-cd n))))
 (defn- es-cif? [^String n]                            ; Spain CIF: org-letter + 7 digits + control (digit or letter)
@@ -1214,6 +1276,17 @@
          (= (mod s 10) (d 8)))))
 (defn- ca-bn? [^String n]                             ; Canada Business Number: 9-digit Luhn, optional 2-letter + 4-digit program account (BN15)
   (and (re-matches #"\d{9}([A-Z]{2}\d{4})?" n) (.isValid luhn-cd (subs n 0 9))))
+(defn- mu-nid? [^String n]                            ; Mauritius NID: letter + date/id + mod-17 check char
+  (and (re-matches #"[A-Z]\d{12}[0-9A-Z]" n)
+       (valid-date? (+ 2000 (Integer/parseInt (subs n 5 7)))
+                    (Integer/parseInt (subs n 3 5))
+                    (Integer/parseInt (subs n 1 3)))
+       (let [check (reduce + (map-indexed
+                              (fn [i ch] (* (- 14 (long i))
+                                            (.indexOf m3736-alpha (int ch))))
+                              (subs n 0 13)))
+             check (mod (- 17 (long check)) 17)]
+         (= (.charAt m3736-alpha (int check)) (.charAt n 13)))))
 
 ;; Mexico CURP: 18 chars, weighted base-37 sum (with Ñ in the alphabet), mod-10 check.
 (def ^:private curp-val (zipmap "0123456789ABCDEFGHIJKLMNÑOPQRSTUVWXYZ" (range)))
@@ -1447,6 +1520,7 @@
    :gb-vat      {:validate gb-vat?}
    :gb-nino     {:validate nino? :format nino-format}
    :gb-utr      {:validate gb-utr?}
+   :gb-upn      {:validate gb-upn?}
    :ca-sin      {:validate ca-sin? :format triple3-format}
    :au-abn      {:validate au-abn? :format au-abn-format}
    :in-pan      {:validate in-pan? :parse in-pan-parse}
@@ -1460,6 +1534,7 @@
    :es-ccc      {:validate es-ccc? :parse es-ccc-parse}
    :za-id       {:validate za-id? :parse za-id-parse}
    :no-org      {:validate no-org? :format triple3-format}
+   :no-fodselsnummer {:validate no-fodselsnummer?}
    :tr-tc       {:validate tr-tc?}
    :at-vat      {:validate at-vat?}
    :dk-vat      {:validate dk-vat?}
@@ -1480,6 +1555,7 @@
    :hr-oib      {:validate hr-oib?}
    :it-cf       {:validate it-cf? :parse it-cf-parse}
    :ch-uid      {:validate ch-uid?}
+   :ch-vat      {:validate ch-vat?}
    :ch-ahv      {:validate ch-ahv? :format ch-ahv-format}
    :ch-esr      {:validate ch-esr? :format ch-esr-format}
    :nz-ird      {:validate nz-ird?}
@@ -1523,6 +1599,7 @@
    :gt-nit      {:validate gt-nit?}
    :fr-siren    {:validate fr-siren?}
    :fr-siret    {:validate fr-siret?}
+   :fr-nif      {:validate fr-nif?}
    :se-orgnr    {:validate se-orgnr?}
    :es-cif      {:validate es-cif?}
    :nz-nzbn     {:validate nz-nzbn?}
@@ -1538,6 +1615,7 @@
    :iso11649    {:validate iso11649?}
    :it-aic      {:validate it-aic?}
    :ca-bn       {:validate ca-bn?}
+   :mu-nid      {:validate mu-nid?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}
@@ -1560,6 +1638,7 @@
    :ie-pps      {:validate ie-pps?}
    :ee-ik       {:validate ee-ik? :parse ee-ik-parse}
    :jmbg        {:validate jmbg? :parse jmbg-parse}
+   :si-emso     {:validate si-emso?}
    :ro-cnp      {:validate ro-cnp?}
    :cz-rc       {:validate cz-rc?}
    :sk-rc       {:validate sk-rc?}
