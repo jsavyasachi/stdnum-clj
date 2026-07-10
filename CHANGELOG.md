@@ -4,6 +4,18 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added - Germany, Asia, EU remainder — full python-stdnum parity (234 -> 246)
+Twelve final types ported from python-stdnum, completing coverage of the
+upstream catalogue (aliases and postal/classification filler included).
+- Checksummed: `:in-epic` (India EPIC, Luhn), `:in-vid` (India VID, Verhoeff),
+  `:jp-in` (Japan My Number), `:pe-cui` (Peru), `:eu-at02` (SEPA creditor id,
+  ISO 7064 Mod 97-10), `:nz-bankaccount` (per-bank checksum), `:cz-bankaccount`
+  (dual mod-11; takes raw input since the prefix `-` and bank `/` separators are
+  significant).
+- Reuse: `:th-tin` dispatches to `:th-pin` or `:th-moa`.
+- Structural: `:de-handelsregisternummer`, `:de-stnr`, `:eu-nace`, `:eu-oss`
+  (court/region/classification tables validated by format, not embedded lists).
+
 ### Added - misc national IDs and tax numbers (221 -> 234)
 Thirteen more types ported from python-stdnum.
 - Checksummed: `:ca-bcphn` (BC health number, mod 11), `:gh-tin` (Ghana),

@@ -1722,6 +1722,114 @@
        (let [d (digits-of n)
              s (long (reduce + (map * (subvec d 0 12) [13 12 11 10 9 8 7 6 5 4 3 2])))]
          (= (mod (- 11 (mod s 11)) 10) (d 12)))))
+(defn- th-tin? [^String n] (or (th-moa? n) (th-pin? n))) ; Thailand TIN dispatches to MOA or PIN
+
+(defn- in-epic? [^String n]                           ; India EPIC: 3 letters + 7 Luhn digits
+  (and (re-matches #"[A-Z]{3}\d{7}" n)
+       (.isValid luhn-cd (subs n 3))))
+(defn- in-vid? [^String n]                            ; India VID: 16 digits, leading 2-9, Verhoeff, non-palindrome
+  (and (re-matches #"[2-9]\d{15}" n)
+       (not= n (str/reverse n))
+       (.isValid verhoeff-cd n)))
+(defn- jp-in? [^String n]                             ; Japan Individual Number: 12 digits, weighted check
+  (and (re-matches #"\d{12}" n)
+       (let [d (digits-of n)
+             s (long (reduce + (map * (subvec d 0 11) [6 5 4 3 2 7 6 5 4 3 2])))]
+         (= (mod (mod (- s) 11) 10) (d 11)))))
+(defn- pe-cui-check-digits ^String [^String n]
+  (let [c (mod (long (reduce + (map * (digits-of (subs n 0 8)) [3 2 7 6 5 4 3 2]))) 11)]
+    (str (.charAt "65432110987" c) (.charAt "KJIHGFEDCBA" c))))
+(defn- pe-cui? [^String n]                            ; Peru CUI: 8 digits plus optional digit check
+  (and (re-matches #"\d{8,9}" n)
+       (or (= 8 (count n))
+           (not= -1 (.indexOf (pe-cui-check-digits n) (int (.charAt n 8)))))))
+
+(def ^:private stnr-format-strings
+  ["FFBBBUUUUP" "28FF0BBBUUUUP" "FFFBBBUUUUP" "9FFF0BBBUUUUP"
+   "11FF0BBBUUUUP" "0FFBBBUUUUP" "30FF0BBBUUUUP" "24FF0BBBUUUUP"
+   "22FF0BBBUUUUP" "26FF0BBBUUUUP" "40FF0BBBUUUUP" "23FF0BBBUUUUP"
+   "FFFBBBBUUUP" "5FFF0BBBBUUUP" "27FF0BBBUUUUP" "10FF0BBBUUUUP"
+   "2FFBBBUUUUP" "32FF0BBBUUUUP" "1FFBBBUUUUP" "31FF0BBBUUUUP"
+   "21FF0BBBUUUUP" "41FF0BBBUUUUP"])
+(defn- stnr-format-regex [fmt]
+  (re-pattern
+   (str "^" (apply str (map #(if (#{\F \B \U \P} %) "\\d" (str %)) fmt)) "$")))
+(def ^:private stnr-format-res (mapv stnr-format-regex stnr-format-strings))
+(defn- de-stnr? [^String n]                           ; German tax number: regional/country structural formats
+  (and (re-matches #"\d{10}|\d{11}|\d{13}" n)
+       (some #(re-matches % n) stnr-format-res)))
+
+(defn- de-handelsregisternummer? [^String n]          ; German register no.; court table intentionally structural
+  (let [n (str/trim n)
+        registry "(HRA|HRB|PR|GNR|VR)"
+        number "([1-9][0-9]{0,5})(\\s+[A-ZÖ]{1,3})?"
+        court ".+?"]
+    (boolean
+     (or (re-matches (re-pattern (str "(?iu)" registry "\\s+" number ",?\\s+" court)) n)
+         (re-matches (re-pattern (str "(?iu)" court ",?\\s+" registry "\\s+" number)) n)))))
+
+(defn- cz-bankaccount-checksum ^long [^String n]
+  (mod (long (reduce + (map * [6 3 7 9 10 5 8 4 2 1] (digits-of (clojure.core/format "%010d" (Long/parseLong n)))))) 11))
+(defn- cz-bankaccount? [^String n]                    ; Czech bank account: prefix/root mod-11 + present bank code
+  (let [n (str/replace (str n) #"\s" "")]
+    (when-let [[_ prefix root bank] (re-matches #"(?:(\d{0,6})-)?(\d{2,10})/(\d{4})" n)]
+      (and (not= "0000" bank)
+           (zero? (cz-bankaccount-checksum (or prefix "")))
+           (zero? (cz-bankaccount-checksum root))))))
+
+(defn- eu-at02-base10 ^String [^String n]
+  (apply str (map #(.indexOf m3736-alpha (int %)) (str (subs n 7) (subs n 0 4)))))
+(defn- eu-at02? [^String n]                           ; SEPA AT-02: ISO 7064 Mod 97-10, business code skipped
+  (and (re-matches #"[A-Z]{2}\d{2}[0-9A-Z]{3}[0-9A-Z]+" n)
+       (= 1 (lei-mod97 (eu-at02-base10 n)))))
+(defn- eu-nace? [^String n]                           ; NACE structural only; python checks bundled code tables
+  (and (<= 1 (count n) 4)
+       (if (= 1 (count n))
+         (boolean (re-matches #"[A-Z]" n))
+         (boolean (re-matches #"\d+" n)))))
+(def ^:private eu-oss-member-states
+  #{"040" "056" "100" "191" "196" "203" "208" "233" "246" "250" "276" "300" "348" "372"
+    "380" "428" "440" "442" "470" "528" "616" "620" "642" "703" "705" "724" "752" "900"})
+(defn- eu-oss? [^String n]                            ; EU OSS/IOSS structural; no public checksum
+  (and (or (and (str/starts-with? n "EU") (= 11 (count n)))
+           (and (str/starts-with? n "IM") (= 12 (count n))))
+       (re-matches #"\d+" (subs n 2))
+       (contains? eu-oss-member-states (subs n 2 5))))
+
+(def ^:private nz-bankaccount-algorithms
+  {"01" "A", "02" "A", "03" "A", "04" "A", "06" "A", "08" "D", "09" "E", "10" "A", "11" "A"
+   "12" "A", "13" "A", "14" "A", "15" "A", "16" "A", "17" "A", "18" "A", "19" "A", "20" "A"
+   "21" "A", "22" "A", "23" "A", "24" "A", "25" "F", "26" "G", "27" "A", "28" "G", "29" "G"
+   "30" "A", "31" "X", "33" "F", "35" "A", "38" "A"})
+(def ^:private nz-bankaccount-weights
+  {"A" [0 0 6 3 7 9 0 10 5 8 4 2 1 0 0 0]
+   "B" [0 0 0 0 0 0 0 10 5 8 4 2 1 0 0 0]
+   "D" [0 0 0 0 0 0 7 6 5 4 3 2 1 0 0 0]
+   "E" [0 0 0 0 0 0 0 0 0 5 4 3 2 0 0 1]
+   "F" [0 0 0 0 0 0 1 7 3 1 7 3 1 0 0 0]
+   "G" [0 0 0 0 0 0 1 3 7 1 3 7 1 3 7 1]
+   "X" [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]})
+(def ^:private nz-bankaccount-moduli
+  {"A" [11 11], "B" [11 11], "D" [11 11], "E" [9 11], "F" [10 10], "G" [9 10], "X" [1 1]})
+(defn- nz-bankaccount-compact ^String [^String n]
+  (let [n (str/replace n #"\D" "")]
+    (str (subs n 0 (min 13 (count n)))
+         (if (> (count n) 13) (clojure.core/format "%03d" (Long/parseLong (subs n 13))) ""))))
+(defn- nz-bankaccount-checksum ^long [^String n]
+  (let [algorithm (get nz-bankaccount-algorithms (subs n 0 2) "X")
+        algorithm (if (and (= "A" algorithm) (not (neg? (compare (subs n 6 13) "0990000")))) "B" algorithm)
+        [mod1 mod2] (get nz-bankaccount-moduli algorithm)
+        weights (get nz-bankaccount-weights algorithm)]
+    (mod (long (reduce + (map (fn [w d]
+                                (let [c (* (long w) (long d))]
+                                  (if (> c mod1) (mod c mod1) c)))
+                              weights (digits-of n))))
+         mod2)))
+(defn- nz-bankaccount? [^String n]                    ; NZ bank account: checksum + known bank algorithm table; branch registry omitted
+  (let [n (nz-bankaccount-compact n)]
+    (and (re-matches #"\d{16}" n)
+         (contains? nz-bankaccount-algorithms (subs n 0 2))
+         (zero? (nz-bankaccount-checksum n)))))
 (defn- kz-bin? [^String n]                            ; Kazakhstan BIN/IIN: 12-digit, weighted mod 11 with fallback weights
   (and (re-matches #"\d{12}" n)
        (let [d (digits-of n)
@@ -2048,6 +2156,8 @@
    :us-ptin     {:validate ptin-valid?}
    :de-vat      {:validate de-vat?}
    :de-idnr     {:validate de-idnr?}
+   :de-handelsregisternummer {:validate de-handelsregisternummer?}
+   :de-stnr     {:validate de-stnr?}
    :fr-vat      {:validate fr-vat?}
    :mc-tva      {:validate mc-tva?}
    :it-vat      {:validate it-vat?}
@@ -2102,7 +2212,9 @@
    :pt-nif      {:validate pt-nif?}
    :pt-cc       {:validate pt-cc?}
    :cz-ico      {:validate cz-ico?}
+   :cz-bankaccount {:validate cz-bankaccount?}
    :jp-cn       {:validate jp-cn?}
+   :jp-in       {:validate jp-in?}
    :au-tfn      {:validate au-tfn? :format triple3-format}
    :lu-vat      {:validate lu-vat?}
    :si-vat      {:validate si-vat?}
@@ -2116,6 +2228,7 @@
    :ch-ahv      {:validate ch-ahv? :format ch-ahv-format}
    :ch-esr      {:validate ch-esr? :format ch-esr-format}
    :nz-ird      {:validate nz-ird?}
+   :nz-bankaccount {:validate nz-bankaccount?}
    :be-nn       {:validate be-nn? :parse be-nn-parse :format be-nn-format}
    :be-bis      {:validate be-bis? :format be-nn-format}
    :be-ssn      {:validate be-ssn? :format be-nn-format}
@@ -2192,6 +2305,12 @@
    :isan        {:validate isan?}
    :th-moa      {:validate th-moa?}
    :th-pin      {:validate th-pin?}
+   :th-tin      {:validate th-tin?}
+   :in-epic     {:validate in-epic?}
+   :in-vid      {:validate in-vid?}
+   :eu-at02     {:validate eu-at02?}
+   :eu-nace     {:validate eu-nace?}
+   :eu-oss      {:validate eu-oss?}
    :kz-bin      {:validate kz-bin?}
    :upu-s10     {:validate upu-s10?}
    :si-maticna  {:validate si-maticna?}
@@ -2228,6 +2347,7 @@
    :cl-rut      {:validate cl-rut? :format dash-check-format}
    :co-nit      {:validate co-nit? :format dash-check-format}
    :pe-ruc      {:validate pe-ruc? :parse pe-ruc-parse}
+   :pe-cui      {:validate pe-cui?}
    :cr-cpf      {:validate cr-cpf?}
    :cr-cpj      {:validate cr-cpj?}
    :cr-cr       {:validate cr-cr?}
@@ -2255,7 +2375,7 @@
   "The set of identifier-type keywords this library understands."
   (set (keys registry)))
 
-(def ^:private raw-input-types #{:bitcoin :cfi :isil})
+(def ^:private raw-input-types #{:bitcoin :cfi :isil :cz-bankaccount :de-handelsregisternummer})
 
 (defn- entry ^clojure.lang.IPersistentMap [type]
   (or (registry type)

@@ -188,6 +188,12 @@
  :de-vat      {:valid ["DE129274202"] :invalid ["DE129274203"] :source "VIES-confirmed registered (DE withholds trader name)" :vies true}
  :de-idnr     {:valid ["86095742719"] :invalid ["86095742710" "12345678903"]
                :source "BZSt IdNr worked example; ISO 7064 MOD 11,10 check verified"}
+ :de-handelsregisternummer {:valid ["Aachen HRA 11223" "Frankfurt/Oder GnR 11223"]
+                            :invalid ["Aachen HRC 44123"]
+                            :source "python-stdnum de.handelsregisternummer doctest vector; data-file-backed court validation ported as structural (format/component) validation, no check digit"}
+ :de-stnr     {:valid ["181/815/0815 5" "201/123/12340" "4151081508156"]
+               :invalid ["136695978"]
+               :source "python-stdnum de.stnr doctest vector; structural (format/component) validation, no check digit"}
  :fr-vat      {:valid ["FR40303265045"] :invalid ["FR41303265045"] :source "SA Sodimas; VIES-confirmed" :vies true}
  :mc-tva      {:valid ["53 0000 04605"] :invalid ["FR 61 954 506 077"]
                :source "python-stdnum mc.tva doctest vector; check recomputed"}
@@ -233,6 +239,9 @@
  :ee-vat      {:valid ["EE100594102"] :invalid ["EE100594103"] :source "Movek Grupp OÜ; VIES-confirmed" :vies true}
  :hu-vat      {:valid ["HU10484878"] :invalid ["HU10484879"] :source "Richter Gedeon Nyrt.; VIES-confirmed" :vies true}
  :cz-ico      {:valid ["00006947"] :invalid ["00006948"] :source "Czech IČO algorithm"}
+ :cz-bankaccount {:valid ["34278-0727558021/0100"]
+                  :invalid ["4278-727558021/0100" "34278-727558021/0000"]
+                  :source "python-stdnum cz.bankaccount doctest vector; check recomputed"}
  :nl-vat      {:valid ["NL805734958B01"] :invalid ["NL805734957B01"] :source "Booking.com B.V.; VIES-confirmed" :vies true}
  :lv-vat      {:valid ["LV40003245752"] :invalid ["LV40003245753"] :source "Air Baltic Corporation AS; VIES-confirmed" :vies true}
  :bg-vat      {:valid ["BG831902088"] :invalid ["BG831902089"] :source "Sopharma AD; VIES-confirmed" :vies true}
@@ -275,6 +284,8 @@
  :se-orgnr    {:valid ["5560125790" "5560160680"] :invalid ["5560125791"] :source "Sweden organisationsnummer (10-digit Luhn); Volvo AB 556012-5790 / Ericsson AB 556016-0680 (Bolagsverket)"}
  :es-cif      {:valid ["A39000013"] :invalid ["A39000014"] :source "Spain CIF; Banco Santander S.A. A39000013 (CNMV official register, cnmv.es)"}
  :nz-nzbn     {:valid ["9429040402543" "9429036748471"] :invalid ["9429040402544"] :source "New Zealand Business Number (GS1 GLN, 9429 prefix); Air New Zealand Ltd / Fonterra Co-operative Group Ltd (nzbn.govt.nz register)"}
+ :nz-bankaccount {:valid ["01-0242-0100194-00"] :invalid ["01-0242-0100195-00"]
+                  :source "python-stdnum nz.bankaccount doctest vector; bank/branch data-file validation ported as checksum + bank algorithm/component validation; check recomputed"}
  :id-npwp     {:valid ["010000131093000"] :invalid ["010000132093000"] :source "Indonesia NPWP (classic 15-digit, Luhn over first 9); PT Telkom Indonesia 01.000.013.1-093.000 (IDX annual report)"}
  :id-nik      {:valid ["3171011708450001"] :invalid ["31710117084500" "9971011708450001"]
                :source "python-stdnum id.nik doctest vector; structural (date/component) validation, no check digit"}
@@ -285,6 +296,22 @@
  :th-moa      {:valid ["0107544000108" "0994000617721"] :invalid ["0107544000107"] :source "Thailand company tax ID (MOA, 13-digit weighted mod 11); PTT Public Company Limited 0107544000108 (PTT procurement filing)"}
  :th-pin      {:valid ["3100600445635" "1-2345-45678-78-1"] :invalid ["1-2345-45678-78-9"]
                :source "python-stdnum th.pin doctest vector; check recomputed"}
+ :th-tin      {:valid ["1-2345-45678-78-1" "0-99-4-000-61772-1"] :invalid ["1234545678789"]
+               :source "python-stdnum th.tin doctest vector; check recomputed"}
+ :in-epic     {:valid ["WKH1186253"] :invalid ["WKH118624" "1231186253" "WKH1186263"]
+               :source "python-stdnum in.epic doctest vector; check recomputed"}
+ :in-vid      {:valid ["2341234123412341"] :invalid ["2341234123412342" "1341234123412341" "13412341234123" "2222222222222222"]
+               :source "python-stdnum in.vid doctest vector; check recomputed"}
+ :jp-in       {:valid ["6214 9832 0257"] :invalid ["6214 9832 0258" "6214 9832 025X"]
+               :source "python-stdnum jp.in_ doctest vector; check recomputed"}
+ :pe-cui      {:valid ["10117410" "10117410-2"] :invalid ["10117410-3"]
+               :source "python-stdnum pe.cui doctest vector; check recomputed"}
+ :eu-at02     {:valid ["ES 23 ZZZ 47690558N" "ES2300047690558N"] :invalid ["ES24ZZZ47690558N"]
+               :source "python-stdnum eu.at_02 doctest valid vector; invalid constructed by changing check digits; check recomputed"}
+ :eu-nace     {:valid ["A" "62.01"] :invalid ["62059"]
+               :source "python-stdnum eu.nace doctest vector; data-file-backed code validation ported as structural (format/component) validation, no check digit"}
+ :eu-oss      {:valid ["EU 372022452"] :invalid ["XX372022452" "EU999022452"]
+               :source "python-stdnum eu.oss doctest valid vector; invalid constructed from invalid prefix/member-state component; structural (format/component) validation, no check digit"}
  :kz-bin      {:valid ["020240000555"] :invalid ["020240000554"] :source "Kazakhstan BIN (business identification no., 12-digit weighted mod 11); JSC NC KazMunayGas 020240000555 (org-id.guide KZ-BIN)"}
  :upu-s10     {:valid ["RB123456785GB"] :invalid ["RB123456784GB"] :source "UPU S10 international postal item identifier (weighted mod 11, weights 8,6,4,2,3,5,9,7); UPU S10 standard worked example serial 12345678 -> check 5"}
  :si-maticna  {:valid ["5043611000" "9331310"] :invalid ["5043612000"] :source "Slovenia matična številka (company registration no., weighted mod 11); Krka d.d. Novo mesto 5043611000 (AJPES / sloexport ms=5043611)"}
