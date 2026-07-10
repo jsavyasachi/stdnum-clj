@@ -4,6 +4,8 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+## [0.30.0] - 2026-07-10
+
 ### Added
 - `:ru-snils` — Russian individual insurance account number (mod-101 check),
   ported from python-stdnum PR #495.

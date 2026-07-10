@@ -6,12 +6,12 @@
 
 Leiningen / Boot:
 ```clojure
-[net.clojars.savya/stdnum-clj "0.29.0"]
+[net.clojars.savya/stdnum-clj "0.30.0"]
 ```
 
 deps.edn:
 ```clojure
-net.clojars.savya/stdnum-clj {:mvn/version "0.29.0"}
+net.clojars.savya/stdnum-clj {:mvn/version "0.30.0"}
 ```
 
 ## Core API
