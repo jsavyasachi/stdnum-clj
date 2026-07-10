@@ -4,6 +4,19 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added - VAT completions and EU/misc checksummed (169 -> 175)
+Six more types ported from python-stdnum; every vector is the module's own
+doctest number with its checksum independently recomputed.
+- `:no-mva` — Norway VAT: the `:no-org` organisasjonsnummer plus the `MVA`
+  suffix.
+- `:mc-tva` — Monaco VAT: the French TVA key, with the mandatory `000`
+  component that distinguishes Monaco from ordinary French numbers.
+- `:eu-ecnumber` — EC number (European Community chemical substance number),
+  weighted mod 11.
+- `:eu-banknote` — Euro banknote serial, letter-as-ASCII digit sum mod 9.
+- `:pt-cc` — Portugal Cartão de Cidadão, ISO 7064-style radix-36 Luhn check.
+- `:ua-rntrc` — Ukraine individual taxpayer number (РНОКПП), weighted mod 11.
+
 ### Added - more national IDs and tax/VAT (163 -> 169)
 Six further types ported from python-stdnum; each checksum recomputed against the
 module's own doctest vector (Mauritius NID has no upstream doctest, so its vector

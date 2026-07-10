@@ -28,6 +28,10 @@
                :source "ISO 10962 worked example (common voting unrestricted fully-paid registered shares)"}
  :eu-eic      {:valid ["10X1001A1001A450"] :invalid ["10X1001A1001A451"]
                :source "ENTSO-E EIC registry (ENTSO-E's own party EIC); check char recomputed per the EIC Data Exchange IG"}
+ :eu-ecnumber {:valid ["200-001-8"] :invalid ["200-001-9"]
+               :source "python-stdnum eu.ecnumber doctest vector; check recomputed"}
+ :eu-banknote {:valid ["P36007033744"] :invalid ["P36007033743"]
+               :source "python-stdnum eu.banknote doctest vector; check recomputed"}
  :isbn        {:valid ["0306406152" "9780306406157"] :invalid ["9780306406158"]
                :source "ISBN International worked example"}
  :issn        {:valid ["0317-8471"] :invalid ["0317-8470"] :source "ISSN worked example"}
@@ -89,6 +93,8 @@
  :se-pnr      {:valid ["8112189876"] :invalid ["8112189877"] :source "Sweden personnummer (Luhn) example"}
  :za-id       {:valid ["8001015009087"] :invalid ["8001015009088"] :source "South Africa ID (Luhn) example"}
  :no-org      {:valid ["974760673"] :invalid ["974760674"] :source "Brønnøysund Register org. number"}
+ :no-mva      {:valid ["NO 995 525 828 MVA"] :invalid ["NO 995 525 829 MVA"]
+               :source "python-stdnum no.mva doctest vector; check recomputed"}
  :no-fodselsnummer {:valid ["15108695088"] :invalid ["15108695077"]
                     :source "python-stdnum no.fodselsnummer doctest vector; check digits recomputed"}
  :tr-tc       {:valid ["10000000146"] :invalid ["10000000147"] :source "Turkey T.C. Kimlik No algorithm"}
@@ -154,6 +160,8 @@
  :de-idnr     {:valid ["86095742719"] :invalid ["86095742710" "12345678903"]
                :source "BZSt IdNr worked example; ISO 7064 MOD 11,10 check verified"}
  :fr-vat      {:valid ["FR40303265045"] :invalid ["FR41303265045"] :source "SA Sodimas; VIES-confirmed" :vies true}
+ :mc-tva      {:valid ["53 0000 04605"] :invalid ["FR 61 954 506 077"]
+               :source "python-stdnum mc.tva doctest vector; check recomputed"}
  :it-vat      {:valid ["IT00743110157"] :invalid ["IT00743110158"] :source "Motorola Solutions Italia; VIES-confirmed" :vies true}
  :be-vat      {:valid ["BE0417497106"] :invalid ["BE0417497107"] :source "AB InBev BE; VIES-confirmed" :vies true}
  :lu-vat      {:valid ["LU26375245"] :invalid ["LU26375246"] :source "Amazon Europe Core; VIES-confirmed" :vies true}
@@ -168,6 +176,8 @@
  :fi-ytunnus  {:valid ["0112038-9" "0109862-8"] :invalid ["0112038-8" "00000060"]
                :source "Finnish PRH/BIS business register: Nokia Oyj 0112038-9, Kone Oyj 0109862-8"}
  :pt-nif      {:valid ["PT500697256"] :invalid ["PT500697257"] :source "EDP S.A.; VIES-confirmed" :vies true}
+ :pt-cc       {:valid ["00000000 0 ZZ4"] :invalid ["00000000 0 ZZ3"]
+               :source "python-stdnum pt.cc doctest vector; check recomputed"}
  :sk-vat      {:valid ["SK2020317068"] :invalid ["SK2020317069"] :source "ESET spol. s r.o.; VIES-confirmed" :vies true}
  :lt-vat      {:valid ["LT119511515"] :invalid ["LT119511516"] :source "Klaipėda University; VIES-confirmed" :vies true}
  :ro-vat      {:valid ["RO14837428"] :invalid ["RO14837429"] :source "Borg Design SRL; VIES-confirmed" :vies true}
@@ -188,6 +198,8 @@
  :ru-inn      {:valid ["7736050003"] :invalid ["7736050004"] :source "Russia INN; Gazprom PJSC (public legal-entity tax ID)"}
  :tw-gui      {:valid ["22099131"] :invalid ["22099132"] :source "Taiwan Unified Business No. (統一編號); TSMC (public)"}
  :ua-edrpou   {:valid ["20077720" "40075815"] :invalid ["20077721"] :source "Ukraine EDRPOU; Naftogaz / Ukrzaliznytsia (public companies)"}
+ :ua-rntrc    {:valid ["1759013776"] :invalid ["1759013770"]
+               :source "python-stdnum ua.rntrc doctest vector; check recomputed"}
  :cn-usci     {:valid ["91440300708461136T"] :invalid ["91440300708461136U"] :source "China Unified Social Credit Identifier; Tencent (public)"}
  :iswc        {:valid ["T0345246801" "T-034.524.680-1"] :invalid ["T0345246802"] :source "ISO 15707 / CISAC; worked example T-034.524.680-1"}
  :is-kennitala {:valid ["4612023490"] :invalid ["4612023480"] :source "Iceland kennitala; Icelandair ehf (public company registry no.)"}

@@ -353,6 +353,12 @@
          (let [k (Integer/parseInt (subs n 0 2)) siren (subs n 2)]
            (and (.isValid luhn-cd siren)
                 (= k (mod (+ 12 (* 3 (mod (Long/parseLong siren) 97))) 97)))))))
+(defn- mc-tva? [^String n]                          ; Monaco TVA: French TVA key over 000xxxxxx
+  (let [n (strip-cc n "FR")]
+    (and (re-matches #"\d{11}" n)
+         (= "000" (subs n 2 5))
+         (= (Integer/parseInt (subs n 0 2))
+            (mod (+ 12 (* 3 (mod (Long/parseLong (subs n 2)) 97))) 97)))))
 
 (defn- it-vat? [^String n]                          ; Partita IVA: 11-digit Luhn
   (let [n (strip-cc n "IT")] (boolean (and (re-matches #"\d{11}" n) (.isValid luhn-cd n)))))
@@ -511,6 +517,9 @@
        (let [d (digits-of n)
              c (- 11 (mod (long (reduce + (map * (subvec d 0 8) no-org-weights))) 11))]
          (cond (= c 11) (zero? (long (d 8))) (= c 10) false :else (= c (d 8))))))
+(defn- no-mva? [^String n]
+  (let [n (strip-cc n "NO")]
+    (and (re-matches #"\d{9}MVA" n) (no-org? (subs n 0 9)))))
 (defn- tr-tc? [^String n]                            ; Turkey TC Kimlik No: two check digits
   (and (re-matches #"[1-9]\d{10}" n)
        (let [d (digits-of n)
@@ -1229,6 +1238,32 @@
              check (long (reduce + (map-indexed (fn [i c] (* (.indexOf mx-rfc-alpha (int c)) (- 13 (long i)))) padded)))]
          (= (.charAt mx-rfc-alpha (int (mod (- 11 check) 11))) (.charAt n (int k))))))
 (def ^:private ^String m3736-alpha "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")  ; ISO 7064 Mod 37,36 (radix 36)
+(defn- eu-ecnumber? [^String n]                      ; EC number: 7 digits, weighted mod 11
+  (and (re-matches #"\d{7}" n)
+       (let [d (digits-of n)]
+         (= (str (mod (long (reduce + (map * (subvec d 0 6) (range 1 7)))) 11))
+            (str (d 6))))))
+(def ^:private ^String eu-banknote-letters "BCDEFGHJLMNPRSTUVWXYZ")
+(defn- eu-banknote-checksum ^long [^String n]
+  (mod (long (reduce + (map (fn [c] (if (Character/isDigit ^char c) (- (int c) 48) (int c))) n))) 9))
+(defn- eu-banknote? [^String n]                      ; Euro banknote serial: one/two letters, checksum mod 9
+  (and (re-matches #"[A-Z0-9]{2}\d{10}" n)
+       (not= -1 (.indexOf eu-banknote-letters (int (.charAt n 0))))
+       (zero? (eu-banknote-checksum n))))
+(defn- pt-cc-check-digit [^String n]                 ; Portugal CC: python-stdnum radix-36 Luhn variant
+  (let [s (long (reduce + (map-indexed
+                           (fn [i c]
+                             (let [v (.indexOf m3736-alpha (int c))
+                                   x (* 2 v)]
+                               (if (even? i) (if (> x 9) (- x 9) x) v)))
+                           (reverse n))))]
+    (str (mod (- 10 s) 10))))
+(defn- pt-cc? [^String n]
+  (if (re-matches #"\d*[A-Z0-9]{2}\d" n)
+    (let [k (dec (count n))
+          base (subs n 0 k)]
+      (= (pt-cc-check-digit base) (subs n k)))
+    false))
 (defn- iso7064-mod37-36-valid? [^String s]            ; whole string incl. check char; valid when checksum == 1
   (= 1 (reduce (fn [^long c ch]
                  (let [idx (.indexOf m3736-alpha (int ch))]
@@ -1276,6 +1311,11 @@
          (= (mod s 10) (d 8)))))
 (defn- ca-bn? [^String n]                             ; Canada Business Number: 9-digit Luhn, optional 2-letter + 4-digit program account (BN15)
   (and (re-matches #"\d{9}([A-Z]{2}\d{4})?" n) (.isValid luhn-cd (subs n 0 9))))
+(defn- ua-rntrc? [^String n]                          ; Ukraine RNTRC: weighted mod 11 over first 9 digits
+  (and (re-matches #"\d{10}" n)
+       (let [d (digits-of n)]
+         (= (mod (mod (long (reduce + (map * (subvec d 0 9) [-1 5 7 9 4 6 10 5 7]))) 11) 10)
+            (d 9)))))
 (defn- mu-nid? [^String n]                            ; Mauritius NID: letter + date/id + mod-17 check char
   (and (re-matches #"[A-Z]\d{12}[0-9A-Z]" n)
        (valid-date? (+ 2000 (Integer/parseInt (subs n 5 7)))
@@ -1502,6 +1542,8 @@
    :sedol       {:validate sedol-valid?}
    :cfi         {:validate cfi-valid? :parse cfi-parse}
    :eu-eic      {:validate eu-eic-valid? :parse eu-eic-parse}
+   :eu-ecnumber {:validate eu-ecnumber?}
+   :eu-banknote {:validate eu-banknote?}
    :isrc        {:validate isrc-valid? :parse isrc-parse :format isrc-format}
    :isil        {:validate isil-valid? :parse isil-parse}
    :br-cpf      {:validate cpf-valid? :format cpf-format}
@@ -1514,6 +1556,7 @@
    :de-vat      {:validate de-vat?}
    :de-idnr     {:validate de-idnr?}
    :fr-vat      {:validate fr-vat?}
+   :mc-tva      {:validate mc-tva?}
    :it-vat      {:validate it-vat?}
    :be-vat      {:validate be-vat?}
    :pl-vat      {:validate pl-vat?}
@@ -1534,6 +1577,7 @@
    :es-ccc      {:validate es-ccc? :parse es-ccc-parse}
    :za-id       {:validate za-id? :parse za-id-parse}
    :no-org      {:validate no-org? :format triple3-format}
+   :no-mva      {:validate no-mva?}
    :no-fodselsnummer {:validate no-fodselsnummer?}
    :tr-tc       {:validate tr-tc?}
    :at-vat      {:validate at-vat?}
@@ -1544,6 +1588,7 @@
    :se-vat      {:validate se-vat?}
    :gr-vat      {:validate gr-vat?}
    :pt-nif      {:validate pt-nif?}
+   :pt-cc       {:validate pt-cc?}
    :cz-ico      {:validate cz-ico?}
    :jp-cn       {:validate jp-cn?}
    :au-tfn      {:validate au-tfn? :format triple3-format}
@@ -1580,6 +1625,7 @@
    :ru-inn      {:validate ru-inn?}
    :tw-gui      {:validate tw-gui?}
    :ua-edrpou   {:validate ua-edrpou?}
+   :ua-rntrc    {:validate ua-rntrc?}
    :cn-usci     {:validate cn-usci?}
    :iswc        {:validate iswc?}
    :is-kennitala {:validate is-kennitala?}
