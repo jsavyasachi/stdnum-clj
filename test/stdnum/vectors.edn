@@ -172,6 +172,8 @@
  :dk-vat      {:valid ["DK61056416"] :invalid ["DK61056417"] :source "Carlsberg A/S; VIES-confirmed" :vies true}
  :dk-cvr      {:valid ["61056416" "10150817"] :invalid ["61056417"]
                :source "Danish CVR registry (virk.dk): Carlsberg A/S 61056416; mod-11 weights 2,7,6,5,4,3,2,1"}
+ :dk-cpr      {:valid ["211062-5629"] :invalid ["511062-5629"]
+               :source "python-stdnum dk.cpr doctest vector; structural (date/component) validation, no check digit"}
  :fi-vat      {:valid ["FI01120389"] :invalid ["FI01120388"] :source "Nokia Oyj; VIES-confirmed" :vies true}
  :fi-ytunnus  {:valid ["0112038-9" "0109862-8"] :invalid ["0112038-8" "00000060"]
                :source "Finnish PRH/BIS business register: Nokia Oyj 0112038-9, Kone Oyj 0109862-8"}
@@ -229,6 +231,8 @@
  :es-cif      {:valid ["A39000013"] :invalid ["A39000014"] :source "Spain CIF; Banco Santander S.A. A39000013 (CNMV official register, cnmv.es)"}
  :nz-nzbn     {:valid ["9429040402543" "9429036748471"] :invalid ["9429040402544"] :source "New Zealand Business Number (GS1 GLN, 9429 prefix); Air New Zealand Ltd / Fonterra Co-operative Group Ltd (nzbn.govt.nz register)"}
  :id-npwp     {:valid ["010000131093000"] :invalid ["010000132093000"] :source "Indonesia NPWP (classic 15-digit, Luhn over first 9); PT Telkom Indonesia 01.000.013.1-093.000 (IDX annual report)"}
+ :id-nik      {:valid ["3171011708450001"] :invalid ["31710117084500" "9971011708450001"]
+               :source "python-stdnum id.nik doctest vector; structural (date/component) validation, no check digit"}
  :tr-vkn      {:valid ["8760047464"] :invalid ["8760047465"] :source "Turkey VKN (vergi kimlik no.); Türk Hava Yolları (Turkish Airlines) 8760047464 (ETBİS / Ticaret Bakanlığı)"}
  :mx-rfc      {:valid ["PME380607P35"] :invalid ["PME380607P36"] :source "Mexico RFC; Petróleos Mexicanos (PEMEX) PME380607P35 (SAT Cédula de Identificación Fiscal)"}
  :grid        {:valid ["A12425GABC1234002M"] :invalid ["A12425GABC1234002Q"] :source "GRid (Global Release Identifier, ISO 7064 Mod 37,36); standard worked example A1-2425G-ABC1234002-M (IFPI GRid standard / python-stdnum)"}
@@ -246,6 +250,14 @@
                :source "python-stdnum lt.asmens doctest vector; check recomputed"}
  :by-unp      {:valid ["200988541"] :invalid ["200988542"]
                :source "python-stdnum by.unp doctest vector; check recomputed"}
+ :pk-cnic     {:valid ["34201-0891231-8" "42201-0397640-8"] :invalid ["84201-0397640-8" "34201-0891231-0"]
+               :source "python-stdnum pk.cnic doctest valid vector; invalid vectors constructed by breaking province/gender components; structural (date/component) validation, no check digit"}
+ :my-nric     {:valid ["770305-02-1234"] :invalid ["771305-02-1234" "770305-17-1234"]
+               :source "python-stdnum my.nric doctest vector; structural (date/component) validation, no check digit"}
+ :ke-pin      {:valid ["P051365947M" "A004416331M"] :invalid ["12345" "V1234567890"]
+               :source "python-stdnum ke.pin doctest vector; structural (date/component) validation, no check digit"}
+ :za-tin      {:valid ["0001339050"] :invalid ["2449/494/16/0" "9125568"]
+               :source "python-stdnum za.tin doctest vector; check recomputed"}
  :mu-nid      {:valid ["A3112991234567"] :invalid ["A3112991234565"]
                :source "constructed per python-stdnum mu.nid check-letter algorithm (ISO 7064 Mod 37,36 radix-36); check digit recomputed"}
  :gb-upn      {:valid ["B801200005001"] :invalid ["A801200005001"]

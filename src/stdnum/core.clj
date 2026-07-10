@@ -1234,6 +1234,114 @@
 (defn- nz-nzbn? [^String n] (and (re-matches #"9429\d{9}" n) (.isValid ean13-cd n)))  ; NZ Business Number: GS1 GLN, 9429 prefix
 (defn- id-npwp? [^String n]                           ; Indonesia NPWP: classic 15-digit, Luhn over the first 9
   (and (re-matches #"\d{15}" n) (.isValid luhn-cd (subs n 0 9))))
+
+(defn- dk-cpr-year [^String n]
+  (let [year (Integer/parseInt (subs n 4 6))
+        century (.charAt n 6)]
+    (cond
+      (and (#{\5 \6 \7 \8} century) (>= year 58)) (+ 1800 year)
+      (or (#{\0 \1 \2 \3} century) (and (#{\4 \9} century) (>= year 37))) (+ 1900 year)
+      :else (+ 2000 year))))
+
+(defn- dk-cpr? [^String n]                            ; Denmark CPR: date + century from serial, no checksum
+  (and (re-matches #"\d{10}" n)
+       (let [day (Integer/parseInt (subs n 0 2))
+             month (Integer/parseInt (subs n 2 4))
+             year (dk-cpr-year n)]
+         (and (valid-date? year month day)
+              (not (.isAfter (java.time.LocalDate/of (long year) (long month) (long day))
+                             (java.time.LocalDate/now)))))))
+
+(def ^:private pk-cnic-provinces #{\1 \2 \3 \4 \5 \6 \7})
+(defn- pk-cnic? [^String n]                           ; Pakistan CNIC: province + serial + gender digit
+  (and (re-matches #"\d{13}" n)
+       (contains? pk-cnic-provinces (.charAt n 0))
+       (contains? #{\1 \2 \3 \4 \5 \6 \7 \8 \9} (.charAt n 12))))
+
+(def ^:private my-nric-birthplaces
+  #{"01" "02" "03" "04" "05" "06" "07" "08" "09" "10" "11" "12" "13" "14" "15" "16"
+    "21" "22" "23" "24" "25" "26" "27" "28" "29" "30" "31" "32" "33" "34" "35" "36"
+    "37" "38" "39" "40" "41" "42" "43" "44" "45" "46" "47" "48" "49" "50" "51" "52"
+    "53" "54" "55" "56" "57" "58" "59" "60" "61" "62" "63" "64" "65" "66" "67" "68"
+    "71" "72" "74" "75" "76" "77" "78" "79" "82" "83" "84" "85" "86" "87" "88" "89"
+    "90" "91" "92" "93" "98" "99"})
+
+(defn- my-nric-date? [^String n]
+  (let [year (Integer/parseInt (subs n 0 2))
+        month (Integer/parseInt (subs n 2 4))
+        day (Integer/parseInt (subs n 4 6))]
+    (or (valid-date? (+ 1900 year) month day)
+        (valid-date? (+ 2000 year) month day))))
+
+(defn- my-nric? [^String n]                           ; Malaysia NRIC: date + birthplace code
+  (and (re-matches #"\d{12}" n)
+       (my-nric-date? n)
+       (contains? my-nric-birthplaces (subs n 6 8))))
+
+(def ^:private id-nik-locations
+  #{"1101" "1102" "1103" "1104" "1105" "1106" "1107" "1108" "1109" "1110" "1111" "1112"
+    "1113" "1114" "1115" "1116" "1117" "1118" "1171" "1172" "1173" "1174" "1175" "1201"
+    "1202" "1203" "1204" "1205" "1206" "1207" "1208" "1209" "1210" "1211" "1212" "1213"
+    "1214" "1215" "1216" "1217" "1218" "1219" "1220" "1221" "1222" "1223" "1224" "1225"
+    "1271" "1272" "1273" "1274" "1275" "1276" "1277" "1278" "1301" "1302" "1303" "1304"
+    "1305" "1306" "1307" "1308" "1309" "1310" "1311" "1312" "1371" "1372" "1373" "1374"
+    "1375" "1376" "1377" "1401" "1402" "1403" "1404" "1405" "1406" "1407" "1408" "1409"
+    "1410" "1471" "1473" "1501" "1502" "1503" "1504" "1505" "1506" "1507" "1508" "1509"
+    "1571" "1572" "1601" "1602" "1603" "1604" "1605" "1606" "1607" "1608" "1609" "1610"
+    "1611" "1671" "1672" "1673" "1674" "1701" "1702" "1703" "1704" "1705" "1706" "1707"
+    "1708" "1709" "1771" "1801" "1802" "1803" "1804" "1805" "1806" "1807" "1808" "1809"
+    "1810" "1811" "1812" "1871" "1872" "1901" "1902" "1903" "1904" "1905" "1906" "1971"
+    "2101" "2102" "2103" "2104" "2105" "2171" "2172" "3101" "3171" "3172" "3173" "3174"
+    "3175" "3201" "3202" "3203" "3204" "3205" "3206" "3207" "3208" "3209" "3210" "3211"
+    "3212" "3213" "3214" "3215" "3216" "3217" "3271" "3272" "3273" "3274" "3275" "3276"
+    "3277" "3278" "3279" "3301" "3302" "3303" "3304" "3305" "3306" "3307" "3308" "3309"
+    "3310" "3311" "3312" "3313" "3314" "3315" "3316" "3317" "3318" "3319" "3320" "3321"
+    "3322" "3323" "3324" "3325" "3326" "3327" "3328" "3329" "3371" "3372" "3373" "3374"
+    "3375" "3376" "3401" "3402" "3403" "3404" "3471" "3501" "3502" "3503" "3504" "3505"
+    "3506" "3507" "3508" "3509" "3510" "3511" "3512" "3513" "3514" "3515" "3516" "3517"
+    "3518" "3519" "3520" "3521" "3522" "3523" "3524" "3525" "3526" "3527" "3528" "3529"
+    "3571" "3572" "3573" "3574" "3575" "3576" "3577" "3578" "3579" "3601" "3602" "3603"
+    "3604" "3671" "3672" "3673" "3674" "5101" "5102" "5103" "5104" "5105" "5106" "5107"
+    "5108" "5171" "5201" "5202" "5203" "5204" "5205" "5206" "5207" "5208" "5271" "5272"
+    "5301" "5302" "5303" "5304" "5305" "5306" "5307" "5308" "5309" "5310" "5311" "5312"
+    "5313" "5314" "5315" "5316" "5317" "5318" "5319" "5320" "5371" "6101" "6102" "6103"
+    "6104" "6105" "6106" "6107" "6108" "6109" "6110" "6111" "6112" "6171" "6172" "6201"
+    "6202" "6203" "6204" "6205" "6206" "6207" "6208" "6209" "6210" "6211" "6212" "6213"
+    "6271" "6301" "6302" "6303" "6304" "6305" "6306" "6307" "6308" "6309" "6310" "6311"
+    "6371" "6372" "6401" "6402" "6403" "6404" "6405" "6406" "6407" "6408" "6409" "6410"
+    "6471" "6472" "6473" "6474" "7101" "7102" "7103" "7104" "7105" "7106" "7107" "7108"
+    "7109" "7110" "7111" "7171" "7172" "7173" "7174" "7201" "7202" "7203" "7204" "7205"
+    "7206" "7207" "7208" "7209" "7210" "7271" "7301" "7302" "7303" "7304" "7305" "7306"
+    "7307" "7308" "7309" "7310" "7311" "7312" "7313" "7314" "7315" "7316" "7317" "7318"
+    "7322" "7325" "7326" "7371" "7372" "7373" "7401" "7402" "7403" "7404" "7405" "7406"
+    "7407" "7408" "7409" "7410" "7471" "7472" "7501" "7502" "7503" "7504" "7505" "7571"
+    "7601" "7602" "7603" "7604" "7605" "8101" "8102" "8103" "8104" "8105" "8106" "8107"
+    "8108" "8109" "8171" "8172" "8201" "8202" "8203" "8204" "8205" "8206" "8207" "8271"
+    "8272" "9101" "9102" "9103" "9104" "9105" "9106" "9107" "9108" "9109" "9110" "9171"
+    "9401" "9402" "9403" "9404" "9408" "9409" "9410" "9411" "9412" "9413" "9414" "9415"
+    "9416" "9417" "9418" "9419" "9420" "9426" "9427" "9428" "9429" "9430" "9431" "9432"
+    "9433" "9434" "9435" "9436" "9471"})
+
+(defn- id-nik-date? [^String n]
+  (let [day (mod (Integer/parseInt (subs n 6 8)) 40)
+        month (Integer/parseInt (subs n 8 10))
+        year (Integer/parseInt (subs n 10 12))]
+    (or (valid-date? (+ 1900 year) month day)
+        (valid-date? (+ 2000 year) month day))))
+
+(defn- id-nik? [^String n]                            ; Indonesia NIK: location + date, no checksum
+  (and (re-matches #"\d{16}" n)
+       (id-nik-date? n)
+       (contains? id-nik-locations (subs n 0 4))))
+
+(defn- ke-pin? [^String n]                            ; Kenya PIN: A/P + 9 digits + letter
+  (boolean (and (= 11 (count n)) (re-matches #"[AP]\d{9}[A-Z]" n))))
+
+(defn- za-tin? [^String n]                            ; South Africa TIN: leading digit + Luhn
+  (and (re-matches #"\d{10}" n)
+       (contains? #{\0 \1 \2 \3 \9} (.charAt n 0))
+       (.isValid luhn-cd n)))
+
 (defn- tr-vkn? [^String n]                            ; Turkey VKN (tax/entity no.): 10-digit, weighted mod-9 + mod-10 check
   (and (re-matches #"\d{10}" n)
        (let [d (digits-of n)
@@ -1629,6 +1737,7 @@
    :at-vat      {:validate at-vat?}
    :dk-vat      {:validate dk-vat?}
    :dk-cvr      {:validate dk-cvr?}
+   :dk-cpr      {:validate dk-cpr?}
    :fi-vat      {:validate fi-vat?}
    :fi-ytunnus  {:validate fi-ytunnus? :format fi-ytunnus-format}
    :se-vat      {:validate se-vat?}
@@ -1699,6 +1808,7 @@
    :es-cif      {:validate es-cif?}
    :nz-nzbn     {:validate nz-nzbn?}
    :id-npwp     {:validate id-npwp?}
+   :id-nik      {:validate id-nik?}
    :tr-vkn      {:validate tr-vkn?}
    :mx-rfc      {:validate mx-rfc?}
    :grid        {:validate grid?}
@@ -1713,6 +1823,10 @@
    :md-idno     {:validate md-idno?}
    :lt-asmens   {:validate lt-asmens?}
    :by-unp      {:validate by-unp?}
+   :pk-cnic     {:validate pk-cnic?}
+   :my-nric     {:validate my-nric?}
+   :ke-pin      {:validate ke-pin?}
+   :za-tin      {:validate za-tin?}
    :mu-nid      {:validate mu-nid?}
    :sg-nric     {:validate sg-nric?}
    :hk-id       {:validate hk-id? :format hk-id-format}

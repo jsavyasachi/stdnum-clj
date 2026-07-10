@@ -4,6 +4,19 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added - structural national IDs (181 -> 187)
+Six more types ported from python-stdnum. These validate primarily by format,
+embedded date, and component-code ranges/tables (most have no check digit), so
+their corpus vectors are cited as structural; `:za-tin` does carry a Luhn check.
+- `:dk-cpr` — Denmark CPR, date plus century-from-serial (the mod-11 check was
+  retired in 2007, so it is not enforced, matching python-stdnum).
+- `:pk-cnic` — Pakistan CNIC, province (1-7) and gender-digit components.
+- `:my-nric` — Malaysia NRIC, embedded date plus the fixed birthplace-code set.
+- `:id-nik` — Indonesia NIK, province/regency codes plus DDMMYY with the +40
+  day offset for females.
+- `:ke-pin` — Kenya PIN, `[AP]` + 9 digits + trailing letter.
+- `:za-tin` — South Africa tax reference, leading-digit constraint plus Luhn.
+
 ### Added - more checksummed tax/personal IDs (175 -> 181)
 Six more types ported from python-stdnum; every vector is the module's own
 doctest number with its checksum independently recomputed and each validator
