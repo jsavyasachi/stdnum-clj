@@ -34,13 +34,13 @@ implemented clean-room and kept under this library's EPL license.
 Leiningen / Boot:
 
 ```clojure
-[net.clojars.savya/stdnum-clj "0.27.1"]
+[net.clojars.savya/stdnum-clj "0.28.0"]
 ```
 
 deps.edn:
 
 ```clojure
-net.clojars.savya/stdnum-clj {:mvn/version "0.27.1"}
+net.clojars.savya/stdnum-clj {:mvn/version "0.28.0"}
 ```
 
 ## Usage

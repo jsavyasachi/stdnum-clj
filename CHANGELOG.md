@@ -2,7 +2,13 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.28.0] - 2026-07-10
+
+89 new identifier types (157 -> 246), reaching full coverage of the
+python-stdnum catalogue. Every checksummed type was verified against an
+independently recomputed published/doctest number; structural and
+data-file-backed types are validated by format and cited as such. The eleven
+groups below land the new types.
 
 ### Added - Germany, Asia, EU remainder — full python-stdnum parity (234 -> 246)
 Twelve final types ported from python-stdnum, completing coverage of the
@@ -239,6 +245,20 @@ Czech/New-Zealand domestic bank account formats.
 ### Changed
 - Relicense from EPL 1.0 to **EPL 2.0** (no code change; corrects the published POM
   license metadata, which lagged the source).
+
+## [0.24.0] - 2026-06-26
+
+### Added
+- `:fr-siren` — France SIREN, 9-digit company identifier (Luhn; vectors: Renault S.A. /
+  TotalEnergies SE, annuaire-entreprises.data.gouv.fr).
+- `:fr-siret` — France SIRET, 14-digit establishment identifier (SIREN + 5-digit NIC, Luhn;
+  vector: Renault S.A. siège social).
+- `:se-orgnr` — Sweden organisationsnummer, 10-digit (Luhn, 3rd digit ≥ 2; vectors: Volvo AB /
+  Ericsson AB, Bolagsverket).
+- `:es-cif` — Spain CIF, org-letter + 7 digits + control digit or letter (vector: Banco
+  Santander S.A., CNMV official register).
+- `:nz-nzbn` — New Zealand Business Number, 13-digit GS1 GLN with `9429` prefix (mod-10;
+  vectors: Air New Zealand Ltd / Fonterra Co-operative Group Ltd, nzbn.govt.nz).
 
 ## [0.23.0] - 2026-06-26
 
