@@ -12,6 +12,7 @@
  :au-abn
  :au-acn
  :au-tfn
+ :az-voen
  :be-bis
  :be-eid
  :be-nn
@@ -52,6 +53,7 @@
  :cz-vat
  :de-handelsregisternummer
  :de-idnr
+ :de-leitweg
  :de-stnr
  :de-vat
  :de-wkn
@@ -84,6 +86,7 @@
  :eu-banknote
  :eu-ecnumber
  :eu-eic
+ :eu-excise
  :eu-nace
  :eu-oss
  :fi-associationid
@@ -93,8 +96,10 @@
  :fi-ytunnus
  :figi
  :fo-vn
+ :fr-accise
  :fr-nif
  :fr-nir
+ :fr-rcs
  :fr-siren
  :fr-siret
  :fr-vat
@@ -172,6 +177,7 @@
  :mx-curp
  :mx-rfc
  :my-nric
+ :mz-nuit
  :nhs
  :nl-brin
  :nl-bsn

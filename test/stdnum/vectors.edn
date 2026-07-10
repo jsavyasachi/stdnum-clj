@@ -32,6 +32,8 @@
                :source "python-stdnum eu.ecnumber doctest vector; check recomputed"}
  :eu-banknote {:valid ["P36007033744"] :invalid ["P36007033743"]
                :source "python-stdnum eu.banknote doctest vector; check recomputed"}
+ :eu-excise   {:valid ["LU 987ABC" "FR012907E0820"] :invalid ["LU000000987ABC" "XX00000987ABC"]
+               :source "python-stdnum eu.excise doctest vector (LU 987ABC) + constructed member-state case; structural (country code + length) validation, no check digit"}
  :isbn        {:valid ["0306406152" "9780306406157"] :invalid ["9780306406158"]
                :source "ISBN International worked example"}
  :issn        {:valid ["0317-8471"] :invalid ["0317-8470"] :source "ISSN worked example"}
@@ -153,6 +155,9 @@
                :source "python-stdnum ar.dni doctest vector; structural (format/component) validation, no check digit"}
  :ar-cbu      {:valid ["2850590940090418135201"] :invalid ["2850590940090418135202" "2850590840090418135201"]
                :source "BCRA CBU check-digit scheme (weights 9713 pattern); published worked example, both check digits recomputed"}
+ :az-voen     {:valid ["140 155 5071" "1400057421" "300725012"]
+               :invalid ["140 155 5081" "1400057424" "ZZ00057421"]
+               :source "python-stdnum az.voen doctest vectors (140 155 5071; invalid 140 155 5081, 1400057424) + constructed valid variants; check digits recomputed, validator verified faithful to az.voen algorithm"}
  :cl-rut      {:valid ["970040005"] :invalid ["970040006"] :source "SII; Banco de Chile RUT"}
  :co-nit      {:valid ["8909039388"] :invalid ["8909039389"] :source "DIAN; Bancolombia NIT"}
  :pe-ruc      {:valid ["20100070970"] :invalid ["20100070971"] :source "SUNAT; Banco de Crédito del Perú RUC"}
@@ -169,6 +174,8 @@
  :kr-brn      {:valid ["1248100998"] :invalid ["1248100999"] :source "South Korea BRN; Samsung Electronics"}
  :jp-cn       {:valid ["7000012050002"] :invalid ["7000012050003"] :source "Japan corporate number (NTA)"}
  :nz-ird      {:valid ["049098576" "49091850"] :invalid ["049098577"] :source "NZ IRD number algorithm (IRD)"}
+ :mz-nuit     {:valid ["400339910" "400 005 834" "100.033.593"] :invalid ["12345" "VV3456789" "101935626"]
+               :source "python-stdnum mz.nuit doctest vectors (400339910, 400 005 834) + constructed check-digit cases; check recomputed, validator verified faithful to mz.nuit algorithm"}
  :be-nn       {:valid ["00012511148"] :invalid ["00012511149"] :source "Belgium national number (mod-97) algorithm"}
  :be-bis      {:valid ["98472899765" "01490700185"] :invalid ["12345678901"]
                :source "python-stdnum be.bis doctest vector; check recomputed"}
@@ -191,10 +198,17 @@
  :de-handelsregisternummer {:valid ["Aachen HRA 11223" "Frankfurt/Oder GnR 11223"]
                             :invalid ["Aachen HRC 44123"]
                             :source "python-stdnum de.handelsregisternummer doctest vector; data-file-backed court validation ported as structural (format/component) validation, no check digit"}
+ :de-leitweg  {:valid ["991-03730-19" "16066069-0001-38"] :invalid ["1-03730-19" "992-90009-97" "55-55-20"]
+               :source "python-stdnum de.leitweg doctest vectors (991-03730-19; invalid 1-03730-19) + constructed check cases; check recomputed, validator verified faithful to de.leitweg algorithm"}
  :de-stnr     {:valid ["181/815/0815 5" "201/123/12340" "4151081508156"]
                :invalid ["136695978"]
                :source "python-stdnum de.stnr doctest vector; structural (format/component) validation, no check digit"}
  :fr-vat      {:valid ["FR40303265045"] :invalid ["FR41303265045"] :source "SA Sodimas; VIES-confirmed" :vies true}
+ :fr-accise   {:valid ["FR023004N9448" "FR012907E0820"] :invalid ["FR012345" "FR0XX907E0820" "FR012907A0820"]
+               :source "python-stdnum fr.accise doctest vector; structural (format/component) validation, no check digit"}
+ :fr-rcs      {:valid ["RCS Nancy B 323 159 715" "RCS Nancy B323 159715"]
+               :invalid ["RCS Nancy B 323 159 716" "RCSNancy B 323 159 716"]
+               :source "python-stdnum fr.rcs doctest vector; check recomputed"}
  :mc-tva      {:valid ["53 0000 04605"] :invalid ["FR 61 954 506 077"]
                :source "python-stdnum mc.tva doctest vector; check recomputed"}
  :it-vat      {:valid ["IT00743110157"] :invalid ["IT00743110158"] :source "Motorola Solutions Italia; VIES-confirmed" :vies true}

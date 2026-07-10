@@ -2085,6 +2085,65 @@
      :birth-year  (Integer/parseInt (subs n 6 8))
      :comune-code (subs n 11 15)}))
 
+;; Identifiers ported directly from python-stdnum modules.
+(defn- left-pad ^String [^String s ^long len ^String ch]
+  (str (apply str (repeat (max 0 (- len (count s))) ch)) s))
+
+(defn- az-voen? [^String n]                          ; Azerbaijan VÖEN: weighted mod-11 check + taxpayer type
+  (let [n (if (= 9 (count n)) (str "0" n) n)]
+    (and (re-matches #"\d{10}" n)
+         (#{\1 \2} (.charAt n 9))
+         (= (mod (long (reduce + (map * (digits-of (subs n 0 8)) [4 1 8 6 2 7 5 3]))) 11)
+            (- (int (.charAt n 8)) 48)))))
+
+(def ^:private de-leitweg-prefixes
+  #{"01" "02" "03" "04" "05" "06" "07" "08" "09" "10" "11" "12" "13" "14" "15" "16" "99"})
+(defn- de-leitweg? [^String n]                       ; Germany Leitweg-ID: hyphenated format + ISO 7064 Mod 97,10
+  (let [n (-> n str/trim str/upper-case)]
+    (and (<= 5 (count n) 46)
+         (re-matches #"[0-9]{2,12}(-[0-9A-Z]{0,30})?-[0-9]{2}" n)
+         (contains? de-leitweg-prefixes (subs n 0 2))
+         (= 1 (lei-mod97 (str/replace n #"-" ""))))))
+
+(def ^:private fr-accise-operators #{\E \N \C \B})
+(defn- fr-accise? [^String n]                        ; French n° d'accise: structural, per python-stdnum fr.accise
+  (and (= "FR0" (subs (str n "   ") 0 3))
+       (= 13 (count n))
+       (re-matches #"\d{2}" (subs n 3 5))
+       (re-matches #"\d{3}" (subs n 5 8))
+       (contains? fr-accise-operators (.charAt n 8))
+       (re-matches #"\d{3}" (subs n 9 12))))
+
+(def ^:private eu-excise-member-states
+  #{"AT" "BE" "BG" "CY" "CZ" "DE" "DK" "EE" "ES" "FI" "FR" "GR" "HR" "HU"
+    "IE" "IT" "LT" "LU" "LV" "MT" "NL" "PL" "PT" "RO" "SE" "SI" "SK" "XI"})
+(defn- eu-excise-compact ^String [^String n]
+  (let [n (-> n (str/replace #" " "") str/upper-case str/trim)]
+    (if (< (count n) 13)
+      (str (subs n 0 (min 2 (count n))) (left-pad (subs n (min 2 (count n))) 11 "0"))
+      n)))
+(defn- eu-excise? [^String n]                        ; EU SEED excise number; FR delegates to fr.accise
+  (let [n (eu-excise-compact n)]
+    (and (= 13 (count n))
+         (contains? eu-excise-member-states (subs n 0 2))
+         (or (not= "FR" (subs n 0 2)) (fr-accise? n)))))
+
+(defn- fr-rcs-compact ^String [^String n]            ; python-stdnum fr.rcs compact()
+  (let [parts (str/split (str/trim n) #"\s+")
+        rest (apply str (drop 2 parts))]
+    (if (and (>= (count parts) 2) (pos? (count rest)))
+      (str/join " " [(first parts) (second parts) (subs rest 0 1) (str/replace (subs rest 1) #"\s" "")])
+      n)))
+(defn- fr-rcs? [^String n]                           ; French RCS: tag + city + A/B + SIREN
+  (let [n (fr-rcs-compact n)]
+    (when-let [[_ _ _ _ siren] (re-matches #" *(RCS|rcs) +(.+?) +([AB]) *(\d{9})\b *" n)]
+      (fr-siren? siren))))
+
+(defn- mz-nuit? [^String n]                          ; Mozambique NUIT: weighted mod-11 lookup check digit
+  (and (re-matches #"\d{9}" n)
+       (let [check (mod (long (reduce + (map * (digits-of (subs n 0 8)) [8 9 4 5 6 7 8 9]))) 11)]
+         (= (.charAt "01234567891" (int check)) (.charAt n 8)))))
+
 ;; --- canonical formatting for IDs with a standard separated display form ------
 (defn- group4 [^String sep ^String n] (str/join sep (re-seq #".{4}" n)))
 (defn- dotted [^String s]                              ; digits grouped in threes from the right
@@ -2145,6 +2204,7 @@
    :eu-eic      {:validate eu-eic-valid? :parse eu-eic-parse}
    :eu-ecnumber {:validate eu-ecnumber?}
    :eu-banknote {:validate eu-banknote?}
+   :eu-excise   {:validate eu-excise?}
    :isrc        {:validate isrc-valid? :parse isrc-parse :format isrc-format}
    :isil        {:validate isil-valid? :parse isil-parse}
    :br-cpf      {:validate cpf-valid? :format cpf-format}
@@ -2157,8 +2217,11 @@
    :de-vat      {:validate de-vat?}
    :de-idnr     {:validate de-idnr?}
    :de-handelsregisternummer {:validate de-handelsregisternummer?}
+   :de-leitweg  {:validate de-leitweg?}
    :de-stnr     {:validate de-stnr?}
    :fr-vat      {:validate fr-vat?}
+   :fr-accise   {:validate fr-accise?}
+   :fr-rcs      {:validate fr-rcs?}
    :mc-tva      {:validate mc-tva?}
    :it-vat      {:validate it-vat?}
    :be-vat      {:validate be-vat?}
@@ -2282,6 +2345,7 @@
    :fr-siren    {:validate fr-siren?}
    :fr-siret    {:validate fr-siret?}
    :fr-nif      {:validate fr-nif?}
+   :az-voen     {:validate az-voen?}
    :al-nipt     {:validate al-nipt?}
    :ar-dni      {:validate ar-dni?}
    :ca-bcphn    {:validate ca-bcphn?}
@@ -2320,6 +2384,7 @@
    :md-idno     {:validate md-idno?}
    :lt-asmens   {:validate lt-asmens?}
    :by-unp      {:validate by-unp?}
+   :mz-nuit     {:validate mz-nuit?}
    :pk-cnic     {:validate pk-cnic?}
    :my-nric     {:validate my-nric?}
    :ke-pin      {:validate ke-pin?}
@@ -2375,7 +2440,7 @@
   "The set of identifier-type keywords this library understands."
   (set (keys registry)))
 
-(def ^:private raw-input-types #{:bitcoin :cfi :isil :cz-bankaccount :de-handelsregisternummer})
+(def ^:private raw-input-types #{:bitcoin :cfi :isil :cz-bankaccount :de-handelsregisternummer :de-leitweg :fr-rcs})
 
 (defn- entry ^clojure.lang.IPersistentMap [type]
   (or (registry type)
