@@ -1191,6 +1191,12 @@
           c12 (mod (mod (long (reduce + (map * (subvec d 0 11) [3 7 2 4 10 3 5 9 4 6 8]))) 11) 10)]
       (and (= c11 (d 10)) (= c12 (d 11))))
     :else false))
+(defn- ru-snils? [^String n]                          ; Russia SNILS: 9 digits + mod-101 checksum
+  (and (re-matches #"\d{11}" n)
+       (let [s (long (reduce + (map * (digits-of (subs n 0 9)) [9 8 7 6 5 4 3 2 1])))
+             s (if (> s 101) (mod s 101) s)
+             s (if (#{100 101} s) 0 s)]
+         (= (clojure.core/format "%02d" s) (subs n 9 11)))))
 (defn- tw-digit-sum ^long [^long x] (+ (quot x 10) (mod x 10)))
 (defn- tw-gui? [^String n]                            ; Taiwan Unified Business No. (統一編號): weighted, mod 5
   (and (re-matches #"\d{8}" n)
@@ -1315,16 +1321,16 @@
          (= (mod (- 11 (mod s 11)) 11) (d 11)))))
 (defn- ec-ruc? [^String n]                            ; Ecuador RUC: 13-digit; 3rd digit selects class (0-5 natural, 6 public, 9 juridical)
   (and (re-matches #"\d{13}" n)
-       (<= 1 (Integer/parseInt (subs n 0 2)) 24)
+       (let [province (subs n 0 2)]
+         (or (<= 1 (Integer/parseInt province) 24)
+             (#{"30" "50"} province)))
        (let [d (digits-of n) t (d 2)]
          (cond
            (<= t 5) (and (ec-ced? (subs n 0 10)) (not= "000" (subs n 10)))
            (= t 6)  (let [r (mod (long (reduce + (map * (subvec d 0 8) [3 2 7 6 5 4 3 2]))) 11)
                           c (if (zero? r) 0 (- 11 r))]
                       (and (< c 10) (= c (d 8)) (not= "0000" (subs n 9))))
-           (= t 9)  (let [r (mod (long (reduce + (map * (subvec d 0 9) [4 3 2 7 6 5 4 3 2]))) 11)
-                          c (if (zero? r) 0 (- 11 r))]
-                      (and (< c 10) (= c (d 9)) (not= "000" (subs n 10))))
+           (= t 9)  (not= "000" (subs n 10))
            :else false))))
 (defn- py-ruc? [^String n]                            ; Paraguay RUC: base + check digit, weighted mod 11 (>=10 -> 0)
   (and (re-matches #"\d{6,9}" n)
@@ -2173,7 +2179,7 @@
     (let [k (keyword (str cc "-vat"))
           v (get-in registry [k :validate])
           rest (subs n 2)]
-      (boolean (and v (or (v rest) (v n)))))))
+      (boolean (and v (not (str/starts-with? rest (subs n 0 2))) (or (v rest) (v n)))))))
 
 (def ^:private eu-vat-member-states
   #{"at" "be" "bg" "cy" "cz" "de" "dk" "ee" "es" "fi" "fr" "gr" "hr" "hu" "ie" "it" "lt" "lu"
@@ -2361,6 +2367,7 @@
    :pt-vat      {:validate pt-vat?}
    :iso6346     {:validate iso6346?}
    :ru-inn      {:validate ru-inn?}
+   :ru-snils    {:validate ru-snils?}
    :tw-gui      {:validate tw-gui?}
    :ua-edrpou   {:validate ua-edrpou?}
    :ua-rntrc    {:validate ua-rntrc?}

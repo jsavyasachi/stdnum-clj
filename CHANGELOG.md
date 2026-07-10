@@ -4,6 +4,19 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added
+- `:ru-snils` — Russian individual insurance account number (mod-101 check),
+  ported from python-stdnum PR #495.
+
+### Fixed
+- `:vatin` / `:eu-vat` now reject a duplicated country-code prefix
+  (e.g. `FRFR40303265045`), matching python-stdnum issue #420.
+- `:ec-ruc` no longer rejects juridical RUCs (3rd digit `9`) whose check digit
+  is not computable. Per Ecuador's SRI, such numbers can only be validated
+  against the registry, so 3rd-digit-9 RUCs are now accepted on structure
+  (valid province + establishment ≠ `000`). Fixes false negatives on active
+  companies (python-stdnum issue #497).
+
 ## [0.29.0] - 2026-07-10
 
 ### Added

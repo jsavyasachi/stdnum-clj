@@ -198,10 +198,10 @@
  ;; NOT necessarily registered companies - VIES is the source of truth on that, and
  ;; it showed several common "example" VAT numbers are checksum-valid but unregistered.
  :vatin       {:valid ["FR40303265045" "DE136695976" "EL082857563" "CHE109298651TVA" "XI432525179"]
-               :invalid ["XX" "FR40303"]
+               :invalid ["XX" "FR40303" "FRFR40303265045" "DEDE136695976"]
                :source "python-stdnum vatin doctest vectors; dispatches to existing country VAT validators"}
  :eu-vat      {:valid ["FR40303265045" "DE136695976" "XI432525179"]
-               :invalid ["CHE109298651TVA" "XX" "FR40303"]
+               :invalid ["CHE109298651TVA" "XX" "FR40303" "FRFR40303265045" "DEDE136695976"]
                :source "python-stdnum eu.vat doctest vectors; member-state-gated dispatch to existing country VAT validators"}
  :de-vat      {:valid ["DE129274202"] :invalid ["DE129274203"] :source "VIES-confirmed registered (DE withholds trader name)" :vies true}
  :de-idnr     {:valid ["86095742719"] :invalid ["86095742710" "12345678903"]
@@ -275,6 +275,9 @@
  :pt-vat      {:valid ["PT500697256"] :invalid ["PT500697257"] :source "EDP S.A.; VIES-confirmed" :vies true}
  :iso6346     {:valid ["CSQU3054383"] :invalid ["CSQU3054384"] :source "ISO 6346 standard; worked example CSQU3054383"}
  :ru-inn      {:valid ["7736050003"] :invalid ["7736050004"] :source "Russia INN; Gazprom PJSC (public legal-entity tax ID)"}
+ :ru-snils    {:valid ["11223344595" "01024236877" "14848125585"]
+               :invalid ["01024236800" "1122334459"]
+               :source "python-stdnum ru.snils (PR #495) doctest vectors; mod-101 check recomputed"}
  :tw-gui      {:valid ["22099131"] :invalid ["22099132"] :source "Taiwan Unified Business No. (統一編號); TSMC (public)"}
  :ua-edrpou   {:valid ["20077720" "40075815"] :invalid ["20077721"] :source "Ukraine EDRPOU; Naftogaz / Ukrzaliznytsia (public companies)"}
  :ua-rntrc    {:valid ["1759013776"] :invalid ["1759013770"]
@@ -301,7 +304,9 @@
  :sk-ico      {:valid ["31333532"] :invalid ["31333533"] :source "Slovakia IČO; ESET spol. s r.o. (public Slovak commercial register)"}
  :ee-rk       {:valid ["10238429" "10137025"] :invalid ["10238428"] :source "Estonia registry code (registrikood); Tallink Grupp / Telia Eesti (official e-Äriregister)"}
  :uy-rut      {:valid ["211003420017"] :invalid ["211003420018"] :source "Uruguay RUT; ANTEL (state telecom; public RUT 21.100342.0017)"}
- :ec-ruc      {:valid ["1790010937001" "1760013210001"] :invalid ["1790010936001"] :source "Ecuador RUC; Banco Pichincha C.A. (juridical) / SRI 1760013210001 (public entity, sri.gob.ec)"}
+ :ec-ruc      {:valid ["1790010937001" "1760013210001" "1793213150001" "1793189906001" "0993366721001" "0993370026001"]
+               :invalid ["1793213150000"]
+               :source "Ecuador RUC; Banco Pichincha C.A. (juridical) / SRI 1760013210001 (public entity, sri.gob.ec); 3rd-digit-9 juridical RUCs accepted structurally (Ecuador SRI registry; per issue #497 their check digit is not always computable)"}
  :py-ruc      {:valid ["800026756"] :invalid ["800026755"] :source "Paraguay RUC; PETROPAR 80002675-6 (state oil co., contrataciones.gov.py)"}
  :gt-nit      {:valid ["325732"] :invalid ["325733"] :source "Guatemala NIT; Cementos Progreso S.A. 32573-2 (NIT via SAT)"}
  :fr-siren    {:valid ["441639465" "542051180"] :invalid ["441639466"] :source "France SIREN (9-digit Luhn); Renault S.A. / TotalEnergies SE (annuaire-entreprises.data.gouv.fr)"}
