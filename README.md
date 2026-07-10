@@ -4,9 +4,9 @@
 [![cljdoc](https://cljdoc.org/badge/net.clojars.savya/stdnum-clj)](https://cljdoc.org/d/net.clojars.savya/stdnum-clj)
 [![test](https://github.com/jsavyasachi/stdnum-clj/actions/workflows/test.yml/badge.svg)](https://github.com/jsavyasachi/stdnum-clj/actions/workflows/test.yml)
 
-Unified validation, parsing, and formatting of standard identifier numbers for Clojure -
-credit cards, IBAN/BIC, ISBN, ISSN, ISIN, US bank routing (ABA), IMEI, and the raw Luhn
-check, behind one small API.
+Unified validation, parsing, and formatting of 240+ standard identifier numbers for Clojure -
+IBAN/BIC, credit cards, ISBN/ISSN/ISIN, and national ID, VAT/GST, and tax numbers for 80+
+countries - behind one small API.
 
 ## Stack
 
@@ -22,12 +22,13 @@ Clojure has plenty of *one-identifier* libraries (an IBAN parser here, a Luhn ch
 most of them tiny and unmaintained, each with its own API. There was no single library that
 validates the common, checksummable identifiers under one consistent interface - the way
 Python's [python-stdnum](https://arthurdejong.org/python-stdnum/) does. `stdnum-clj` is that
-facade. For the international identifiers it
+facade, and now covers python-stdnum's full catalogue of number formats. For the international
+identifiers it
 wraps the maintained [Apache Commons Validator](https://commons.apache.org/proper/commons-validator/)
 and [iban4j](https://github.com/arturmkrtchyan/iban4j) engines rather than reinventing them, so
-those checks are as correct as those libraries and stay correct as they're updated. A few global
-and national standards with public, well-documented algorithms (LEI, Brazil CPF/CNPJ) are
-implemented clean-room and kept under this library's EPL license.
+those checks are as correct as those libraries and stay correct as they're updated. The national
+and tax standards with public, well-documented algorithms are implemented clean-room and kept
+under this library's EPL license.
 
 ## Install
 
@@ -137,13 +138,13 @@ the only part of the library that does network I/O; it lives in its own namespac
 
 | Category | Types |
 |----------|-------|
-| **Banking & cards** | `:credit-card` (+ network) · `:iban` · `:bic` · `:aba` · `:mx-clabe` · `:cz-bankaccount` · `:nz-bankaccount` · `:iso11649` · `:ar-cbu` · `:es-ccc` · `:be-ogm` · `:ch-esr` · `:no-kontonr` |
+| **Banking & cards** | `:credit-card` (+ network) · `:iban` · `:bic` · `:aba` · `:mx-clabe` · `:cz-bankaccount` · `:nz-bankaccount` · `:iso11649` · `:ar-cbu` · `:es-ccc` · `:be-ogm` · `:ch-esr` · `:no-kontonr` · `:eu-at02` |
 | **Securities** | `:isin` · `:lei` · `:cusip` · `:sedol` · `:de-wkn` · `:figi` · `:cfi` |
 | **Publishing / media / device** | `:isbn` · `:issn` · `:ismn` · `:iswc` · `:grid` · `:isan` · `:eu-banknote` · `:imei` · `:luhn` · `:isrc` · `:isil` · `:mac` · `:imsi` · `:meid` · `:bitcoin` |
 | **Commerce / logistics / vehicle / industry** | `:ean13` · `:ean8` · `:upc` · `:gtin14` · `:sscc` · `:gln` · `:iso6346` · `:upu-s10` · `:vin` · `:imo` · `:cas` · `:nhs` · `:npi` · `:it-aic` · `:eu-eic` · `:eu-ecnumber` · `:eu-nace` · `:es-cae` · `:es-cups` · `:es-postalcode` · `:at-postleitzahl` · `:nl-brin` · `:nl-postcode` · `:se-postnummer` |
 | **Research / name** | `:orcid` · `:isni` |
 | **Tax & national IDs** | `:us-ssn` · `:us-ein` · `:gb-nino` · `:br-cpf` · `:br-cnpj` · `:ca-sin` · `:ca-bcphn` · `:au-abn` · `:au-tfn` · `:in-pan` · `:in-aadhaar` · `:in-epic` · `:in-vid` · `:es-dni` · `:es-nie` · `:es-nif` · `:es-referenciacatastral` · `:nl-bsn` · `:nl-identiteitskaartnummer` · `:nl-onderwijsnummer` · `:cn-ric` · `:se-pnr` · `:za-id` · `:za-tin` · `:no-org` · `:no-fodselsnummer` · `:tr-tc` · `:pt-nif` · `:pt-cc` · `:cz-ico` · `:jp-cn` · `:jp-in` · `:hr-oib` · `:it-cf` · `:ch-uid` · `:ch-ahv` · `:nz-ird` · `:be-nn` · `:be-bis` · `:be-ssn` · `:be-eid` · `:fi-hetu` · `:sg-nric` · `:sg-uen` · `:hk-id` · `:kr-brn` · `:fr-nir` · `:fr-nif` · `:pl-pesel` · `:ar-cuit` · `:ar-dni` · `:cl-rut` · `:co-nit` · `:pe-ruc` · `:pe-cui` · `:cr-cpf` · `:cr-cpj` · `:cr-cr` · `:ie-pps` · `:ee-ik` · `:lt-asmens` · `:jmbg` · `:si-emso` · `:ro-cnp` · `:ro-cf` · `:ro-cui` · `:ro-onrc` · `:cz-rc` · `:sk-rc` · `:kr-rrn` · `:gr-amka` · `:il-idnr` · `:ec-ced` · `:bg-egn` · `:bg-pnf` · `:mx-curp` · `:ru-inn` · `:tw-gui` · `:ua-edrpou` · `:ua-rntrc` · `:cn-usci` · `:is-kennitala` · `:ve-rif` · `:do-rnc` · `:do-cedula` · `:do-ncf` · `:ru-ogrn` · `:vn-mst` · `:rs-pib` · `:me-pib` · `:mk-edb` · `:pl-regon` · `:il-company` · `:au-acn` · `:sk-ico` · `:ee-rk` · `:uy-rut` · `:ec-ruc` · `:py-ruc` · `:gt-nit` · `:fr-siren` · `:fr-siret` · `:se-orgnr` · `:es-cif` · `:nz-nzbn` · `:id-npwp` · `:id-nik` · `:tr-vkn` · `:mx-rfc` · `:th-moa` · `:th-pin` · `:th-tin` · `:kz-bin` · `:ca-bn` · `:md-idno` · `:by-unp` · `:mu-nid` · `:si-maticna` · `:my-nric` · `:pk-cnic` · `:ke-pin` · `:cu-ni` · `:ad-nrt` · `:al-nipt` · `:dz-nif` · `:eg-tn` · `:gh-tin` · `:gn-nifp` · `:li-peid` · `:ma-ice` · `:sm-coe` · `:sv-nit` · `:tn-mf` · `:us-itin` · `:us-atin` · `:us-ptin` · `:gb-utr` · `:gb-upn` · `:dk-cvr` · `:dk-cpr` · `:fi-ytunnus` · `:fi-associationid` · `:fi-veronumero` · `:de-idnr` · `:de-handelsregisternummer` · `:de-stnr` · `:at-businessid` · `:at-tin` · `:at-vnr` |
-| **VAT / GST** (EU-27 complete) | `:de-vat` · `:fr-vat` · `:mc-tva` · `:it-vat` · `:be-vat` · `:pl-vat` · `:gb-vat` · `:at-vat` · `:dk-vat` · `:fi-vat` · `:se-vat` · `:gr-vat` · `:lu-vat` · `:si-vat` · `:ee-vat` · `:hu-vat` · `:mt-vat` · `:sk-vat` · `:lt-vat` · `:cy-vat` · `:ro-vat` · `:es-vat` · `:ie-vat` · `:nl-vat` · `:lv-vat` · `:bg-vat` · `:hr-vat` · `:cz-vat` · `:pt-vat` · `:in-gstin` · `:eu-at02` · `:eu-oss` · `:ch-vat` · `:no-mva` · `:fo-vn` · `:is-vsk` |
+| **VAT / GST** (EU-27 complete) | `:de-vat` · `:fr-vat` · `:mc-tva` · `:it-vat` · `:be-vat` · `:pl-vat` · `:gb-vat` · `:at-vat` · `:dk-vat` · `:fi-vat` · `:se-vat` · `:gr-vat` · `:lu-vat` · `:si-vat` · `:ee-vat` · `:hu-vat` · `:mt-vat` · `:sk-vat` · `:lt-vat` · `:cy-vat` · `:ro-vat` · `:es-vat` · `:ie-vat` · `:nl-vat` · `:lv-vat` · `:bg-vat` · `:hr-vat` · `:cz-vat` · `:pt-vat` · `:in-gstin` · `:eu-oss` · `:ch-vat` · `:no-mva` · `:fo-vn` · `:is-vsk` |
 
 </details>
 
