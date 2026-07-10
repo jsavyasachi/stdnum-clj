@@ -4,6 +4,21 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added - Netherlands + Nordic cluster (201 -> 211)
+Ten more types ported from python-stdnum.
+- `:nl-brin` — Netherlands institution id (structural).
+- `:nl-identiteitskaartnummer` — Netherlands ID-card number (structural; upstream
+  has no checksum, only bans the letter O).
+- `:nl-onderwijsnummer` — Netherlands education number, BSN-style 11-test whose
+  remainder must equal 5 and which must start with `10`.
+- `:nl-postcode` — Netherlands postal code, 4 digits + 2 letters (banned pairs).
+- `:fi-associationid` — Finland association registry id (structural).
+- `:fi-veronumero` — Finland tax number (structural; upstream has no check digit).
+- `:fo-vn` — Faroe Islands VAT (structural).
+- `:no-kontonr` — Norway bank account, 11-digit weighted mod 11 or 7-digit Luhn.
+- `:se-postnummer` — Sweden postal code (structural).
+- `:is-vsk` — Iceland VAT (structural).
+
 ### Added - Spain + Austria cluster (193 -> 201)
 Eight more types ported from python-stdnum.
 - `:es-cae` — Spain excise activity code (structural).

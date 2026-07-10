@@ -466,11 +466,26 @@
   (let [n (strip-cc n "ES")] (boolean (or (es-dni? n) (es-nie? n) (cif? n)))))
 
 (def ^:private bsn-weights [9 8 7 6 5 4 3 2 -1])
+(defn- nl-elfproef-checksum ^long [^String n]
+  (mod (long (reduce + (map * (digits-of n) bsn-weights))) 11))
 (defn- nl-bsn? [^String n]                           ; Netherlands BSN: 11-test (elfproef)
   (and (re-matches #"\d{8,9}" n)
        (let [s (if (= 8 (count n)) (str "0" n) n)]
-         (and (zero? (mod (long (reduce + (map * (digits-of s) bsn-weights))) 11))
-              (not (zero? (Long/parseLong s)))))))
+         (and (zero? (nl-elfproef-checksum s)) (not (zero? (Long/parseLong s)))))))
+(defn- nl-brin? [^String n]                           ; Netherlands BRIN: 2 digits + 2 letters + optional 2-digit location
+  (boolean (re-matches #"\d{2}[A-Z]{2}(\d{2})?" n)))
+(defn- nl-identiteitskaartnummer? [^String n]          ; Netherlands passport/ID-card number: structural, no O
+  (boolean (and (re-matches #"[A-Z]{2}[0-9A-Z]{6}\d" n) (not (str/includes? n "O")))))
+(defn- nl-onderwijsnummer? [^String n]                 ; Netherlands education number: BSN-style 11-test, checksum remainder 5
+  (and (re-matches #"\d{9}" n)
+       (str/starts-with? n "10")
+       (not (zero? (Long/parseLong n)))
+       (= 5 (nl-elfproef-checksum n))))
+(def ^:private nl-postcode-blacklist #{"SA" "SD" "SS"})
+(defn- nl-postcode? [^String n]                        ; Netherlands postal code: 4 digits + 2 letters, banned letter pairs
+  (let [n (strip-cc n "NL")]
+    (boolean (when-let [[_ suffix] (re-matches #"[1-9]\d{3}([A-Z]{2})" n)]
+               (not (nl-postcode-blacklist suffix))))))
 (def ^:private cn-weights [7 9 10 5 8 4 2 1 6 3 7 9 10 5 8 4 2])
 (def ^:private ^String cn-check "10X98765432")
 (defn- cn-ric? [^String n]                           ; China resident ID: ISO 7064 MOD 11-2
@@ -521,6 +536,14 @@
 (defn- no-mva? [^String n]
   (let [n (strip-cc n "NO")]
     (and (re-matches #"\d{9}MVA" n) (no-org? (subs n 0 9)))))
+(def ^:private no-kontonr-weights [6 7 8 9 4 5 6 7 8 9])
+(defn- no-kontonr? [^String n]                        ; Norway bank account: 11-digit mod-11, 7-digit postgiro Luhn
+  (and (re-matches #"\d+" n)
+       (case (count n)
+         7 (.isValid luhn-cd n)
+         11 (= (mod (long (reduce + (map * (digits-of (subs n 0 10)) no-kontonr-weights))) 11)
+               (- (int (.charAt n 10)) 48))
+         false)))
 (defn- tr-tc? [^String n]                            ; Turkey TC Kimlik No: two check digits
   (and (re-matches #"[1-9]\d{10}" n)
        (let [d (digits-of n)
@@ -554,9 +577,22 @@
        (let [d (digits-of n)
              r (mod (long (reduce + (map * (subvec d 0 7) [7 9 10 5 8 4 2]))) 11)]
          (cond (= r 0) (zero? (long (d 7))) (= r 1) false :else (= (- 11 r) (d 7))))))
+(def ^:private fi-association-low-numbers
+  #{1 6 7 9 12 14 15 16 18 22 23 24 27 28 29 35 36 38 40 41 42 43 45 46
+    50 52 55 58 60 64 65 68 72 75 76 77 78 83 84 85 89 92})
+(defn- fi-associationid? [^String n]                  ; Finland association id: 1-6 digits, registered low numbers only
+  (and (re-matches #"\d{1,6}" n)
+       (or (>= (count n) 3) (fi-association-low-numbers (Integer/parseInt n)))))
+(defn- fi-veronumero? [^String n]                     ; Finland individual tax number: 12 digits, no check digit
+  (boolean (re-matches #"\d{12}" n)))
+(defn- fo-vn? [^String n]                             ; Faroe Islands V-number: optional FO prefix + 6 digits
+  (boolean (re-matches #"\d{6}" (strip-cc n "FO"))))
 (defn- se-vat? [^String n]                           ; Sweden: 10-digit Luhn org number + "01"
   (let [n (strip-cc n "SE")]
     (boolean (and (re-matches #"\d{12}" n) (= "01" (subs n 10)) (.isValid luhn-cd (subs n 0 10))))))
+(defn- se-postnummer? [^String n]                     ; Sweden postal code: optional SE prefix + nonzero 5 digits
+  (let [n (strip-cc n "SE")]
+    (boolean (and (re-matches #"\d{5}" n) (not (str/starts-with? n "0"))))))
 (defn- gr-vat? [^String n]                            ; Greece AFM: powers-of-two weights, mod 11 mod 10
   (let [n (strip-cc (strip-cc n "EL") "GR")]
     (and (re-matches #"\d{9}" n)
@@ -687,6 +723,9 @@
   (when-let [[_ ddmmyy zzz c] (re-matches #"(\d{6})[-+A-FU-Y]?(\d{3})([0-9A-Y])" n)]
     (= (.charAt hetu-chk (int (mod (Long/parseLong (str ddmmyy zzz)) 31)))
        (.charAt ^String c 0))))
+(defn- is-vsk? [^String n]                            ; Iceland VAT: optional IS prefix + 5 or 6 digits
+  (let [n (strip-cc n "IS")]
+    (boolean (re-matches #"\d{5,6}" n))))
 
 ;; FIGI (Financial Instrument Global Identifier, OMG standard): 12 chars - two
 ;; consonants, 'G', eight consonant/digit chars, and a mod-10 check digit computed
@@ -1878,6 +1917,10 @@
    :es-postalcode {:validate es-postalcode?}
    :es-referenciacatastral {:validate es-referenciacatastral?}
    :nl-bsn      {:validate nl-bsn?}
+   :nl-brin     {:validate nl-brin?}
+   :nl-identiteitskaartnummer {:validate nl-identiteitskaartnummer?}
+   :nl-onderwijsnummer {:validate nl-onderwijsnummer?}
+   :nl-postcode {:validate nl-postcode?}
    :cn-ric      {:validate cn-ric? :parse cn-ric-parse}
    :se-pnr      {:validate se-pnr? :parse se-pnr-parse :format se-pnr-format}
    :mx-clabe    {:validate mx-clabe? :parse mx-clabe-parse}
@@ -1885,6 +1928,7 @@
    :za-id       {:validate za-id? :parse za-id-parse}
    :no-org      {:validate no-org? :format triple3-format}
    :no-mva      {:validate no-mva?}
+   :no-kontonr  {:validate no-kontonr?}
    :no-fodselsnummer {:validate no-fodselsnummer?}
    :tr-tc       {:validate tr-tc?}
    :at-vat      {:validate at-vat?}
@@ -1897,7 +1941,11 @@
    :dk-cpr      {:validate dk-cpr?}
    :fi-vat      {:validate fi-vat?}
    :fi-ytunnus  {:validate fi-ytunnus? :format fi-ytunnus-format}
+   :fi-associationid {:validate fi-associationid?}
+   :fi-veronumero {:validate fi-veronumero?}
+   :fo-vn       {:validate fo-vn?}
    :se-vat      {:validate se-vat?}
+   :se-postnummer {:validate se-postnummer?}
    :gr-vat      {:validate gr-vat?}
    :pt-nif      {:validate pt-nif?}
    :pt-cc       {:validate pt-cc?}
@@ -1919,6 +1967,7 @@
    :be-nn       {:validate be-nn? :parse be-nn-parse :format be-nn-format}
    :be-ogm      {:validate be-ogm? :parse be-ogm-parse :format be-ogm-format}
    :fi-hetu     {:validate fi-hetu?}
+   :is-vsk      {:validate is-vsk?}
    :figi        {:validate figi?}
    :mt-vat      {:validate mt-vat?}
    :sk-vat      {:validate sk-vat?}

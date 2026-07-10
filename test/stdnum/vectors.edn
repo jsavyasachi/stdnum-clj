@@ -292,4 +292,24 @@
  :gb-upn      {:valid ["B801200005001"] :invalid ["A801200005001"]
                :source "python-stdnum gb.upn doctest vector; check letter recomputed"}
  :mt-vat      {:valid ["MT11679112"] :invalid ["MT11679113"] :source "Malta VAT checksum example"}
- :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}}
+ :cy-vat      {:valid ["CY10259033P"] :invalid ["CY10259033Q"] :source "Cyprus VAT checksum example"}
+ :nl-brin     {:valid ["05 KO" "07NU 00"] :invalid ["12KB1" "30AJ0A"]
+               :source "python-stdnum nl.brin doctest vector; structural (format/component) validation, no check digit"}
+ :nl-identiteitskaartnummer {:valid ["EM0000000" "XR1001R58"] :invalid ["XR1001R" "581001RXR" "XR1O01R58"]
+                             :source "python-stdnum nl.identiteitskaartnummer doctest vector; structural (format/component) validation, no check digit"}
+ :nl-onderwijsnummer {:valid ["1012.22.331"] :invalid ["100252333" "1012.22.3333" "2112.22.337"]
+                      :source "python-stdnum nl.onderwijsnummer doctest vector; check recomputed"}
+ :nl-postcode {:valid ["2601 DC" "NL-2611ET"] :invalid ["26112 ET" "2611 SS"]
+               :source "python-stdnum nl.postcode doctest vector; structural (format/component) validation, no check digit"}
+ :fi-associationid {:valid ["123.123" "1123"] :invalid ["123123123" "12df"]
+                    :source "python-stdnum fi.associationid doctest vector; structural (format/component) validation, no check digit"}
+ :fi-veronumero {:valid ["123456789123"] :invalid ["12345678912A" "123456789"]
+                 :source "python-stdnum fi.veronumero doctest vector; structural (format/component) validation, no check digit"}
+ :fo-vn       {:valid ["623857"] :invalid ["1234" "12345X"]
+               :source "python-stdnum fo.vn doctest vector; structural (format/component) validation, no check digit"}
+ :no-kontonr  {:valid ["8601 11 17947" "0000.4090403"] :invalid ["8601 11 17949"]
+               :source "python-stdnum no.kontonr doctest vector; check recomputed"}
+ :se-postnummer {:valid ["114 18" "SE-11418"] :invalid ["1145 18"]
+                 :source "python-stdnum se.postnummer doctest vector; structural (format/component) validation, no check digit"}
+ :is-vsk      {:valid ["IS 00621"] :invalid ["IS 0062199"]
+               :source "python-stdnum is_.vsk doctest vector; structural (format/component) validation, no check digit"}}
