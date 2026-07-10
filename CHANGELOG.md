@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added - national personal-ID numbers (157 -> 163)
+Six national identity numbers, ported from python-stdnum with each checksum
+independently recomputed against the module's own test vector.
+- `:ro-cnp` — Romania Cod Numeric Personal, weighted mod 11 (`10 -> 1`); embedded
+  YYMMDD date and county code validated.
+- `:cz-rc` / `:sk-rc` — Czech / Slovak rodné číslo (shared Czechoslovak algorithm):
+  9-digit pre-1954 form (date only) and 10-digit mod-11 form.
+- `:kr-rrn` — South Korea Resident Registration Number, weighted mod 11
+  (`(11 - r) mod 10`); birth date and region code validated.
+- `:gr-amka` — Greece AMKA social-security number, Luhn over 11 digits with an
+  embedded DDMMYY date.
+- `:il-idnr` — Israel identity number, Luhn over the 9-digit zero-padded form.
+
 ## [0.27.1] - 2026-07-08
 
 ### Added

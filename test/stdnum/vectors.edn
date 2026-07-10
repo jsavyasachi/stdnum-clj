@@ -100,6 +100,18 @@
  :ee-ik       {:valid ["37605030299"] :invalid ["37605030298"] :source "Estonia isikukood example"}
  :ie-pps      {:valid ["6433435F" "6433435OA"] :invalid ["6433435FA"] :source "Ireland PPSN algorithm"}
  :jmbg        {:valid ["0101006500006"] :invalid ["0101006500007"] :source "ex-Yugoslav JMBG algorithm"}
+ :ro-cnp      {:valid ["1630615123457"] :invalid ["1630615123458"]
+               :source "python-stdnum ro.cnp test vector; checksum recomputed"}
+ :cz-rc       {:valid ["7103192745"] :invalid ["7103192746"]
+               :source "python-stdnum cz.rc test vector; checksum recomputed"}
+ :sk-rc       {:valid ["7103192745"] :invalid ["7103192746"]
+               :source "python-stdnum sk.rc test vector; checksum recomputed"}
+ :kr-rrn      {:valid ["9710139019902"] :invalid ["9710139019903"]
+               :source "python-stdnum kr.rrn test vector; checksum recomputed"}
+ :gr-amka     {:valid ["01013099997"] :invalid ["01013099999"]
+               :source "python-stdnum gr.amka test vector; checksum recomputed"}
+ :il-idnr     {:valid ["039337423"] :invalid ["039337422"]
+               :source "python-stdnum il.idnr test vector; checksum recomputed"}
  :ec-ced      {:valid ["1710034065"] :invalid ["1710034066"] :source "Ecuador cédula algorithm"}
  :bg-egn      {:valid ["7523169263"] :invalid ["7523169264"] :source "Bulgaria EGN (Wikipedia worked example)"}
  :mx-curp     {:valid ["HEGG560427MVZRRL04"] :invalid ["HEGG560427MVZRRL05"] :source "RENAPO CURP worked example"}

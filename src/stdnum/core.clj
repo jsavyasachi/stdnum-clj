@@ -846,12 +846,80 @@
              r (if (= r 10) (w [3 4 5 6 7 8 9 1 2 3]) r)]
          (= (if (= r 10) 0 r) (d 10)))))
 
+(defn- valid-date? [^long year ^long month ^long day]
+  (try (java.time.LocalDate/of year month day) true (catch Exception _ false)))
+
 ;; JMBG: the shared ex-Yugoslav (RS/BA/ME/MK/SI/HR) 13-digit number, weighted mod 11.
 (defn- jmbg? [^String n]
   (and (re-matches #"\d{13}" n)
        (let [d (digits-of n)
              m (- 11 (mod (long (reduce + (map * (subvec d 0 12) [7 6 5 4 3 2 7 6 5 4 3 2]))) 11))]
          (= (if (>= m 10) 0 m) (d 12)))))
+
+(def ^:private ro-cnp-counties
+  #{"01" "02" "03" "04" "05" "06" "07" "08" "09" "10" "11" "12" "13" "14"
+    "15" "16" "17" "18" "19" "20" "21" "22" "23" "24" "25" "26" "27" "28"
+    "29" "30" "31" "32" "33" "34" "35" "36" "37" "38" "39" "40" "41" "42"
+    "43" "44" "45" "46" "47" "48" "51" "52" "70" "80" "81" "82" "83"})
+(defn- ro-cnp? [^String n]                           ; Romania CNP: weighted mod 11 (10 -> 1)
+  (and (re-matches #"\d{13}" n)
+       (not= \0 (.charAt n 0))
+       (contains? ro-cnp-counties (subs n 7 9))
+       (let [d (digits-of n)
+             century (case (.charAt n 0) (\3 \4) 1800 (\5 \6) 2000 1900)
+             year (+ century (Integer/parseInt (subs n 1 3)))
+             month (Integer/parseInt (subs n 3 5))
+             day (Integer/parseInt (subs n 5 7))
+             r (mod (long (reduce + (map * (subvec d 0 12) [2 7 9 1 4 6 3 5 8 2 7 9]))) 11)]
+         (and (valid-date? year month day)
+              (= (if (= r 10) 1 r) (d 12))))))
+
+(defn- cz-rc? [^String n]                            ; Czech/Slovak RČ: date plus 10-digit mod-11 check
+  (and (re-matches #"\d{9,10}" n)
+       (let [yy (Integer/parseInt (subs n 0 2))
+             year (+ 1900 yy)
+             month (mod (mod (Integer/parseInt (subs n 2 4)) 50) 20)
+             day (Integer/parseInt (subs n 4 6))
+             year (cond
+                    (and (= 9 (count n)) (>= year 1980)) (- year 100)
+                    (and (= 10 (count n)) (< year 1954)) (+ year 100)
+                    :else year)]
+         (and (if (= 9 (count n)) (<= year 1953) true)
+              (valid-date? year month day)
+              (or (= 9 (count n))
+                  (= (mod (mod (Long/parseLong (subs n 0 9)) 11) 10)
+                     (- (int (.charAt n 9)) 48)))))))
+(defn- sk-rc? [^String n] (cz-rc? n))
+
+(defn- kr-rrn? [^String n]                           ; South Korea RRN: birth date, place code, weighted mod 11
+  (and (re-matches #"\d{13}" n)
+       (let [d (digits-of n)
+             year (+ (Integer/parseInt (subs n 0 2))
+                     (cond
+                       (#{\1 \2 \5 \6} (.charAt n 6)) 1900
+                       (#{\3 \4 \7 \8} (.charAt n 6)) 2000
+                       :else 1800))
+             month (Integer/parseInt (subs n 2 4))
+             day (Integer/parseInt (subs n 4 6))
+             place (Integer/parseInt (subs n 7 9))
+             r (mod (long (reduce + (map * (subvec d 0 12) [2 3 4 5 6 7 8 9 2 3 4 5]))) 11)]
+         (and (valid-date? year month day)
+              (<= place 96)
+              (= (mod (- 11 r) 10) (d 12))))))
+
+(defn- gr-amka? [^String n]                          ; Greece AMKA: DDMMYY date and Luhn
+  (and (re-matches #"\d{11}" n)
+       (.isValid luhn-cd n)
+       (let [day (Integer/parseInt (subs n 0 2))
+             month (Integer/parseInt (subs n 2 4))
+             year (+ 1900 (Integer/parseInt (subs n 4 6)))]
+         (or (valid-date? year month day)
+             (valid-date? (+ year 100) month day)))))
+
+(defn- il-idnr? [^String n]                          ; Israel personal ID: 1-9 digits, left-padded Luhn
+  (and (re-matches #"\d{1,9}" n)
+       (pos? (Long/parseLong n))
+       (.isValid luhn-cd (clojure.core/format "%09d" (Long/parseLong n)))))
 
 ;; Ecuador cédula: 10 digits, province 01-24, Luhn-like coefficients mod 10.
 (defn- ec-ced? [^String n]
@@ -1492,6 +1560,12 @@
    :ie-pps      {:validate ie-pps?}
    :ee-ik       {:validate ee-ik? :parse ee-ik-parse}
    :jmbg        {:validate jmbg? :parse jmbg-parse}
+   :ro-cnp      {:validate ro-cnp?}
+   :cz-rc       {:validate cz-rc?}
+   :sk-rc       {:validate sk-rc?}
+   :kr-rrn      {:validate kr-rrn?}
+   :gr-amka     {:validate gr-amka?}
+   :il-idnr     {:validate il-idnr?}
    :ec-ced      {:validate ec-ced? :parse ec-ced-parse}
    :bg-egn      {:validate bg-egn? :parse bg-egn-parse}
    :orcid       {:validate orcid? :format orcid-format}
