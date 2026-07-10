@@ -313,6 +313,8 @@
     "91" "92" "93" "94" "95" "98" "99"})
 (defn- ein-valid? [^String n] (and (re-matches #"\d{9}" n) (contains? ein-prefixes (subs n 0 2))))
 (defn- ein-format [^String n] (str (subs n 0 2) "-" (subs n 2 9)))
+(defn- us-tin? [^String n]                            ; US TIN = valid under any sub-type
+  (or (ssn-valid? n) (itin-valid? n) (ein-valid? n) (ptin-valid? n) (atin-valid? n)))
 
 ;; EU / UK VAT numbers + UK NINO (clean-room from the public specs). VAT numbers
 ;; carry an optional leading ISO country code; strip it before checking digits.
@@ -2144,6 +2146,43 @@
        (let [check (mod (long (reduce + (map * (digits-of (subs n 0 8)) [8 9 4 5 6 7 8 9]))) 11)]
          (= (.charAt "01234567891" (int check)) (.charAt n 8)))))
 
+(def ^:private sn-ninea-cofi-tax-centres (set "ABCDEFGHJKLMNPQRSTUVWZ"))
+(defn- sn-ninea-cofi? [^String cofi]
+  (and (#{\0 \1 \2} (.charAt cofi 0))
+       (contains? sn-ninea-cofi-tax-centres (.charAt cofi 1))
+       (Character/isDigit (.charAt cofi 2))))
+(defn- sn-ninea-checksum ^long [^String n]
+  (mod (long (reduce + (map * (digits-of (left-pad n 9 "0")) [1 2 1 2 1 2 1 2 1]))) 10))
+(defn- sn-ninea? [^String n]
+  (let [[number cofi] (if (> (count n) 9) [(subs n 0 (- (count n) 3)) (subs n (- (count n) 3))] [n nil])]
+    (and (#{7 9} (count number))
+         (re-matches #"\d+" number)
+         (or (nil? cofi) (sn-ninea-cofi? cofi))
+         (zero? (sn-ninea-checksum number)))))
+
+(declare registry)
+
+(defn- vatin-country-code [^String n]
+  (when (and (<= 3 (count n)) (re-matches #"[A-Z]{2}" (subs n 0 2)))
+    (case (str/lower-case (subs n 0 2))
+      "el" "gr"
+      "xi" "gb"
+      (str/lower-case (subs n 0 2)))))
+(defn- vatin? [^String n]
+  (when-let [cc (vatin-country-code n)]
+    (let [k (keyword (str cc "-vat"))
+          v (get-in registry [k :validate])
+          rest (subs n 2)]
+      (boolean (and v (or (v rest) (v n)))))))
+
+(def ^:private eu-vat-member-states
+  #{"at" "be" "bg" "cy" "cz" "de" "dk" "ee" "es" "fi" "fr" "gr" "hr" "hu" "ie" "it" "lt" "lu"
+    "lv" "mt" "nl" "pl" "pt" "ro" "se" "si" "sk" "xi"})
+(defn- eu-vat? [^String n]
+  (when (and (<= 3 (count n)) (re-matches #"[A-Z]{2}" (subs n 0 2)))
+    (let [cc (case (str/lower-case (subs n 0 2)) "el" "gr" (str/lower-case (subs n 0 2)))]
+      (boolean (and (contains? eu-vat-member-states cc) (vatin? n))))))
+
 ;; --- canonical formatting for IDs with a standard separated display form ------
 (defn- group4 [^String sep ^String n] (str/join sep (re-seq #".{4}" n)))
 (defn- dotted [^String s]                              ; digits grouped in threes from the right
@@ -2214,6 +2253,10 @@
    :us-itin     {:validate itin-valid? :parse taxpayer-parse :format ssn-format}
    :us-atin     {:validate atin-valid? :parse taxpayer-parse :format ssn-format}
    :us-ptin     {:validate ptin-valid?}
+   :us-tin      {:validate us-tin?}
+   :sn-ninea    {:validate sn-ninea?}
+   :vatin       {:validate vatin?}
+   :eu-vat      {:validate eu-vat?}
    :de-vat      {:validate de-vat?}
    :de-idnr     {:validate de-idnr?}
    :de-handelsregisternummer {:validate de-handelsregisternummer?}

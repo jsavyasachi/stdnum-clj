@@ -78,6 +78,8 @@
                :source "IRS ITIN valid-range documentation (group ranges 50-65, 70-88, 90-92, 94-99)"}
  :us-atin     {:valid ["900-93-0000"] :invalid ["900-94-0000"] :source "IRS ATIN valid range (group 93)"}
  :us-ptin     {:valid ["P01234567"] :invalid ["P0123456" "Q01234567"] :source "IRS Form W-12 PTIN format (P + 8 digits)"}
+ :us-tin      {:valid ["123-45-6789"] :invalid ["000000000"]
+               :source "us.tin = OR of us-ssn/itin/ein/ptin/atin; stdnum-clj compacts input first, so python's formatting-only doctest (07-3456789) does not apply; invalid vector rejected by all sub-types"}
  :gb-nino     {:valid ["AB123456C" "AB123456"] :invalid ["QQ123456C" "GB123456C"] :source "UK HMRC NINO structure"}
  :gb-utr      {:valid ["1097172564"] :invalid ["1097172565" "2097172564"]
                :source "HMRC UTR check-digit algorithm (weights 6-2, table 21987654321); verified against the published validation formula"}
@@ -186,12 +188,21 @@
  :be-ogm      {:valid ["+++090/9337/55493+++" "090933755493"] :invalid ["+++090/9337/55494+++"]
                :source "Febelfin structured communication (OGM-VCS) mod-97 rule; worked example recomputed (0909337554 mod 97 = 93)"}
  :fi-hetu     {:valid ["131052-308T" "010594Y9032"] :invalid ["131052-308U"] :source "Finland HETU (DVV) example"}
+ :sn-ninea    {:valid ["306 7221" "30672212G2"]
+               :invalid ["3067222" "1234567 0AZ"]
+               :source "python-stdnum sn.ninea doctest vectors; check recomputed"}
 
  ;; EU VAT. `:vies true` marks numbers CONFIRMED to be live-registered companies
  ;; (re-checked against VIES); the live integration test asserts those. The rest
  ;; are checksum-valid algorithm examples (they exercise the validator) that are
  ;; NOT necessarily registered companies - VIES is the source of truth on that, and
  ;; it showed several common "example" VAT numbers are checksum-valid but unregistered.
+ :vatin       {:valid ["FR40303265045" "DE136695976" "EL082857563" "CHE109298651TVA" "XI432525179"]
+               :invalid ["XX" "FR40303"]
+               :source "python-stdnum vatin doctest vectors; dispatches to existing country VAT validators"}
+ :eu-vat      {:valid ["FR40303265045" "DE136695976" "XI432525179"]
+               :invalid ["CHE109298651TVA" "XX" "FR40303"]
+               :source "python-stdnum eu.vat doctest vectors; member-state-gated dispatch to existing country VAT validators"}
  :de-vat      {:valid ["DE129274202"] :invalid ["DE129274203"] :source "VIES-confirmed registered (DE withholds trader name)" :vies true}
  :de-idnr     {:valid ["86095742719"] :invalid ["86095742710" "12345678903"]
                :source "BZSt IdNr worked example; ISO 7064 MOD 11,10 check verified"}

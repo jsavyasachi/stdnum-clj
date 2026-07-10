@@ -89,6 +89,7 @@
  :eu-excise
  :eu-nace
  :eu-oss
+ :eu-vat
  :fi-associationid
  :fi-hetu
  :fi-vat
@@ -226,6 +227,7 @@
  :sk-rc
  :sk-vat
  :sm-coe
+ :sn-ninea
  :sscc
  :sv-nit
  :th-moa
@@ -244,7 +246,9 @@
  :us-itin
  :us-ptin
  :us-ssn
+ :us-tin
  :uy-rut
+ :vatin
  :ve-rif
  :vin
  :vn-mst
