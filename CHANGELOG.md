@@ -4,6 +4,9 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Changed
+- Migrate the build to deps.edn and tools.build, with Leiningen supported via lein-tools-deps.
+
 ## [0.30.0] - 2026-07-10
 
 ### Added

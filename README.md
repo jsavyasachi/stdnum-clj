@@ -10,9 +10,11 @@ countries - behind one small API.
 
 ## Stack
 
-<a href="https://clojure.org"><img src="https://img.shields.io/badge/Clojure-5881D8?style=flat&logo=clojure&logoColor=white" alt="Clojure" /></a>
-<a href="https://commons.apache.org/proper/commons-validator/"><img src="https://img.shields.io/badge/Commons%20Validator-D22128?style=flat&logo=apache&logoColor=white" alt="Apache Commons Validator" /></a>
-<a href="https://github.com/arturmkrtchyan/iban4j"><img src="https://img.shields.io/badge/iban4j-2D3748?style=flat&logo=java&logoColor=white" alt="iban4j" /></a>
+<a href="https://clojure.org"><img src="https://img.shields.io/badge/Clojure-5881D8?style=flat&logo=clojure&logoColor=fff" alt="Clojure" /></a>
+<a href="https://clojure.org/guides/deps_and_cli"><img src="https://img.shields.io/badge/deps.edn-5881D8?style=flat&logo=clojure&logoColor=fff" alt="deps.edn" /></a>
+<a href="https://clojure.github.io/tools.build/"><img src="https://img.shields.io/badge/tools.build-5881D8?style=flat&logo=clojure&logoColor=fff" alt="tools.build" /></a>
+<a href="https://commons.apache.org/proper/commons-validator/"><img src="https://img.shields.io/badge/Commons%20Validator-D22128?style=flat&logo=apache&logoColor=fff" alt="Apache Commons Validator" /></a>
+<a href="https://github.com/arturmkrtchyan/iban4j"><img src="https://img.shields.io/badge/iban4j-2D3748?style=flat&logo=java&logoColor=fff" alt="iban4j" /></a>
 
 > Unofficial, community-maintained. Not affiliated with Apache, iban4j, or any card network.
 
@@ -32,16 +34,16 @@ under this library's EPL license.
 
 ## Install
 
-Leiningen / Boot:
-
-```clojure
-[net.clojars.savya/stdnum-clj "0.30.0"]
-```
-
 deps.edn:
 
 ```clojure
 net.clojars.savya/stdnum-clj {:mvn/version "0.30.0"}
+```
+
+Leiningen / Boot:
+
+```clojure
+[net.clojars.savya/stdnum-clj "0.30.0"]
 ```
 
 ## Usage
@@ -170,8 +172,8 @@ purely structural (validated by format, embedded date, or component code, with n
 `:source` says so. Where no published example exists, a number constructed from the published
 algorithm is cited as *constructed* rather than passed off as a real published number.
 
-For EU VAT, entries tagged `:vies true` are confirmed live-registered companies, and
-`lein test :integration` re-checks them against the official VIES service. (A useful distinction
+For EU VAT, entries tagged `:vies true` are confirmed live-registered companies. The
+`clojure -M:test` suite skips these network-backed rechecks. (A useful distinction
 that surfaced: a valid checksum doesn't imply a *registered* number - several common example VAT
 numbers are checksum-valid but unregistered, and are labelled as algorithm examples accordingly.)
 

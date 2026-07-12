@@ -1,0 +1,22 @@
+{:paths ["src"]
+
+ :deps {org.clojure/clojure {:mvn/version "1.12.0"}
+        commons-validator/commons-validator {:mvn/version "1.10.1"}
+        org.iban4j/iban4j {:mvn/version "3.2.13-RELEASE"}
+        org.clojure/data.json {:mvn/version "2.5.2"}}
+
+ :aliases
+ {:test
+  {:extra-paths ["test"]
+   :extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}
+                org.slf4j/slf4j-nop {:mvn/version "2.0.18"}}
+   :main-opts ["-m" "kaocha.runner"]}
+
+  :1.10 {:override-deps {org.clojure/clojure {:mvn/version "1.10.3"}}}
+  :1.11 {:override-deps {org.clojure/clojure {:mvn/version "1.11.4"}}}
+  :1.12 {:override-deps {org.clojure/clojure {:mvn/version "1.12.0"}}}
+
+  :build
+  {:deps {io.github.clojure/tools.build {:mvn/version "0.10.14"}
+          slipset/deps-deploy {:mvn/version "0.2.5"}}
+   :ns-default build}}}
