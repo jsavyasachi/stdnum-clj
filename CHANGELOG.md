@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.30.2] - 2026-07-16
+
+### Fixed
+- `detect` now applies each candidate type's own input normalization (fixing missed raw formats such as Leitweg-ID) and accepts optional `:country`/`:category` filters.
+
 ## [0.30.1] - 2026-07-12
 
 ### Changed
