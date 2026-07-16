@@ -2492,6 +2492,49 @@
 
 (def ^:private raw-input-types #{:bitcoin :cfi :isil :cz-bankaccount :de-handelsregisternummer :de-leitweg :fr-rcs})
 
+(def ^:private banking-types
+  #{:credit-card :iban :bic :aba :mx-clabe :cz-bankaccount :nz-bankaccount
+    :iso11649 :ar-cbu :es-ccc :be-ogm :ch-esr :no-kontonr :eu-at02})
+
+(def ^:private securities-types
+  #{:isin :lei :cusip :sedol :de-wkn :figi :cfi})
+
+(def ^:private publishing-types
+  #{:isbn :issn :ismn :iswc :grid :isan :eu-banknote :imei :luhn :isrc :isil
+    :mac :imsi :meid :bitcoin})
+
+(def ^:private commerce-types
+  #{:ean13 :ean8 :upc :gtin14 :sscc :gln :iso6346 :upu-s10 :vin :imo :cas
+    :nhs :npi :it-aic :eu-eic :eu-ecnumber :eu-excise :eu-nace :es-cae
+    :es-cups :es-postalcode :at-postleitzahl :nl-brin :nl-postcode
+    :se-postnummer})
+
+(def ^:private research-types #{:orcid :isni})
+
+(def ^:private vat-types
+  #{:de-vat :fr-vat :mc-tva :it-vat :be-vat :pl-vat :gb-vat :at-vat
+    :dk-vat :fi-vat :se-vat :gr-vat :lu-vat :si-vat :ee-vat :hu-vat
+    :mt-vat :sk-vat :lt-vat :cy-vat :ro-vat :es-vat :ie-vat :nl-vat
+    :lv-vat :bg-vat :hr-vat :cz-vat :pt-vat :in-gstin :eu-oss :ch-vat
+    :no-mva :fo-vn :is-vsk :vatin :eu-vat})
+
+(defn- type-category [type]
+  (cond
+    (banking-types type) :banking
+    (securities-types type) :securities
+    (publishing-types type) :publishing
+    (commerce-types type) :commerce
+    (research-types type) :research
+    (vat-types type) :vat
+    :else :national))
+
+(defn- type-country [type]
+  (let [[prefix suffix] (str/split (name type) #"-" 2)]
+    (when suffix (keyword prefix))))
+
+(defn- option-keyword [x]
+  (some-> x name str/lower-case keyword))
+
 (defn- entry ^clojure.lang.IPersistentMap [type]
   (or (registry type)
       (throw (IllegalArgumentException.
@@ -2540,12 +2583,20 @@
 
 (defn detect
   "Return a vector of the identifier types that consider `s` valid (possibly
-  several, e.g. a card number is also Luhn-valid). Empty when nothing matches."
-  [s]
-  (let [n (norm s)]
-    (vec (for [[type {:keys [validate]}] registry
-               :when (try (boolean (validate n)) (catch Exception _ false))]
-           type))))
+  several, e.g. a card number is also Luhn-valid). Empty when nothing matches.
+  Optional `:country` (ISO prefix) and `:category` (`:banking`, `:securities`,
+  `:publishing`, `:commerce`, `:research`, `:national`, or `:vat`) filters
+  constrain the candidate types."
+  ([s] (detect s {}))
+  ([s {:keys [country category]}]
+   (let [country (option-keyword country)
+         category (option-keyword category)]
+     (vec (for [[type {:keys [validate]}] registry
+                :when (and (or (nil? country) (= country (type-country type)))
+                           (or (nil? category) (= category (type-category type)))
+                           (try (boolean (validate (input-for type s)))
+                                (catch Exception _ false)))]
+            type)))))
 
 (defn card-network
   "The card network of `s` (`:visa` `:mastercard` `:amex` `:discover` `:diners`),

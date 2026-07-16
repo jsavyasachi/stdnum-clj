@@ -1,5 +1,6 @@
 (ns stdnum.core-test
-  (:require [clojure.test :refer [deftest testing is]]
+  (:require [clojure.string :as str]
+            [clojure.test :refer [deftest testing is]]
             [stdnum.core :as stdnum]))
 
 ;; Vectors are published reference values: standard test card PANs, a worked
@@ -667,7 +668,15 @@
 (deftest detect-and-unknown
   (testing "detect returns the plausible types for a value"
     (is (some #{:credit-card} (stdnum/detect "4111111111111111")))
+    (is (some #{:de-leitweg} (stdnum/detect "991-03730-19")))
     (is (empty? (stdnum/detect "nonsense"))))
+  (testing "detect can restrict candidates by country and category"
+    (let [matches (stdnum/detect "991-03730-19" {:country :de
+                                                  :category :national})]
+      (is (some #{:de-leitweg} matches))
+      (is (every? #(str/starts-with? (name %) "de-") matches)))
+    (is (= [:credit-card]
+           (stdnum/detect "4111111111111111" {:category :banking}))))
   (testing "unknown identifier type throws (caller bug, not bad data)"
     (is (thrown? IllegalArgumentException (stdnum/valid? :not-a-type "x"))))
   (testing "valid? never throws on bad data, only returns false"
