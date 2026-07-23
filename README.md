@@ -37,13 +37,13 @@ under this library's EPL license.
 deps.edn:
 
 ```clojure
-net.clojars.savya/stdnum-clj {:mvn/version "0.30.0"}
+net.clojars.savya/stdnum-clj {:mvn/version "0.30.2"}
 ```
 
 Leiningen / Boot:
 
 ```clojure
-[net.clojars.savya/stdnum-clj "0.30.0"]
+[net.clojars.savya/stdnum-clj "0.30.2"]
 ```
 
 ## Usage
