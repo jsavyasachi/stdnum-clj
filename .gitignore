@@ -12,3 +12,4 @@ pom.xml.asc
 .cpcache/
 .parity/report.md
 target/
+.codex-runs/
