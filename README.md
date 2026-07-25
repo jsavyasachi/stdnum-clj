@@ -37,13 +37,13 @@ under this library's EPL license.
 deps.edn:
 
 ```clojure
-net.clojars.savya/stdnum-clj {:mvn/version "0.30.2"}
+net.clojars.savya/stdnum-clj {:mvn/version "0.31.0"}
 ```
 
 Leiningen / Boot:
 
 ```clojure
-[net.clojars.savya/stdnum-clj "0.30.2"]
+[net.clojars.savya/stdnum-clj "0.31.0"]
 ```
 
 ## Usage
@@ -74,6 +74,13 @@ Leiningen / Boot:
 
 ;; detect - which types consider a value valid
 (stdnum/detect "4111111111111111")  ;=> [:credit-card :luhn]
+
+;; metadata - inspect types and their cited valid examples
+(stdnum/type-category :de-vat)      ;=> :vat
+(stdnum/type-country :de-vat)       ;=> :de
+(stdnum/example :de-vat)            ;=> "DE136695976"
+(stdnum/examples :de-vat)           ;=> ["DE136695976"]
+(stdnum/describe :de-vat)           ;=> {:type :de-vat, :category :vat, :country :de, :example "DE136695976", :source "..."}
 
 ;; helpers
 (stdnum/card-network "6011111111111117")  ;=> :discover
@@ -160,9 +167,9 @@ for an identifier you need.
 
 ## Verification (source of truth)
 
-Correctness is pinned by a cited corpus, not ad-hoc assertions. `test/stdnum/vectors.edn` maps
+Correctness is pinned by a cited corpus, not ad-hoc assertions. `resources/stdnum/vectors.edn` maps
 every one of the identifier types to `{:valid [...] :invalid [...] :source "..."}`, and `:source`
-is mandatory. Each vector is a worked example from the standard, a government registry, an issuing
+is mandatory. The corpus ships in the jar and backs `example`, `examples`, and `describe`. Each vector is a worked example from the standard, a government registry, an issuing
 company's published number, a [python-stdnum](https://arthurdejong.org/python-stdnum/) module
 doctest, or a live VIES check. The test suite is driven from this file, so adding a format means
 adding a cited vector first.

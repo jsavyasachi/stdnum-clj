@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.31.0] - 2026-07-25
+
+### Added
+- Public `type-category`, `type-country`, `example`, `examples`, and `describe` metadata APIs.
+- Shipped verification corpus at `resources/stdnum/vectors.edn`.
+
+### Changed
+- `type-country` now accepts only ISO 3166-1 alpha-2 prefixes (plus `:eu`), and `detect`'s
+  `:country` filter uses the strict behavior.
+- Move the verification corpus from `test/stdnum/vectors.edn` to `resources/stdnum/vectors.edn`.
+
 ## [0.30.2] - 2026-07-16
 
 ### Fixed

@@ -1,7 +1,7 @@
 # Adding an Identifier Type
 
 Every shipped identifier type is driven by the cited corpus in
-`test/stdnum/vectors.edn`.
+`resources/stdnum/vectors.edn`.
 
 Each corpus entry has this shape:
 
@@ -17,7 +17,7 @@ issuer publication, or live service that makes the vector re-checkable.
 ## Process
 
 1. Find a real published number from an authoritative source.
-2. Add a `test/stdnum/vectors.edn` entry with `:valid`, `:invalid`, and
+2. Add a `resources/stdnum/vectors.edn` entry with `:valid`, `:invalid`, and
    mandatory `:source`.
 3. Register the validator in `stdnum.core`.
 4. Run the suite.

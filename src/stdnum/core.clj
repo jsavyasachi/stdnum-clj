@@ -16,7 +16,9 @@
   bug); bad input data never throws - `valid?` returns false, `parse` returns
   {:valid? false}, `format` returns nil."
   (:refer-clojure :exclude [format])
-  (:require [clojure.string :as str])
+  (:require [clojure.edn :as edn]
+            [clojure.java.io :as io]
+            [clojure.string :as str])
   (:import [org.apache.commons.validator.routines
             CreditCardValidator IBANValidator ISBNValidator ISSNValidator ISINValidator]
            [org.apache.commons.validator.routines.checkdigit
@@ -25,7 +27,7 @@
            [org.iban4j Iban Bic]
            [java.math BigInteger]
            [java.security MessageDigest]
-           [java.util Arrays]))
+           [java.util Arrays Locale]))
 
 (defn- norm ^String [s]
   (if s (-> (str s) (str/replace #"[\s.\-/]" "") str/upper-case) ""))
@@ -2518,7 +2520,7 @@
     :lv-vat :bg-vat :hr-vat :cz-vat :pt-vat :in-gstin :eu-oss :ch-vat
     :no-mva :fo-vn :is-vsk :vatin :eu-vat})
 
-(defn- type-category [type]
+(defn- category-for [type]
   (cond
     (banking-types type) :banking
     (securities-types type) :securities
@@ -2528,10 +2530,6 @@
     (vat-types type) :vat
     :else :national))
 
-(defn- type-country [type]
-  (let [[prefix suffix] (str/split (name type) #"-" 2)]
-    (when suffix (keyword prefix))))
-
 (defn- option-keyword [x]
   (some-> x name str/lower-case keyword))
 
@@ -2540,6 +2538,53 @@
       (throw (IllegalArgumentException.
               (str "Unknown identifier type: " (pr-str type)
                    ". Known types: " (sort types))))))
+
+(defn type-category
+  "The category `type` belongs to: one of :banking :securities :publishing :commerce
+  :research :vat :national. Never nil for a known type."
+  [type]
+  (entry type)
+  (category-for type))
+
+(def ^:private iso-country-codes
+  (delay (set (map str/lower-case (Locale/getISOCountries)))))
+
+(defn type-country
+  "The country a type is scoped to, as a lower-case ISO 3166-1 alpha-2 keyword
+  (:de for :de-vat), or nil for internationally scoped types (:iban, :credit-card).
+  :eu is recognized as the exceptionally reserved EU code."
+  [type]
+  (entry type)
+  (let [[prefix suffix] (str/split (name type) #"-" 2)]
+    (when (and suffix (or (= "eu" prefix) (contains? @iso-country-codes prefix)))
+      (keyword prefix))))
+
+(def ^:private verification-corpus
+  (delay (edn/read-string (slurp (io/resource "stdnum/vectors.edn")))))
+
+(defn examples
+  "All known-valid example identifiers of `type`, as a vector of strings."
+  [type]
+  (entry type)
+  (vec (:valid (get @verification-corpus type))))
+
+(defn example
+  "A known-valid example identifier of `type`, as a string - the first cited vector
+  from the verification corpus. Never nil for a known type."
+  [type]
+  (first (examples type)))
+
+(defn describe
+  "Metadata for `type` as a map:
+  {:type :de-vat :category :vat :country :de :example \"136695976\" :source \"...\"}"
+  [type]
+  (entry type)
+  (let [{:keys [source]} (get @verification-corpus type)]
+    {:type type
+     :category (type-category type)
+     :country (type-country type)
+     :example (example type)
+     :source source}))
 
 (defn- input-for ^String [type s]
   (cond
