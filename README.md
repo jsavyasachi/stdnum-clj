@@ -8,6 +8,10 @@ Unified validation, parsing, and formatting of 250+ standard identifier numbers 
 IBAN/BIC, credit cards, ISBN/ISSN/ISIN, and national ID, VAT/GST, and tax numbers for 80+
 countries - behind one small API.
 
+**[Try it live](https://savyasachi.dev/tools/stdnum)** - a hosted validator over this library:
+paste a number to validate, parse, or auto-detect its format, decode GS1-128 barcodes, and check EU
+VAT numbers against the live VIES registry. Numbers are validated in memory and never stored.
+
 ## Stack
 
 <a href="https://clojure.org"><img src="https://img.shields.io/badge/Clojure-5881D8?style=flat&logo=clojure&logoColor=fff" alt="Clojure" /></a>
