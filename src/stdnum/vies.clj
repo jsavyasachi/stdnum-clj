@@ -1,17 +1,17 @@
 (ns stdnum.vies
   "Online EU VAT validation against the official VIES service
-  (https://ec.europa.eu/taxation_customs/vies/). This is the one capability in
-  the library that performs network I/O - it is kept in its own namespace so
-  `stdnum.core` stays pure and dependency-light. `check` confirms a VAT number
-  actually *exists* in the member-state registry (and returns the trader name /
-  address where the state discloses them), which a checksum cannot do.
+  (https://ec.europa.eu/taxation_customs/vies/). This namespace is the one part
+  of the library that does network I/O. It stays separate, so that
+  `stdnum.core` stays pure and keeps few dependencies. `check` confirms that a
+  VAT number *exists* in the member-state registry, which a checksum cannot do.
+  It also returns the trader name and address if the member state gives them.
 
       (require '[stdnum.vies :as vies])
       (vies/check \"DE136695976\")
       ;=> {:valid? true, :country \"DE\", :vat-number \"136695976\", :name \"...\", ...}
 
-  Requires JDK 11+ (uses java.net.http). On any network/service failure `check`
-  returns `{:error <message>}` rather than throwing."
+  Requires JDK 11+ (it uses java.net.http). On a network failure or a service
+  failure, `check` returns `{:error <message>}` and does not throw."
   (:require [clojure.data.json :as json]
             [clojure.string :as str])
   (:import [java.net URI]
@@ -28,10 +28,10 @@
 
 (defn parse-response
   "Pure: turn a VIES REST JSON response body into a result map. A successful reply
-  yields `{:valid? :country :vat-number :name :address :request-date :raw}`; a
-  member-state error (e.g. `MS_UNAVAILABLE`, `MS_MAX_CONCURRENT_REQ`) yields
-  `{:error <code> :raw}` - the validity is genuinely unknown, not false. Exposed
-  so the parsing can be tested without a network call."
+  gives `{:valid? :country :vat-number :name :address :request-date :raw}`. A
+  member-state error (for example `MS_UNAVAILABLE` or `MS_MAX_CONCURRENT_REQ`)
+  gives `{:error <code> :raw}`: the validity is unknown, not false. This
+  function is public, so that you can test the parse without a network call."
   [^String body]
   (let [m (json/read-str body :key-fn keyword)]
     (if-let [errs (and (or (:errorWrappers m) (false? (:actionSucceed m)))
@@ -50,10 +50,10 @@
 
 (defn check
   "Look up a VAT number against the live EU VIES service. Accepts a full VAT id
-  with country prefix (\"DE136695976\") or an explicit `country` + `number`.
+  with a country prefix (\"DE136695976\"), or an explicit `country` and `number`.
   Returns `{:valid? :country :vat-number :name :address :request-date :raw}` on a
-  reply, or `{:error <message>}` on a network/service failure. Performs a network
-  request; requires JDK 11+."
+  reply. Returns `{:error <message>}` on a network failure or a service failure.
+  This function does a network request and requires JDK 11+."
   ([vat] (let [[c n] (split-vat vat)] (check c n)))
   ([country number]
    (try

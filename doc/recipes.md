@@ -1,6 +1,6 @@
 # Recipes
 
-## Validating Payment Data
+## Validate Payment Data
 
 Validate a payment card, then read the card network and display-safe fields:
 
@@ -50,7 +50,7 @@ Validate BIC, ABA routing, and Mexico CLABE account numbers:
 ;;    :account "07777777777"}
 ```
 
-## Parsing National IDs That Embed Data
+## Parse National IDs That Embed Data
 
 Some national identifiers encode dates, gender, region, or other structured
 fields. `parse` exposes those fields after the checksum and structure pass.
@@ -157,7 +157,7 @@ instead of `false`:
 That means validity is unknown for that lookup. It does not mean the VAT number
 is invalid.
 
-## Decoding GS1-128 Barcode Element Strings
+## Decode GS1-128 Barcode Element Strings
 
 `stdnum.gs1-128` parses GS1-128 Application Identifier element strings in either
 parenthesized form or raw scanner form with FNC1 separators.

@@ -4,13 +4,14 @@
 [![cljdoc](https://cljdoc.org/badge/net.clojars.savya/stdnum-clj)](https://cljdoc.org/d/net.clojars.savya/stdnum-clj)
 [![test](https://github.com/jsavyasachi/stdnum-clj/actions/workflows/test.yml/badge.svg)](https://github.com/jsavyasachi/stdnum-clj/actions/workflows/test.yml)
 
-Unified validation, parsing, and formatting of 250+ standard identifier numbers for Clojure -
-IBAN/BIC, credit cards, ISBN/ISSN/ISIN, and national ID, VAT/GST, and tax numbers for 80+
-countries - behind one small API.
+One small API to validate, parse, and format 250+ standard identifier numbers in Clojure.
+It covers IBAN/BIC, credit cards, ISBN/ISSN/ISIN, and national ID, VAT/GST, and tax
+numbers for 80+ countries.
 
-**[Try it live](https://savyasachi.dev/tools/stdnum)** - a hosted validator over this library:
-paste a number to validate, parse, or auto-detect its format, decode GS1-128 barcodes, and check EU
-VAT numbers against the live VIES registry. Numbers are validated in memory and never stored.
+**[Try it live](https://savyasachi.dev/tools/stdnum)** - a hosted validator over this library.
+Paste a number to validate it, to parse it, or to detect its format. The validator also decodes
+GS1-128 barcodes and checks EU VAT numbers against the live VIES registry. It keeps numbers in
+memory only and stores none of them.
 
 ## Stack
 
@@ -24,17 +25,18 @@ VAT numbers against the live VIES registry. Numbers are validated in memory and 
 
 ## Why
 
-Clojure has plenty of *one-identifier* libraries (an IBAN parser here, a Luhn checker there),
-most of them tiny and unmaintained, each with its own API. There was no single library that
-validates the common, checksummable identifiers under one consistent interface - the way
+Clojure has many *one-identifier* libraries: an IBAN parser here, a Luhn checker there. Most
+of them are small and unmaintained, and each one has its own API. No single library validated
+the common, checksummable identifiers behind one consistent interface, the way
 Python's [python-stdnum](https://arthurdejong.org/python-stdnum/) does. `stdnum-clj` is that
-facade, and now covers python-stdnum's full catalogue of number formats. For the international
-identifiers it
+facade, and it now covers the full catalogue of number formats in python-stdnum.
+
+For the international identifiers, this library
 wraps the maintained [Apache Commons Validator](https://commons.apache.org/proper/commons-validator/)
-and [iban4j](https://github.com/arturmkrtchyan/iban4j) engines rather than reinventing them, so
-those checks are as correct as those libraries and stay correct as they're updated. The national
-and tax standards with public, well-documented algorithms are implemented clean-room and kept
-under this library's EPL license.
+and [iban4j](https://github.com/arturmkrtchyan/iban4j) engines instead of writing them again.
+Those checks stay as correct as the two engines when the engines get updates. This library
+implements the national and tax standards that have public, documented algorithms clean-room. It
+keeps them under its EPL license.
 
 ## Install
 
@@ -111,8 +113,9 @@ directly:
 
 ## GS1-128 barcode parsing
 
-`stdnum.gs1-128` decodes GS1-128 (UCC/EAN-128) Application Identifier element strings - the data
-carried on logistics and retail barcodes - in either the parenthesized or raw FNC1 form:
+`stdnum.gs1-128` decodes GS1-128 (UCC/EAN-128) Application Identifier element strings. These
+strings hold the data on logistics and retail barcodes. The parser accepts the parenthesized
+form and the raw FNC1 form:
 
 ```clojure
 (require '[stdnum.gs1-128 :as gs1])
@@ -126,8 +129,9 @@ carried on logistics and retail barcodes - in either the parenthesized or raw FN
 
 ## Online VAT validation (VIES)
 
-A checksum proves a VAT number is *well-formed*; it can't prove the company exists. `stdnum.vies`
-checks a number against the EU's live [VIES](https://ec.europa.eu/taxation_customs/vies/) registry:
+A checksum proves that a VAT number is *well-formed*. It cannot prove that the company exists.
+`stdnum.vies` checks a number against the EU's live
+[VIES](https://ec.europa.eu/taxation_customs/vies/) registry:
 
 ```clojure
 (require '[stdnum.vies :as vies])
@@ -136,10 +140,10 @@ checks a number against the EU's live [VIES](https://ec.europa.eu/taxation_custo
 ;    :name "AMAZON EUROPE CORE S.A R.L.", :address "38, AVENUE JOHN F. KENNEDY...", ...}
 ```
 
-A member-state outage (`MS_UNAVAILABLE`, rate-limiting, …) returns `{:error "..."}` rather than a
-misleading `:valid? false` - validity is genuinely unknown when the registry can't answer. This is
-the only part of the library that does network I/O; it lives in its own namespace, **requires JDK
-11+** (uses `java.net.http`), and pulls in `org.clojure/data.json`. `stdnum.core` stays pure.
+A member-state outage (`MS_UNAVAILABLE`, rate limiting, and so on) returns `{:error "..."}`.
+It does not return a misleading `:valid? false`. When the registry cannot answer, the validity is unknown. This
+namespace is the only part of the library that does network I/O. It **requires JDK 11+** (it uses
+`java.net.http`) and it adds `org.clojure/data.json`. `stdnum.core` stays pure.
 
 ## Supported identifiers
 
@@ -156,37 +160,43 @@ the only part of the library that does network I/O; it lives in its own namespac
 | **Publishing / media / device** | `:isbn` · `:issn` · `:ismn` · `:iswc` · `:grid` · `:isan` · `:eu-banknote` · `:imei` · `:luhn` · `:isrc` · `:isil` · `:mac` · `:imsi` · `:meid` · `:bitcoin` |
 | **Commerce / logistics / vehicle / industry** | `:ean13` · `:ean8` · `:upc` · `:gtin14` · `:sscc` · `:gln` · `:iso6346` · `:upu-s10` · `:vin` · `:imo` · `:cas` · `:nhs` · `:npi` · `:it-aic` · `:eu-eic` · `:eu-ecnumber` · `:eu-excise` · `:eu-nace` · `:es-cae` · `:es-cups` · `:es-postalcode` · `:at-postleitzahl` · `:nl-brin` · `:nl-postcode` · `:se-postnummer` |
 | **Research / name** | `:orcid` · `:isni` |
-| **National & tax IDs — Europe** | `:gb-nino` · `:es-dni` · `:es-nie` · `:es-nif` · `:es-referenciacatastral` · `:nl-bsn` · `:nl-identiteitskaartnummer` · `:nl-onderwijsnummer` · `:se-pnr` · `:no-org` · `:no-fodselsnummer` · `:pt-nif` · `:pt-cc` · `:cz-ico` · `:hr-oib` · `:it-cf` · `:ch-uid` · `:ch-ahv` · `:be-nn` · `:be-bis` · `:be-ssn` · `:be-eid` · `:fi-hetu` · `:fr-nir` · `:fr-nif` · `:fr-accise` · `:pl-pesel` · `:ie-pps` · `:ee-ik` · `:lt-asmens` · `:si-emso` · `:ro-cnp` · `:ro-cf` · `:ro-cui` · `:ro-onrc` · `:cz-rc` · `:sk-rc` · `:gr-amka` · `:bg-egn` · `:bg-pnf` · `:ru-inn` · `:ru-snils` · `:ua-edrpou` · `:ua-rntrc` · `:is-kennitala` · `:ru-ogrn` · `:rs-pib` · `:me-pib` · `:mk-edb` · `:pl-regon` · `:sk-ico` · `:ee-rk` · `:fr-siren` · `:fr-siret` · `:fr-rcs` · `:se-orgnr` · `:es-cif` · `:md-idno` · `:by-unp` · `:si-maticna` · `:ad-nrt` · `:al-nipt` · `:li-peid` · `:sm-coe` · `:gb-utr` · `:gb-upn` · `:dk-cvr` · `:dk-cpr` · `:fi-ytunnus` · `:fi-associationid` · `:fi-veronumero` · `:de-idnr` · `:de-handelsregisternummer` · `:de-leitweg` · `:de-stnr` · `:az-voen` · `:at-businessid` · `:at-tin` · `:at-vnr` · `:jmbg` |
-| **National & tax IDs — Americas** | `:us-ssn` · `:us-ein` · `:br-cpf` · `:br-cnpj` · `:ca-sin` · `:ca-bcphn` · `:ar-cuit` · `:ar-dni` · `:cl-rut` · `:co-nit` · `:pe-ruc` · `:pe-cui` · `:cr-cpf` · `:cr-cpj` · `:cr-cr` · `:ec-ced` · `:mx-curp` · `:ve-rif` · `:do-rnc` · `:do-cedula` · `:do-ncf` · `:uy-rut` · `:ec-ruc` · `:py-ruc` · `:gt-nit` · `:mx-rfc` · `:ca-bn` · `:cu-ni` · `:sv-nit` · `:us-itin` · `:us-atin` · `:us-ptin` · `:us-tin` |
-| **National & tax IDs — Asia-Pacific** | `:au-abn` · `:au-tfn` · `:in-pan` · `:in-aadhaar` · `:in-epic` · `:in-vid` · `:cn-ric` · `:jp-cn` · `:jp-in` · `:nz-ird` · `:sg-nric` · `:sg-uen` · `:hk-id` · `:kr-brn` · `:kr-rrn` · `:tw-gui` · `:cn-usci` · `:vn-mst` · `:au-acn` · `:nz-nzbn` · `:id-npwp` · `:id-nik` · `:th-moa` · `:th-pin` · `:th-tin` · `:kz-bin` · `:my-nric` · `:pk-cnic` |
-| **National & tax IDs — Africa & M. East** | `:za-id` · `:za-tin` · `:tr-tc` · `:il-idnr` · `:il-company` · `:tr-vkn` · `:mu-nid` · `:mz-nuit` · `:ke-pin` · `:dz-nif` · `:eg-tn` · `:gh-tin` · `:gn-nifp` · `:ma-ice` · `:tn-mf` · `:sn-ninea` |
+| **National & tax IDs - Europe** | `:gb-nino` · `:es-dni` · `:es-nie` · `:es-nif` · `:es-referenciacatastral` · `:nl-bsn` · `:nl-identiteitskaartnummer` · `:nl-onderwijsnummer` · `:se-pnr` · `:no-org` · `:no-fodselsnummer` · `:pt-nif` · `:pt-cc` · `:cz-ico` · `:hr-oib` · `:it-cf` · `:ch-uid` · `:ch-ahv` · `:be-nn` · `:be-bis` · `:be-ssn` · `:be-eid` · `:fi-hetu` · `:fr-nir` · `:fr-nif` · `:fr-accise` · `:pl-pesel` · `:ie-pps` · `:ee-ik` · `:lt-asmens` · `:si-emso` · `:ro-cnp` · `:ro-cf` · `:ro-cui` · `:ro-onrc` · `:cz-rc` · `:sk-rc` · `:gr-amka` · `:bg-egn` · `:bg-pnf` · `:ru-inn` · `:ru-snils` · `:ua-edrpou` · `:ua-rntrc` · `:is-kennitala` · `:ru-ogrn` · `:rs-pib` · `:me-pib` · `:mk-edb` · `:pl-regon` · `:sk-ico` · `:ee-rk` · `:fr-siren` · `:fr-siret` · `:fr-rcs` · `:se-orgnr` · `:es-cif` · `:md-idno` · `:by-unp` · `:si-maticna` · `:ad-nrt` · `:al-nipt` · `:li-peid` · `:sm-coe` · `:gb-utr` · `:gb-upn` · `:dk-cvr` · `:dk-cpr` · `:fi-ytunnus` · `:fi-associationid` · `:fi-veronumero` · `:de-idnr` · `:de-handelsregisternummer` · `:de-leitweg` · `:de-stnr` · `:az-voen` · `:at-businessid` · `:at-tin` · `:at-vnr` · `:jmbg` |
+| **National & tax IDs - Americas** | `:us-ssn` · `:us-ein` · `:br-cpf` · `:br-cnpj` · `:ca-sin` · `:ca-bcphn` · `:ar-cuit` · `:ar-dni` · `:cl-rut` · `:co-nit` · `:pe-ruc` · `:pe-cui` · `:cr-cpf` · `:cr-cpj` · `:cr-cr` · `:ec-ced` · `:mx-curp` · `:ve-rif` · `:do-rnc` · `:do-cedula` · `:do-ncf` · `:uy-rut` · `:ec-ruc` · `:py-ruc` · `:gt-nit` · `:mx-rfc` · `:ca-bn` · `:cu-ni` · `:sv-nit` · `:us-itin` · `:us-atin` · `:us-ptin` · `:us-tin` |
+| **National & tax IDs - Asia-Pacific** | `:au-abn` · `:au-tfn` · `:in-pan` · `:in-aadhaar` · `:in-epic` · `:in-vid` · `:cn-ric` · `:jp-cn` · `:jp-in` · `:nz-ird` · `:sg-nric` · `:sg-uen` · `:hk-id` · `:kr-brn` · `:kr-rrn` · `:tw-gui` · `:cn-usci` · `:vn-mst` · `:au-acn` · `:nz-nzbn` · `:id-npwp` · `:id-nik` · `:th-moa` · `:th-pin` · `:th-tin` · `:kz-bin` · `:my-nric` · `:pk-cnic` |
+| **National & tax IDs - Africa & M. East** | `:za-id` · `:za-tin` · `:tr-tc` · `:il-idnr` · `:il-company` · `:tr-vkn` · `:mu-nid` · `:mz-nuit` · `:ke-pin` · `:dz-nif` · `:eg-tn` · `:gh-tin` · `:gn-nifp` · `:ma-ice` · `:tn-mf` · `:sn-ninea` |
 | **VAT / GST** (EU-27 complete) | `:de-vat` · `:fr-vat` · `:mc-tva` · `:it-vat` · `:be-vat` · `:pl-vat` · `:gb-vat` · `:at-vat` · `:dk-vat` · `:fi-vat` · `:se-vat` · `:gr-vat` · `:lu-vat` · `:si-vat` · `:ee-vat` · `:hu-vat` · `:mt-vat` · `:sk-vat` · `:lt-vat` · `:cy-vat` · `:ro-vat` · `:es-vat` · `:ie-vat` · `:nl-vat` · `:lv-vat` · `:bg-vat` · `:hr-vat` · `:cz-vat` · `:pt-vat` · `:in-gstin` · `:eu-oss` · `:ch-vat` · `:no-mva` · `:fo-vn` · `:is-vsk` · `:vatin` · `:eu-vat` |
 
 </details>
 
-International identifiers are wrapped from Commons Validator / iban4j; global and national
-standards with public, well-documented algorithms (LEI, VAT, CPF/CNPJ, SSN, …) are implemented
-clean-room and stay under this library's EPL license. More are added on demand - open an issue
-for an identifier you need.
+This library wraps the international identifiers from Commons Validator and iban4j. It
+implements the global and national standards that have public, documented algorithms (LEI, VAT,
+CPF/CNPJ, SSN, and so on) clean-room, and keeps them under its EPL license. To get more formats,
+open an issue for the identifier you need.
 
 ## Verification (source of truth)
 
-Correctness is pinned by a cited corpus, not ad-hoc assertions. `resources/stdnum/vectors.edn` maps
+A cited corpus sets correctness, not ad-hoc assertions. `resources/stdnum/vectors.edn` maps
 every one of the identifier types to `{:valid [...] :invalid [...] :source "..."}`, and `:source`
-is mandatory. The corpus ships in the jar and backs `example`, `examples`, and `describe`. Each vector is a worked example from the standard, a government registry, an issuing
-company's published number, a [python-stdnum](https://arthurdejong.org/python-stdnum/) module
-doctest, or a live VIES check. The test suite is driven from this file, so adding a format means
-adding a cited vector first.
+is mandatory. The corpus ships in the jar and supplies the data for `example`, `examples`, and
+`describe`. Each vector comes from one of these sources:
 
-Every checksummed type is verified against an independently recomputed check digit. Where a type is
-purely structural (validated by format, embedded date, or component code, with no check digit) the
-`:source` says so. Where no published example exists, a number constructed from the published
-algorithm is cited as *constructed* rather than passed off as a real published number.
+- a worked example in the standard
+- a government registry
+- a number published by an issuing company
+- a [python-stdnum](https://arthurdejong.org/python-stdnum/) module doctest
+- a live VIES check
 
-For EU VAT, entries tagged `:vies true` are confirmed live-registered companies. The
-`clojure -M:test` suite skips these network-backed rechecks. (A useful distinction
-that surfaced: a valid checksum doesn't imply a *registered* number - several common example VAT
-numbers are checksum-valid but unregistered, and are labelled as algorithm examples accordingly.)
+The test suite runs from this file. To add a format, add a cited vector first.
+
+The tests verify every checksummed type against a check digit that they compute independently.
+If a type is purely structural (it has a format, an embedded date, or a component
+code, but no check digit), the `:source` says so. If no published example exists, the corpus cites
+a number built from the published algorithm and marks it *constructed*.
+
+For EU VAT, entries with the tag `:vies true` are companies with a confirmed live registration.
+The `clojure -M:test` suite skips these network-backed rechecks. A valid checksum does not make a
+number *registered*: several common example VAT numbers have a valid checksum but no registration,
+and the corpus labels them as algorithm examples.
 
 ## License
 

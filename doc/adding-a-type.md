@@ -1,7 +1,7 @@
-# Adding an Identifier Type
+# Add an Identifier Type
 
-Every shipped identifier type is driven by the cited corpus in
-`resources/stdnum/vectors.edn`.
+The cited corpus in `resources/stdnum/vectors.edn` drives every shipped
+identifier type.
 
 Each corpus entry has this shape:
 
@@ -22,17 +22,17 @@ issuer publication, or live service that makes the vector re-checkable.
 3. Register the validator in `stdnum.core`.
 4. Run the suite.
 
-For EU VAT values that are confirmed as live-registered companies, add
-`:vies true`; the integration test re-checks those against the live VIES
+For EU VAT values that are companies with a confirmed live registration, add
+`:vies true`. The integration test checks those again against the live VIES
 service.
 
-## Bar To Ship
+## Conditions to publish
 
 Do not publish a validator that rejects valid real-world numbers.
 
-Ambiguous or unverifiable formats stay out until there is a confirmed real vector
-from an authoritative source. The corpus comes first because it defines what the
-validator is allowed to claim.
+Do not publish ambiguous formats or formats that you cannot verify. Wait until
+a confirmed real vector from an authoritative source exists. The corpus sets
+what the validator can claim.
 
 `stdnum-clj` follows the same basic idea as python-stdnum: standard numbers are
 small APIs, but their correctness depends on published examples and testable

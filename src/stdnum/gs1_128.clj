@@ -1,18 +1,19 @@
 (ns stdnum.gs1-128
-  "Parsing of GS1-128 (formerly UCC/EAN-128) element strings - the Application
-  Identifier (AI) encoding used on logistics and retail barcodes.
+  "A parser for GS1-128 (formerly UCC/EAN-128) element strings. These strings use
+  the Application Identifier (AI) encoding on logistics and retail barcodes.
 
-  `parse` accepts either the human-readable parenthesized form or the raw scanned
-  form (variable-length fields terminated by FNC1 / ASCII group-separator 0x1D),
-  and returns a vector of segment maps in order:
+  `parse` accepts the human-readable parenthesized form or the raw scanned form.
+  In the raw form, FNC1 (the ASCII group separator 0x1D) ends a variable-length
+  field. `parse` returns a vector of segment maps, in order:
 
       (parse \"(01)09521234543213(15)170331(10)ABC123\")
       ;=> [{:ai \"01\" :label \"GTIN\"        :value \"09521234543213\"}
       ;    {:ai \"15\" :label \"BEST BEFORE\" :value \"170331\"}
       ;    {:ai \"10\" :label \"BATCH/LOT\"   :value \"ABC123\"}]
 
-  Weight/measure and amount AIs carry an implied decimal place (the AI's last
-  digit); those segments also report `:decimals` and a numeric `:decimal-value`."
+  Weight, measure, and amount AIs carry an implied decimal place: the last digit
+  of the AI. Those segments also report `:decimals` and a numeric
+  `:decimal-value`."
   (:require [clojure.string :as str]))
 
 (def ^:private fnc1 (char 29))

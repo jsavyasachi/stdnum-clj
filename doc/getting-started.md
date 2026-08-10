@@ -77,7 +77,7 @@ for example `(stdnum/parse :aba "021000021")`.
 
 ## Error Contract
 
-Bad data is data, not an exception:
+Bad data gives a value, not an exception:
 
 ```clojure
 (stdnum/valid? :iban "GB82 WEST 1234 5698 7654 33")

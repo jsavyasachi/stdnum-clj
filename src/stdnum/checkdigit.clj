@@ -2,9 +2,10 @@
   "Standalone check-digit algorithms (Luhn, Verhoeff, ISO 7064), usable directly
   when you need the primitive rather than a typed identifier validator.
 
-  Each algorithm offers a `*-valid?` predicate over a complete string (payload +
-  trailing check character) and, where meaningful, a `*-check-digit` /
-  `*-check` calculator that returns the check character for a bare payload.
+  Each algorithm has a `*-valid?` predicate over a complete string (payload plus
+  the trailing check character). Where it applies, an algorithm also has a
+  `*-check-digit` or `*-check` calculator. The calculator returns the check
+  character for a bare payload.
 
       (luhn-valid? \"79927398713\")          ;=> true
       (luhn-check-digit \"7992739871\")       ;=> \"3\"
@@ -20,7 +21,7 @@
 ;; --- Luhn (mod 10): credit cards, IMEI, many national numbers -----------------
 (defn luhn-valid?
   "True if the digit string `s` (payload plus its trailing check digit) satisfies
-  the Luhn checksum. Non-digit input returns false rather than throwing."
+  the Luhn checksum. Non-digit input returns false and does not throw."
   [s]
   (boolean (and (digits? s) (.isValid luhn-cd ^String s))))
 
@@ -68,7 +69,7 @@
 
 (defn iso7064-mod97-10-valid?
   "True if the alphanumeric string `s` (letters A-Z taken as 10-35, check digits
-  included) is valid under ISO 7064 Mod 97-10 - i.e. its running remainder is 1.
-  This is the LEI / IBAN-style checksum."
+  included) is valid under ISO 7064 Mod 97-10: its running remainder is 1.
+  This is the LEI and IBAN style of checksum."
   [s]
   (boolean (and (string? s) (re-matches #"[0-9A-Z]+" s) (= 1 (mod97-10-remainder s)))))

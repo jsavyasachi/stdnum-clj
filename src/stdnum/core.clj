@@ -1,20 +1,19 @@
 (ns stdnum.core
-  "Unified validation, parsing, and formatting of standard identifier numbers.
+  "Validate, parse, and format standard identifier numbers.
 
-  One API over several identifier types - credit cards, IBAN/BIC, ISBN, ISSN,
-  ISIN, US bank routing (ABA), IMEI, and the raw Luhn check - dispatched on a
-  type keyword. Idiomatic Clojure data in and out; an idiomatic facade over the
-  maintained Apache Commons Validator and iban4j engines (it does not reinvent
-  the algorithms).
+  This API supports credit cards, IBAN/BIC, ISBN, ISSN, ISIN, US bank routing
+  (ABA), IMEI, and the raw Luhn check. A type keyword selects the identifier
+  type. The API uses Clojure data. It is a facade over Apache Commons Validator
+  and iban4j. It does not reimplement their algorithms.
 
       (valid?  :iban \"GB82 WEST 1234 5698 7654 32\")  ;=> true
       (parse   :credit-card \"4111111111111111\")      ;=> {:valid? true :network :visa}
       (format  :iban \"GB82WEST12345698765432\")       ;=> \"GB82 WEST 1234 5698 7654 32\"
       (detect  \"4111111111111111\")                   ;=> [:credit-card :luhn]
 
-  `valid?`/`parse`/`format` throw only on an unknown identifier type (a caller
-  bug); bad input data never throws - `valid?` returns false, `parse` returns
-  {:valid? false}, `format` returns nil."
+  `valid?`, `parse`, and `format` throw only for an unknown identifier type.
+  Bad input data does not throw. `valid?` returns false, `parse` returns
+  {:valid? false}, and `format` returns nil."
   (:refer-clojure :exclude [format])
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
@@ -2540,8 +2539,8 @@
                    ". Known types: " (sort types))))))
 
 (defn type-category
-  "The category `type` belongs to: one of :banking :securities :publishing :commerce
-  :research :vat :national. Never nil for a known type."
+  "Return the category of `type`: :banking, :securities, :publishing, :commerce,
+  :research, :vat, or :national. A known type never returns nil."
   [type]
   (entry type)
   (category-for type))
@@ -2550,9 +2549,9 @@
   (delay (set (map str/lower-case (Locale/getISOCountries)))))
 
 (defn type-country
-  "The country a type is scoped to, as a lower-case ISO 3166-1 alpha-2 keyword
-  (:de for :de-vat), or nil for internationally scoped types (:iban, :credit-card).
-  :eu is recognized as the exceptionally reserved EU code."
+  "Return the country of a type as a lower-case ISO 3166-1 alpha-2 keyword.
+  For example, :de is the country of :de-vat. International types, such as
+  :iban and :credit-card, return nil. :eu is the exceptionally reserved EU code."
   [type]
   (entry type)
   (let [[prefix suffix] (str/split (name type) #"-" 2)]
@@ -2569,8 +2568,8 @@
   (vec (:valid (get @verification-corpus type))))
 
 (defn example
-  "A known-valid example identifier of `type`, as a string - the first cited vector
-  from the verification corpus. Never nil for a known type."
+  "Return a known-valid identifier of `type` as a string. This is the first
+  cited vector from the verification corpus. A known type never returns nil."
   [type]
   (first (examples type)))
 
@@ -2593,22 +2592,23 @@
     :else (norm s)))
 
 (defn compact
-  "Return `s` stripped of spaces, hyphens, and dots and upper-cased - the
-  canonical compact form shared by every identifier type."
+  "Return `s` without spaces, hyphens, and dots, in upper case. This is the
+  canonical compact form for every identifier type."
   [s]
   (norm s))
 
 (defn valid?
-  "True if `s` is a valid identifier of `type`. Bad data returns false; an
+  "True if `s` is a valid identifier of `type`. Bad data returns false. An
   unknown `type` throws IllegalArgumentException."
   [type s]
   (let [{:keys [validate]} (entry type)]
     (try (boolean (validate (input-for type s))) (catch Exception _ false))))
 
 (defn parse
-  "Validate `s` as `type` and return a map. On success: at least `{:valid? true}`,
-  plus type-specific fields (e.g. card `:network`; IBAN `:country`/`:bban`/
-  `:formatted`). On bad data: `{:valid? false}`. Unknown `type` throws."
+  "Validate `s` as `type` and return a map. A valid value returns at least
+  `{:valid? true}`. It can also return type-specific fields, such as card
+  `:network` or IBAN `:country`, `:bban`, and `:formatted`. Bad data returns
+  `{:valid? false}`. An unknown `type` throws."
   [type s]
   (let [{:keys [validate parse]} (entry type)
         n (input-for type s)]
@@ -2617,9 +2617,9 @@
       {:valid? false})))
 
 (defn format
-  "Canonical human-readable form of `s` as `type` (e.g. IBAN grouped in fours,
-  ISSN hyphenated, card grouped in fours), or nil if `s` is not valid. Unknown
-  `type` throws."
+  "Return the canonical form of `s` as `type`. For example, it groups an IBAN
+  and a card number in fours and hyphenates an ISSN. Return nil if `s` is not
+  valid. An unknown `type` throws."
   [type s]
   (let [{:keys [validate format]} (entry type)
         n (input-for type s)]
@@ -2627,11 +2627,11 @@
       (if format (format n) n))))
 
 (defn detect
-  "Return a vector of the identifier types that consider `s` valid (possibly
-  several, e.g. a card number is also Luhn-valid). Empty when nothing matches.
-  Optional `:country` (ISO prefix) and `:category` (`:banking`, `:securities`,
-  `:publishing`, `:commerce`, `:research`, `:national`, or `:vat`) filters
-  constrain the candidate types."
+  "Return a vector of identifier types that consider `s` valid. A card number,
+  for example, can also be Luhn-valid. Return an empty vector if no type matches.
+  Optional `:country` and `:category` filters constrain the candidate types.
+  `:country` is an ISO prefix. `:category` is :banking, :securities,
+  :publishing, :commerce, :research, :national, or :vat."
   ([s] (detect s {}))
   ([s {:keys [country category]}]
    (let [country (option-keyword country)

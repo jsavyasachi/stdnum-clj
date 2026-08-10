@@ -12,7 +12,7 @@ focused feature contributions are all welcome.
 ## Development
 
 This is a Clojure library. You need a JDK and [Leiningen](https://leiningen.org/)
-(projects that have migrated to `deps.edn` use the Clojure CLI instead — see the
+(a project that uses `deps.edn` uses the Clojure CLI instead: see the
 README).
 
 ```bash
@@ -20,7 +20,7 @@ lein test     # run the test suite
 lein check    # AOT-compile; must be free of reflection warnings
 ```
 
-The bar for a mergeable change:
+We can merge a change if it meets these conditions:
 
 - **Tests first.** Add or update tests for the behavior you change; for a bug
   fix, include a regression test that fails before your fix and passes after.
@@ -38,5 +38,5 @@ The bar for a mergeable change:
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the
-same license as this project (see `LICENSE` / the README).
+If you contribute, you agree that this project's license applies to your
+contributions (see `LICENSE` and the README).

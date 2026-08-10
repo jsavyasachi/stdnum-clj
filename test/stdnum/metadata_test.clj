@@ -5,8 +5,8 @@
             [clojure.test :refer [deftest is testing]]
             [stdnum.core :as stdnum]))
 
-;; Called directly, not via ns-resolve: a var that goes private or disappears must
-;; break compilation here rather than silently degrade an assertion to nil = nil.
+;; Call directly, not with ns-resolve. A var that becomes private or disappears
+;; must break compilation here. It must not change an assertion to nil = nil.
 
 (def corpus
   (edn/read-string (slurp (io/resource "stdnum/vectors.edn"))))

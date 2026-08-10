@@ -2,7 +2,7 @@
   (:require [clojure.test :refer [deftest testing is]]
             [stdnum.vies :as vies]))
 
-;; The response parser is pure and is unit-tested with canned JSON (no network).
+;; The response parser is pure. The unit test uses saved JSON and no network.
 (deftest parse-response
   (testing "a valid VIES reply with trader details"
     (let [r (vies/parse-response
@@ -21,8 +21,8 @@
       (is (= "MS_UNAVAILABLE" (:error r)))
       (is (not (contains? r :valid?))))))
 
-;; The live lookup hits the EU service; excluded from the default run. Run with
-;; `lein test :integration`. Lenient because VIES is frequently unavailable.
+;; The live lookup uses the EU service. The default run excludes it. Run
+;; `lein test :integration`. VIES can be unavailable.
 (deftest ^:integration live-check
   (testing "live VIES lookup returns a shaped result (or a graceful :error)"
     (let [r (vies/check "DE136695976")]

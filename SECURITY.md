@@ -2,11 +2,11 @@
 
 ## Supported versions
 
-This is a community-maintained library. Security fixes are applied to the
+This is a community-maintained library. Security fixes go into the
 **latest released version** on Clojars. Please upgrade to the latest release
-before reporting an issue.
+before you report an issue.
 
-## Reporting a vulnerability
+## Report a vulnerability
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
@@ -20,6 +20,6 @@ Please include:
 - steps to reproduce (or a proof of concept), and
 - the affected version(s).
 
-You can expect an initial acknowledgement within a reasonable time. Once the
-issue is confirmed and a fix is released, the advisory will be published with
-credit to the reporter unless you request otherwise.
+You can expect a first acknowledgement in a reasonable time. After we confirm the
+issue and release a fix, we publish the advisory. The advisory gives credit to
+the reporter, unless you ask us not to.

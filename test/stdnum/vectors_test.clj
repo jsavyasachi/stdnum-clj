@@ -1,8 +1,8 @@
 (ns stdnum.vectors-test
-  "Data-driven verification: the corpus in `vectors.edn` is the source of truth and
-  this drives the suite from it. Every valid vector must validate, every invalid
-  one must not, every entry must cite a `:source`, and (in the integration run)
-  every VIES-tagged EU VAT must still pass against the live registry."
+  "The corpus in `vectors.edn` is the source of truth. The test suite uses it.
+  Every valid vector must validate. Every invalid vector must fail validation.
+  Every entry must cite a `:source`. The integration run checks VIES-tagged EU
+  VAT numbers against the live registry."
   (:require [clojure.test :refer [deftest testing is]]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
@@ -22,20 +22,20 @@
       (doseq [v invalid] (is (not (stdnum/valid? t v)) (str t " should reject " v))))))
 
 (deftest corpus-coverage
-  (testing "report which shipped types still lack a corpus vector (grow the corpus)"
+  (testing "report shipped types without a corpus vector"
     (let [uncovered (sort (remove (set (keys corpus)) stdnum/types))]
       (when (seq uncovered)
         (println "[vectors] types without a corpus vector yet:" (vec uncovered)))
-      ;; corpus must cover a strong majority of shipped types
+      ;; The corpus must cover most shipped types.
       (is (>= (count corpus) (int (* 0.75 (count stdnum/types))))
           "corpus should cover at least 75% of shipped types"))))
 
-;; Source-of-truth-as-test: re-confirm the VIES-tagged VAT numbers against the
-;; live EU service. Skipped by default (network); run with `lein test :integration`.
+;; The integration test checks VIES-tagged VAT numbers against the live EU service.
+;; The default test run skips it. Run `lein test :integration` to run it.
 (deftest ^:integration vies-source-of-truth
   (doseq [[t {:keys [valid vies]}] corpus :when vies, v valid]
     (let [r (vies/check v)]
       (testing (str t " " v " against live VIES")
-        ;; tolerate transient member-state outages, assert when the service answered
+        ;; Accept member-state outages. Check the result when the service replies.
         (is (or (:error r) (:valid? r))
             (str v " unexpectedly reported invalid by VIES: " (pr-str r)))))))
