@@ -75,39 +75,85 @@
 (defn- segment [^String ai spec ^String value]
   (with-decimals {:ai ai :label (:label spec "UNKNOWN") :value value} spec value))
 
+(defn- valid-value? [spec ^String value]
+  (and (pos? (count value))
+       (not (str/includes? value (str fnc1)))
+       (or (nil? (:decimals spec)) (re-matches #"\d+" value))
+       (if-let [len (:len spec)]
+         (= len (count value))
+         (<= (count value) (:max spec)))))
+
 (defn- parse-parens [^String s]
-  (mapv (fn [[_ ai value]] (segment ai (ai-spec ai) value))
-        (re-seq #"\((\d{2,4})\)([^(]*)" s)))
+  (when (re-matches #"(?:\(\d{2,4}\)[^()]*)+" s)
+    (let [segments (mapv (fn [[_ ai value]]
+                           (when-let [spec (ai-spec ai)]
+                             (when (valid-value? spec value)
+                               (segment ai spec value))))
+                         (re-seq #"\((\d{2,4})\)([^()]+)" s))]
+      (when (and (seq segments) (every? some? segments))
+        segments))))
+
+(defn- ai-at [^String s i]
+  (some (fn [k]
+          (when (and (<= (+ i k) (count s))
+                     (ai-spec (subs s i (+ i k))))
+            (subs s i (+ i k))))
+        [4 3 2]))
+
+(declare parse-raw)
+
+(defn- unseparated-ai-suffix? [^String s vstart]
+  (some (fn [i]
+          (when (and (ai-at s i) (parse-raw (subs s i)))
+            true))
+        (range (inc vstart) (count s))))
 
 (defn- parse-raw [^String s]
   (loop [i 0 out []]
     (if (>= i (count s))
       out
       ;; longest AI prefix (4..2 digits) that resolves
-      (let [ai (some (fn [k] (when (and (<= (+ i k) (count s))
-                                        (ai-spec (subs s i (+ i k))))
-                               (subs s i (+ i k))))
-                     [4 3 2])]
+      (let [ai (ai-at s i)]
         (if-not ai
-          out                                          ; unknown AI: stop, return what we have
+          nil                                          ; unknown AI or unparsed tail
           (let [spec (ai-spec ai)
                 vstart (+ i (count ai))
-                vend (long (if-let [len (:len spec)]
-                             (min (count s) (+ vstart len))
-                             (let [gs (str/index-of s fnc1 vstart)] (or gs (count s)))))
-                value (subs s vstart vend)
-                ;; skip a trailing FNC1 after a variable field
-                next-i (if (and (:max spec) (< vend (count s)) (= 29 (int (.charAt s vend))))
-                         (inc vend) vend)]
-            (recur next-i (conj out (segment ai spec value)))))))))
+                fixed-len (:len spec)
+                gs (str/index-of s fnc1 vstart)
+                vend (if fixed-len
+                       (+ vstart fixed-len)
+                       (or gs (count s)))]
+            (when (<= vend (count s))
+              (let [value (subs s vstart vend)
+                    variable? (contains? spec :max)
+                    missing-separator? (and variable?
+                                            (nil? gs)
+                                            (unseparated-ai-suffix? s vstart))]
+                (when (and (valid-value? spec value) (not missing-separator?))
+                  ;; skip the FNC1 that ends a variable field
+                  (recur (if (and variable? gs) (inc vend) vend)
+                         (conj out (segment ai spec value))))))))))))
 
 (defn parse
   "Parse a GS1-128 element string (parenthesized or raw/FNC1 form) into an ordered
-  vector of `{:ai :label :value (:decimals :decimal-value)}` segments."
-  [^String s]
-  (if (str/includes? s "(") (parse-parens s) (parse-raw s)))
+  vector of `{:ai :label :value (:decimals :decimal-value)}` segments. Invalid
+  data returns `{:valid? false}`."
+  [s]
+  (if (string? s)
+    (or (if (str/includes? s "(") (parse-parens s) (parse-raw s))
+        {:valid? false})
+    {:valid? false}))
+
+(defn valid?
+  "True if `s` is a completely valid GS1-128 element string."
+  [s]
+  (vector? (parse s)))
 
 (defn parse-map
-  "Like `parse`, but returns a map of AI string -> value (last wins on repeats)."
-  [^String s]
-  (into {} (map (juxt :ai :value)) (parse s)))
+  "Like `parse`, but returns a map of AI string -> value (last wins on repeats).
+  Invalid data returns `{:valid? false}`."
+  [s]
+  (let [parsed (parse s)]
+    (if (vector? parsed)
+      (into {} (map (juxt :ai :value)) parsed)
+      parsed)))

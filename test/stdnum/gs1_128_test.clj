@@ -36,3 +36,23 @@
 (deftest as-map
   (testing "parse-map keys by AI string"
     (is (= "09521234543213" (get (gs1/parse-map "(01)09521234543213(10)ABC") "01")))))
+
+(deftest invalid-element-strings
+  (testing "an unknown AI after a valid segment is not silently dropped"
+    (is (= {:valid? false}
+           (gs1/parse "010952123454321399ABC"))))
+  (testing "a fixed-length value must contain every required character"
+    (is (= {:valid? false}
+           (gs1/parse "01095212345432"))))
+  (testing "a variable-length value that runs past its maximum lacks its FNC1 separator"
+    (is (= {:valid? false}
+           (gs1/parse "10ABC12317170331"))))
+  (testing "a trailing raw tail is not silently ignored"
+    (is (= {:valid? false}
+           (gs1/parse "0109521234543213XYZ"))))
+  (testing "an empty parenthesized value is invalid"
+    (is (= {:valid? false}
+           (gs1/parse "(10)"))))
+  (testing "non-numeric implied-decimal data returns an invalid result"
+    (is (= {:valid? false}
+           (gs1/parse "(3103)ABCDEF")))))
