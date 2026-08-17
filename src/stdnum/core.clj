@@ -301,7 +301,7 @@
 (defn- itin-valid? [^String n]
   (and (re-matches #"9\d{8}" n) (itin-group? (subs n 3 5))))
 (defn- atin-valid? [^String n]
-  (and (re-matches #"9\d{2}93\d{4}" n)))
+  (re-matches #"9\d{2}93\d{4}" n))
 
 (defn- ptin-valid? [^String n] (boolean (re-matches #"P\d{8}" n)))
 
@@ -1054,7 +1054,7 @@
 (def ^:private ro-onrc-counties
   (set (concat (range 1 41) [51 52])))
 (defn- ro-onrc-old? [^String n]
-  (when-let [[_ county serial year] (re-matches #"[JFC](\d{2})(\d{1,5})(\d{4})" n)]
+  (when-let [[_ county _ year] (re-matches #"[JFC](\d{2})(\d{1,5})(\d{4})" n)]
     (let [county (Integer/parseInt county)
           year (Integer/parseInt year)]
       (and (contains? ro-onrc-counties county)
