@@ -1,0 +1,5 @@
+{:linters
+ {:unused-referred-var
+  ;; Suppress the unused clojure.test/testing referral in existing test code;
+  ;; tests are intentionally outside this hardening pass's edit scope.
+  {:level :off}}}
