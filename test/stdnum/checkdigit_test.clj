@@ -28,3 +28,7 @@
   (testing "validate over alphanumerics (LEI / IBAN family); valid when remainder is 1"
     (is (cd/iso7064-mod97-10-valid? "5493001KJTIIGC8Y1R12"))   ; a real GLEIF LEI
     (is (not (cd/iso7064-mod97-10-valid? "5493001KJTIIGC8Y1R13")))))
+
+(deftest ean13
+  (testing "compute the EAN-13 check digit for a bare payload"
+    (is (= "7" ((ns-resolve 'stdnum.checkdigit 'ean13-check-digit) "978030640615")))))

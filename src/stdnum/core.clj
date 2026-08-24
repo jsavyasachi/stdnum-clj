@@ -35,9 +35,10 @@
 ;; The default CreditCardValidator omits Diners, so build one spanning every
 ;; network we report; per-network validators drive detection.
 (def ^:private card-flags
-  [[:visa CreditCardValidator/VISA] [:mastercard CreditCardValidator/MASTERCARD]
+  [[:visa CreditCardValidator/VISA]
+   [:mastercard CreditCardValidator/MASTERCARD]
    [:amex CreditCardValidator/AMEX] [:discover CreditCardValidator/DISCOVER]
-   [:diners CreditCardValidator/DINERS]])
+   [:diners CreditCardValidator/DINERS] [:vpay CreditCardValidator/VPAY]])
 
 (def ^:private ^CreditCardValidator all-cards
   (CreditCardValidator. (long (reduce bit-or 0 (map second card-flags)))))
@@ -58,9 +59,14 @@
 (defn- iban-valid? [^String n] (.isValid iban-validator n))
 (defn- iban-field [f] (try (f) (catch Exception _ nil)))  ; iban4j throws when a BBAN lacks a field
 (defn- iban-parse [^String n]
-  (let [i (Iban/valueOf n)]
+  (let [i (Iban/valueOf n)
+        country (str (.getCountryCode i))
+        check-digit (.getCheckDigit i)]
     (cond-> {:valid?    true
-             :country   (str (.getCountryCode i))
+             :country   country
+             :country-code country
+             :check-digit check-digit
+             :check-digits check-digit
              :bban      (.getBban i)
              :formatted (.toFormattedString i)}
       (iban-field #(.getBankCode i))      (assoc :bank-code (iban-field #(.getBankCode i)))
@@ -86,6 +92,23 @@
 (defn- issn-valid? [^String n] (.isValid issn-validator (issn-hyphenate n)))
 (defn- isin-valid? [^String n] (.isValid isin-validator n))
 (defn- isin-parse [^String n] {:valid? true :country (subs n 0 2) :nsin (subs n 2 11)})
+
+(defn isbn->isbn13
+  "Convert an ISBN-10 to ISBN-13 using commons-validator."
+  [^String isbn]
+  (.convertToISBN13 isbn-validator isbn))
+
+(defn issn->ean13
+  "Convert an ISSN to EAN-13 using commons-validator. `suffix` is its two-digit
+  publication variant suffix; it defaults to `\"00\"`."
+  ([^String issn] (issn->ean13 issn "00"))
+  ([^String issn ^String suffix]
+   (.convertToEAN13 issn-validator issn suffix)))
+
+(defn ean13->issn
+  "Extract the ISSN payload from an EAN-13 using commons-validator."
+  [^String ean13]
+  (.extractFromEAN13 issn-validator ean13))
 
 ;; --- check-digit primitives ---------------------------------------------------
 (def ^:private ^LuhnCheckDigit luhn-cd (LuhnCheckDigit.))

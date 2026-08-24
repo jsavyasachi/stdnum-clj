@@ -26,6 +26,20 @@
     (is (= :amex (:network (stdnum/parse :credit-card "378282246310005"))))
     (is (false? (:valid? (stdnum/parse :credit-card "4111111111111112"))))))
 
+(deftest richer-wrapper-results
+  (testing "IBAN exposes iban4j's country and check-digit fields"
+    (let [p (stdnum/parse :iban "GB82WEST12345698765432")]
+      (is (= "GB" (:country-code p)))
+      (is (= "82" (:check-digit p)))
+      (is (= "82" (:check-digits p)))))
+  (testing "VPAY is recognized when commons-validator recognizes it"
+    (is (stdnum/valid? :credit-card "40240071000000007"))
+    (is (= :vpay (:network (stdnum/parse :credit-card "40240071000000007")))))
+  (testing "commons-validator ISBN and ISSN conversions are exposed"
+    (is (= "9780306406157" ((ns-resolve 'stdnum.core 'isbn->isbn13) "0306406152")))
+    (is (= "9770317847001" ((ns-resolve 'stdnum.core 'issn->ean13) "0317-8471" "00")))
+    (is (= "03178471" ((ns-resolve 'stdnum.core 'ean13->issn) "9770317847001")))))
+
 (deftest iban-and-bic
   (testing "IBAN validation + parse fields"
     (is (stdnum/valid? :iban "GB82 WEST 1234 5698 7654 32"))
