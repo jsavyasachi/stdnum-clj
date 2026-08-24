@@ -682,3 +682,26 @@
   (testing "valid? never throws on bad data, only returns false"
     (is (false? (stdnum/valid? :iban "")))
     (is (false? (stdnum/valid? :credit-card "")))))
+
+(deftest batch-operations
+  (testing "batch-valid? preserves order and duplicate inputs"
+    (is (= [true false false true]
+           (stdnum/batch-valid? :credit-card
+                                 ["4111111111111111" "4111111111111112" nil
+                                  "4111111111111111"]))))
+  (testing "batch-parse returns one result per input, including malformed data"
+    (is (= [{:valid? true :network :visa :iin "411111" :last4 "1111"}
+            {:valid? false}
+            {:valid? false}]
+           (stdnum/batch-parse :credit-card
+                               ["4111111111111111" "4111111111111112" nil]))))
+  (testing "batch-detect preserves order and duplicate inputs"
+    (is (= [(stdnum/detect "4111111111111111") []
+            (stdnum/detect "4111111111111111")]
+           (stdnum/batch-detect ["4111111111111111" "nonsense"
+                                 "4111111111111111"]))))
+  (testing "batch operations retain unknown-type behavior"
+    (is (thrown? IllegalArgumentException
+                 (stdnum/batch-valid? :not-a-type ["x"])))
+    (is (thrown? IllegalArgumentException
+                 (stdnum/batch-parse :not-a-type ["x"])))))
