@@ -26,6 +26,49 @@
     (is (= :amex (:network (stdnum/parse :credit-card "378282246310005"))))
     (is (false? (:valid? (stdnum/parse :credit-card "4111111111111112"))))))
 
+(deftest validation-diagnostics
+  (testing "detailed format and length failures"
+    (let [result (stdnum/explain :credit-card "4111-1111-1111-11x2")]
+      (is (false? (:valid? result)))
+      (is (= :format (:reason result)))
+      (is (= "X" (:offending result)))
+      (is (= 14 (:position result)))
+      (is (string? (:message result)))))
+  (testing "detailed checksum failures identify the check digit"
+    (let [result (stdnum/explain :credit-card "4111111111111112")]
+      (is (= {:valid? false
+              :type :credit-card
+              :normalized "4111111111111112"
+              :reason :checksum
+              :offending "2"
+              :position 15}
+             (select-keys result [:valid? :type :normalized :reason :offending :position])))
+      (is (re-find #"check digit" (:message result)))))
+  (testing "country-code failures are distinct for IBAN"
+    (let [result (stdnum/explain :iban "ZZ82WEST12345698765432")]
+      (is (= :country-code (:reason result)))
+      (is (= "ZZ" (:offending result)))
+      (is (= 0 (:position result)))))
+  (testing "structurally valid alphanumeric identifiers report checksum failures"
+    (is (= :checksum (:reason (stdnum/explain :isin "US0378331004"))))
+    (is (= :checksum (:reason (stdnum/explain :lei "5493001KJTIIGC8Y1R13")))))
+  (testing "short IBANs report length before checksum"
+    (is (= :length (:reason (stdnum/explain :iban "GB82")))))
+  (testing "a Luhn-valid but unsupported card range reports network"
+    (is (= :network (:reason (stdnum/explain :credit-card "0000000000000000")))))
+  (testing "valid values return structured success"
+    (is (= {:valid? true :type :isbn :normalized "0306406152"}
+           (select-keys (stdnum/explain :isbn "0306406152")
+                        [:valid? :type :normalized]))))
+  (testing "known but unsupported types use a generic result"
+    (let [result (stdnum/explain :th-tin "1234567890")]
+      (is (= :generic (:reason result)))
+      (is (false? (:valid? result)))
+      (is (string? (:message result)))))
+  (testing "unknown types retain the existing error contract"
+    (is (thrown? IllegalArgumentException
+                 (stdnum/explain :not-a-type "123")))))
+
 (deftest iban-and-bic
   (testing "IBAN validation + parse fields"
     (is (stdnum/valid? :iban "GB82 WEST 1234 5698 7654 32"))
