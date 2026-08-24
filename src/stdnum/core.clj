@@ -89,6 +89,19 @@
 (def ^:private ^ISSNValidator issn-validator (ISSNValidator/getInstance))
 (def ^:private ^ISINValidator isin-validator (ISINValidator/getInstance true))
 (defn- isbn-valid? [^String n] (.isValid isbn-validator n))
+(defn- isbn10-from-isbn13 ^String [^String n]
+  (when (and (= 13 (count n)) (str/starts-with? n "978"))
+    (let [body (subs n 3 12)
+          total (reduce + (map-indexed (fn [i c] (* (- (int c) 48) (- 10 i))) body))
+          check (mod (- 11 (mod total 11)) 11)]
+      (str body (if (= 10 check) "X" check)))))
+(defn- isbn-parse [^String n]
+  (let [isbn13 (if (= 10 (count n)) (.convertToISBN13 isbn-validator n) n)
+        isbn10 (if (= 10 (count n)) n (isbn10-from-isbn13 isbn13))]
+    (cond-> {:valid? true :isbn13 isbn13}
+      isbn10 (assoc :isbn10 isbn10))))
+(defn- isbn-format [^String n]
+  (if (= 10 (count n)) (.convertToISBN13 isbn-validator n) n))
 (defn- issn-hyphenate [^String n] (if (= 8 (count n)) (str (subs n 0 4) "-" (subs n 4)) n))
 (defn- issn-valid? [^String n] (.isValid issn-validator (issn-hyphenate n)))
 (defn- isin-valid? [^String n] (.isValid isin-validator n))
@@ -285,6 +298,8 @@
               (= (check-digit (subvec d 0 10) (range 11 1 -1)) (d 10))))))
 (defn- cpf-format [^String n]
   (str (subs n 0 3) "." (subs n 3 6) "." (subs n 6 9) "-" (subs n 9)))
+(defn- cpf-parse [^String n]
+  {:valid? true :body (subs n 0 9) :check-digits (subs n 9)})
 
 (def ^:private cnpj-w1 [5 4 3 2 9 8 7 6 5 4 3 2])
 (def ^:private cnpj-w2 [6 5 4 3 2 9 8 7 6 5 4 3 2])
@@ -295,6 +310,8 @@
               (= (check-digit (subvec d 0 13) cnpj-w2) (d 13))))))
 (defn- cnpj-format [^String n]
   (str (subs n 0 2) "." (subs n 2 5) "." (subs n 5 8) "/" (subs n 8 12) "-" (subs n 12)))
+(defn- cnpj-parse [^String n]
+  {:valid? true :body (subs n 0 12) :check-digits (subs n 12)})
 
 ;; securities identifiers (engine-backed check digits) ------------------------
 (def ^:private ^CUSIPCheckDigit cusip-cd (CUSIPCheckDigit.))
@@ -477,6 +494,10 @@
                 (let [p (case (.charAt n 0) \X "0" \Y "1" \Z "2")
                       v (Long/parseLong (str p (subs n 1 8)))]
                   (= (.charAt dni-letters (int (mod v 23))) (.charAt n 8))))))
+(defn- es-dni-parse [^String n]
+  {:valid? true :number (subs n 0 8) :check-letter (subs n 8)})
+(defn- es-nie-parse [^String n]
+  {:valid? true :prefix (subs n 0 1) :number (subs n 1 8) :check-letter (subs n 8)})
 ;; Spain VAT (NIF): a natural-person DNI, a foreigner NIE, or a legal-entity CIF
 ;; (entity letter + 7 digits + a control that is a digit for some entity types,
 ;; a letter for others - accept either so no valid number is rejected).
@@ -915,6 +936,12 @@
   (and (re-matches #"\d{8}" n)
        (let [d (digits-of n)]
          (= (mod (- 10 (mod (long (reduce + (map * (subvec d 0 7) [3 1 3 1 3 1 3]))) 10)) 10) (d 7)))))
+(defn- ean-parse [^String n]
+  {:valid? true :prefix (subs n 0 3) :body (subs n 3 (dec (count n)))
+   :check-digit (subs n (dec (count n)))})
+(defn- gtin14-parse [^String n]
+  {:valid? true :indicator (subs n 0 1) :body (subs n 1 13)
+   :check-digit (subs n 13)})
 (defn- ismn? [^String n]                              ; ISMN: 979-0 prefixed 13-digit EAN
   (and (re-matches #"9790\d{9}" n) (.isValid ean13-cd n)))
 
@@ -2246,6 +2273,9 @@
 (defn- nino-format [^String n]
   (str (subs n 0 2) " " (subs n 2 4) " " (subs n 4 6) " " (subs n 6 8)
        (when (> (count n) 8) (str " " (subs n 8)))))
+(defn- nino-parse [^String n]
+  (cond-> {:valid? true :prefix (subs n 0 2) :number (subs n 2 8)}
+    (> (count n) 8) (assoc :suffix (subs n 8))))
 (defn- aadhaar-format [^String n] (str (subs n 0 4) " " (subs n 4 8) " " (subs n 8 12)))
 (defn- ch-ahv-format [^String n]
   (str (subs n 0 3) "." (subs n 3 7) "." (subs n 7 11) "." (subs n 11 13)))
@@ -2266,11 +2296,18 @@
   (let [n (be-ogm-compact n)]
     (str "+++" (subs n 0 3) "/" (subs n 3 7) "/" (subs n 7 12) "+++")))
 
+;; VAT identifiers have country-specific national bodies, but the country
+;; prefix and the compact national number are stable presentation components.
+(defn- vat-parse [^String cc ^String n]
+  {:valid? true :country cc :number (strip-cc n cc)})
+(defn- vat-format [^String cc ^String n]
+  (str cc (strip-cc n cc)))
+
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
    :iban        {:validate iban-valid? :parse iban-parse :format iban-format}
    :bic         {:validate bic-valid? :parse bic-parse}
-   :isbn        {:validate isbn-valid?}
+   :isbn        {:validate isbn-valid? :parse isbn-parse :format isbn-format}
    :issn        {:validate issn-valid? :format issn-hyphenate}
    :isin        {:validate isin-valid? :parse isin-parse}
    :aba         {:validate aba-valid?}
@@ -2291,8 +2328,8 @@
    :eu-excise   {:validate eu-excise?}
    :isrc        {:validate isrc-valid? :parse isrc-parse :format isrc-format}
    :isil        {:validate isil-valid? :parse isil-parse}
-   :br-cpf      {:validate cpf-valid? :format cpf-format}
-   :br-cnpj     {:validate cnpj-valid? :format cnpj-format}
+   :br-cpf      {:validate cpf-valid? :parse cpf-parse :format cpf-format}
+   :br-cnpj     {:validate cnpj-valid? :parse cnpj-parse :format cnpj-format}
    :us-ssn      {:validate ssn-valid? :format ssn-format}
    :us-ein      {:validate ein-valid? :format ein-format}
    :us-itin     {:validate itin-valid? :parse taxpayer-parse :format ssn-format}
@@ -2302,28 +2339,28 @@
    :sn-ninea    {:validate sn-ninea?}
    :vatin       {:validate vatin?}
    :eu-vat      {:validate eu-vat?}
-   :de-vat      {:validate de-vat?}
+   :de-vat      {:validate de-vat? :parse #(vat-parse "DE" %) :format #(vat-format "DE" %)}
    :de-idnr     {:validate de-idnr?}
    :de-handelsregisternummer {:validate de-handelsregisternummer?}
    :de-leitweg  {:validate de-leitweg?}
    :de-stnr     {:validate de-stnr?}
-   :fr-vat      {:validate fr-vat?}
+   :fr-vat      {:validate fr-vat? :parse #(vat-parse "FR" %) :format #(vat-format "FR" %)}
    :fr-accise   {:validate fr-accise?}
    :fr-rcs      {:validate fr-rcs?}
    :mc-tva      {:validate mc-tva?}
-   :it-vat      {:validate it-vat?}
-   :be-vat      {:validate be-vat?}
-   :pl-vat      {:validate pl-vat?}
-   :gb-vat      {:validate gb-vat?}
-   :gb-nino     {:validate nino? :format nino-format}
+   :it-vat      {:validate it-vat? :parse #(vat-parse "IT" %) :format #(vat-format "IT" %)}
+   :be-vat      {:validate be-vat? :parse #(vat-parse "BE" %) :format #(vat-format "BE" %)}
+   :pl-vat      {:validate pl-vat? :parse #(vat-parse "PL" %) :format #(vat-format "PL" %)}
+   :gb-vat      {:validate gb-vat? :parse #(vat-parse "GB" %) :format #(vat-format "GB" %)}
+   :gb-nino     {:validate nino? :parse nino-parse :format nino-format}
    :gb-utr      {:validate gb-utr?}
    :gb-upn      {:validate gb-upn?}
    :ca-sin      {:validate ca-sin? :format triple3-format}
    :au-abn      {:validate au-abn? :format au-abn-format}
    :in-pan      {:validate in-pan? :parse in-pan-parse}
    :in-aadhaar  {:validate in-aadhaar? :format aadhaar-format}
-   :es-dni      {:validate es-dni?}
-   :es-nie      {:validate es-nie?}
+   :es-dni      {:validate es-dni? :parse es-dni-parse}
+   :es-nie      {:validate es-nie? :parse es-nie-parse}
    :es-nif      {:validate es-nif?}
    :es-cae      {:validate es-cae?}
    :es-cups     {:validate es-cups?}
@@ -2487,12 +2524,12 @@
    :sg-uen      {:validate sg-uen?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}
-   :ean13       {:validate ean13?}
-   :upc         {:validate upc?}
+   :ean13       {:validate ean13? :parse ean-parse}
+   :upc         {:validate upc? :parse ean-parse}
    :vin         {:validate vin? :parse vin-parse}
    :nhs         {:validate nhs? :format nhs-format}
    :npi         {:validate npi?}
-   :ean8        {:validate ean8?}
+   :ean8        {:validate ean8? :parse ean-parse}
    :ismn        {:validate ismn?}
    :cas         {:validate cas? :format cas-format}
    :imo         {:validate imo?}
@@ -2522,7 +2559,7 @@
    :bg-pnf      {:validate bg-pnf?}
    :orcid       {:validate orcid? :format orcid-format}
    :isni        {:validate orcid? :format isni-format}
-   :gtin14      {:validate gtin14?}
+   :gtin14      {:validate gtin14? :parse gtin14-parse}
    :sscc        {:validate sscc?}
    :gln         {:validate gln?}
    :mx-curp     {:validate mx-curp? :parse curp-parse}})

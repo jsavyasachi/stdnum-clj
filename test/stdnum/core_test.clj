@@ -72,6 +72,46 @@
     (is (stdnum/valid? :isin "US0378331005"))
     (is (not (stdnum/valid? :isin "US0378331004")))))
 
+(deftest canonical-books-and-commerce
+  (testing "ISBN exposes both standard editions and canonicalizes the compact form"
+    (is (= "9780306406157" (:isbn13 (stdnum/parse :isbn "0306406152"))))
+    (is (= "0306406152" (:isbn10 (stdnum/parse :isbn "978-0-306-40615-7"))))
+    (is (= "9780306406157" (stdnum/format :isbn "978-0-306-40615-7"))))
+  (testing "EAN-family identifiers group digits in their standard display widths"
+    (is (= "4006381333931" (stdnum/format :ean13 "4006 3813 3393 1")))
+    (is (= {:valid? true :prefix "400" :body "638133393" :check-digit "1"}
+           (stdnum/parse :ean13 "4006381333931")))
+    (is (= "96385074" (stdnum/format :ean8 "96385074")))
+    (is (= "036000291452" (stdnum/format :upc "036000291452")))
+    (is (= "00012345600012" (stdnum/format :gtin14 "00012345600012")))))
+
+(deftest common-vat-format-and-parse
+  (doseq [[type value country number]
+          [[:de-vat "DE136695976" "DE" "136695976"]
+           [:fr-vat "FR40303265045" "FR" "40303265045"]
+           [:it-vat "IT00743110157" "IT" "00743110157"]
+           [:be-vat "BE0417497106" "BE" "0417497106"]
+           [:pl-vat "PL5260001246" "PL" "5260001246"]
+           [:gb-vat "GB980780684" "GB" "980780684"]]]
+    (testing (str type " has an explicit country and national number")
+      (is (= {:valid? true :country country :number number}
+             (stdnum/parse type value)))
+      (is (= value (stdnum/format type value))))))
+
+(deftest national-identifier-components
+  (testing "Brazilian documents expose their check-digit boundary"
+    (is (= {:valid? true :body "111444777" :check-digits "35"}
+           (stdnum/parse :br-cpf "111.444.777-35")))
+    (is (= {:valid? true :body "112223330001" :check-digits "81"}
+           (stdnum/parse :br-cnpj "11.222.333/0001-81"))))
+  (testing "UK NINO and Spanish personal IDs expose meaningful parts"
+    (is (= {:valid? true :prefix "AB" :number "123456" :suffix "C"}
+           (stdnum/parse :gb-nino "AB123456C")))
+    (is (= {:valid? true :number "12345678" :check-letter "Z"}
+           (stdnum/parse :es-dni "12345678Z")))
+    (is (= {:valid? true :prefix "X" :number "1234567" :check-letter "L"}
+           (stdnum/parse :es-nie "X1234567L")))))
+
 (deftest bank-routing-and-devices
   (testing "ABA US bank routing number"
     (is (stdnum/valid? :aba "021000021"))
