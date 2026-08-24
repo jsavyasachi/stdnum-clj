@@ -2674,6 +2674,131 @@
   [s]
   (norm s))
 
+(def ^:private diagnostic-types
+  "Identifier types for which `explain` can distinguish common failures."
+  #{:credit-card :iban :isbn :issn :isin :aba :imei :luhn :mac :imsi :meid :lei})
+
+(defn- diagnostic-success [type n]
+  {:valid? true :type type :normalized n
+   :message (str (name type) " is valid")})
+
+(defn- diagnostic-failure [type n reason message & {:keys [offending position]}]
+  (cond-> {:valid? false :type type :normalized n :reason reason :message message}
+    (some? offending) (assoc :offending offending)
+    (some? position) (assoc :position position)))
+
+(defn- first-nonmatching [^String n pattern]
+  (some (fn [i]
+          (let [c (subs n i (inc i))]
+            (when-not (re-matches pattern c) [c i])))
+        (range (count n))))
+
+(defn- explain-digits [type n expected-lengths valid-fn]
+  (cond
+    (empty? n) (diagnostic-failure type n :format "The value must contain digits.")
+    (not (re-matches #"\d+" n))
+    (let [[offending position] (first-nonmatching n #"\d")]
+      (diagnostic-failure type n :format "The value contains a non-digit character."
+                          :offending offending :position position))
+    (not (contains? expected-lengths (count n)))
+    (diagnostic-failure type n :length
+                        (str "The value must contain " (clojure.string/join " or " expected-lengths)
+                             " digits.")
+                        :position (count n))
+    (not (valid-fn n))
+    (diagnostic-failure type n :checksum "The check digit is invalid."
+                        :offending (subs n (dec (count n)))
+                        :position (dec (count n)))
+    :else (diagnostic-success type n)))
+
+(defn- explain-pattern [type n character-pattern structure-pattern expected-lengths valid-fn]
+  (cond
+    (empty? n) (diagnostic-failure type n :format "The value has no identifier characters.")
+    (not (every? #(re-matches character-pattern (str %)) n))
+    (let [[offending position] (first-nonmatching n character-pattern)]
+      (diagnostic-failure type n :format "The value contains an invalid character."
+                          :offending offending :position position))
+    (not (contains? expected-lengths (count n)))
+    (diagnostic-failure type n :length
+                        (str "The value must contain " (clojure.string/join " or " expected-lengths)
+                             " characters.")
+                        :position (count n))
+    (not (re-matches structure-pattern n))
+    (diagnostic-failure type n :format "The value has an invalid structure.")
+    (not (valid-fn n))
+    (diagnostic-failure type n :checksum "The check digit is invalid."
+                        :offending (subs n (dec (count n)))
+                        :position (dec (count n)))
+    :else (diagnostic-success type n)))
+
+(defn- explain-diagnostic [type n]
+  (case type
+    :credit-card (cond
+                   (not (re-matches #"\d*" n))
+                   (let [[offending position] (first-nonmatching n #"\d")]
+                     (diagnostic-failure type n :format "The card number contains a non-digit character."
+                                         :offending offending :position position))
+                   (not (<= 13 (count n) 19))
+                   (diagnostic-failure type n :length "The card number must contain 13 to 19 digits."
+                                       :position (count n))
+                   (card-valid? n) (diagnostic-success type n)
+                   (or (.isValid luhn-cd n) (re-matches #"0+" n))
+                   (diagnostic-failure type n :network "The card number is not in a supported card network range.")
+                   :else (diagnostic-failure type n :checksum "The card check digit is invalid."
+                                             :offending (subs n (dec (count n)))
+                                             :position (dec (count n))))
+    :iban (cond
+            (not (re-matches #"[A-Z0-9]*" n))
+            (let [[offending position] (first-nonmatching n #"[A-Z0-9]")]
+              (diagnostic-failure type n :format "The IBAN contains an invalid character."
+                                  :offending offending :position position))
+            (or (< (count n) 2) (not (contains? @iso-country-codes (str/lower-case (subs n 0 2)))))
+            (diagnostic-failure type n :country-code "The IBAN country code is not recognized."
+                                :offending (subs n 0 (min 2 (count n))) :position 0)
+            (< (count n) 15) (diagnostic-failure type n :length "The IBAN is too short."
+                                                :position (count n))
+            (iban-valid? n) (diagnostic-success type n)
+            :else (diagnostic-failure type n :checksum "The IBAN check digits are invalid."
+                                      :offending (subs n 2 4) :position 2))
+    :isbn (explain-pattern type n #"[0-9X]" #"(?:\d{9}[\dX]|\d{13})" #{10 13} isbn-valid?)
+    :issn (explain-pattern type n #"[0-9X]" #"\d{7}[\dX]" #{8} issn-valid?)
+    :isin (explain-pattern type n #"[A-Z0-9]" #"[A-Z0-9]{12}" #{12} isin-valid?)
+    :aba (explain-digits type n #{9} aba-valid?)
+    :imei (explain-digits type n #{15} imei-valid?)
+    :luhn (explain-digits type n (set (range 1 1000)) luhn-valid?)
+    :mac (explain-pattern type n #"[0-9A-F]" #"[0-9A-F]{12}" #{12} mac-valid?)
+    :imsi (cond
+            (not (re-matches #"\d*" n))
+            (let [[offending position] (first-nonmatching n #"\d")]
+              (diagnostic-failure type n :format "The IMSI contains a non-digit character."
+                                  :offending offending :position position))
+            (not (<= 6 (count n) 15))
+            (diagnostic-failure type n :length "The IMSI must contain 6 to 15 digits."
+                                :position (count n))
+            (imsi-valid? n) (diagnostic-success type n)
+            :else (diagnostic-failure type n :country-code "The IMSI mobile country code is invalid."
+                                      :offending (subs n 0 3) :position 0))
+    :meid (explain-pattern type n #"[0-9A-F]" #"[0-9A-F]{14,15}" #{14 15} meid-valid?)
+    :lei (explain-pattern type n #"[A-Z0-9]" #"[A-Z0-9]{20}" #{20} lei-valid?)))
+
+(defn explain
+  "Return structured validation diagnostics for a known identifier type.
+
+  Results contain `:valid?`, `:type`, `:normalized`, and a human-readable
+  `:message`. Detailed types additionally return `:reason` (such as
+  `:format`, `:length`, `:checksum`, or `:country-code`) and, where known,
+  `:offending` and zero-based `:position`. Other known types return a generic
+  failure reason. Unknown types throw `IllegalArgumentException`, like `valid?`."
+  [type s]
+  (let [{:keys [validate]} (entry type)
+        n (input-for type s)]
+    (if (try (boolean (validate n)) (catch Exception _ false))
+      (diagnostic-success type n)
+      (if (diagnostic-types type)
+        (explain-diagnostic type n)
+        (diagnostic-failure type n :generic
+                            (str "Validation failed for " (name type) "; detailed diagnostics are unavailable."))))))
+
 (defn valid?
   "True if `s` is a valid identifier of `type`. Bad data returns false. An
   unknown `type` throws IllegalArgumentException."
