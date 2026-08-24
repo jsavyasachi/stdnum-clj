@@ -194,6 +194,7 @@
  :nz-bankaccount
  :nz-ird
  :nz-nzbn
+ :om-vat
  :orcid
  :pe-cui
  :pe-ruc
@@ -241,6 +242,7 @@
  :ua-edrpou
  :ua-rntrc
  :upc
+ :upi
  :upu-s10
  :us-atin
  :us-ein

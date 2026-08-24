@@ -682,3 +682,11 @@
   (testing "valid? never throws on bad data, only returns false"
     (is (false? (stdnum/valid? :iban "")))
     (is (false? (stdnum/valid? :credit-card "")))))
+
+(deftest oman-vat-and-upi
+  (testing "Oman VAT uses the upstream MOD 11 check character"
+    (is (stdnum/valid? :om-vat "OM1100006083"))
+    (is (not (stdnum/valid? :om-vat "OM1100006084"))))
+  (testing "UPI means ISO 4914 Unique Product Identifier"
+    (is (stdnum/valid? :upi "QZK12RNSP6P6"))
+    (is (not (stdnum/valid? :upi "QZK12RNSP6P7")))))

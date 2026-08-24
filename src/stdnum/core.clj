@@ -17,7 +17,8 @@
   (:refer-clojure :exclude [format])
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [stdnum.checkdigit :as cd])
   (:import [org.apache.commons.validator.routines
             CreditCardValidator IBANValidator ISBNValidator ISSNValidator ISINValidator]
            [org.apache.commons.validator.routines.checkdigit
@@ -1388,6 +1389,14 @@
 (defn- gh-tin? [^String n]                            ; Ghana TIN: prefix + mod-11 check
   (and (re-matches #"[PCGQV]00[A-Z0-9]{8}" n)
        (= (int (gh-tin-check-digit n)) (int (.charAt n 10)))))
+(defn- om-vat-check-digit ^Character [^String n]
+  (let [weights [1 6 3 7 9]
+        s (reduce + (map (fn [w c] (* w (- (int c) 48))) weights (subs n 6 11)))
+        check (mod (inc s) 11)]
+    (if (= 10 check) \X (char (+ 48 check)))))
+(defn- om-vat? [^String n]                            ; Oman VAT: OM + 10 digits, weighted MOD 11
+  (and (re-matches #"OM\d{9}[0-9X]" n)
+       (= (om-vat-check-digit n) (.charAt n 11))))
 (defn- gn-nifp? [^String n]                           ; Guinea NIFp: 9-digit Luhn
   (boolean (and (re-matches #"\d{9}" n) (.isValid luhn-cd n))))
 (defn- ma-ice? [^String n]                            ; Morocco ICE: 15 digits, ISO 7064 MOD 97-10
@@ -1715,6 +1724,12 @@
                    (if (neg? idx) (reduced -1)
                      (mod (+ (mod (* (if (zero? c) 36 c) 2) 37) idx) 36))))
                18 s)))
+(def ^:private ^String upi-alphabet "0123456789BCDFGHJKLMNPQRSTVWXZ")
+(defn- upi? [^String n]                               ; ISO 4914 Unique Product Identifier, Mod 31,30
+  (and (= 12 (count n))
+       (str/starts-with? n "QZ")
+       (re-matches #"[0-9BCDFGHJKLMNPQRSTVWXZ]+" n)
+       (cd/iso7064-mod37-36-valid? n upi-alphabet)))
 (defn- grid? [^String n]                              ; GRid (Global Release Identifier): 18 alnum, ISO 7064 Mod 37,36
   (and (re-matches #"[0-9A-Z]{18}" n) (iso7064-mod37-36-valid? n)))
 (defn- isan? [^String n]                              ; ISAN (ISO 15706): root12+episode4 +check1 +version8 +check2, two Mod 37,36 checks
@@ -2403,6 +2418,7 @@
    :dz-nif      {:validate dz-nif?}
    :eg-tn       {:validate eg-tn?}
    :gh-tin      {:validate gh-tin?}
+   :om-vat      {:validate om-vat?}
    :gn-nifp     {:validate gn-nifp?}
    :li-peid     {:validate li-peid?}
    :ma-ice      {:validate ma-ice?}
@@ -2418,6 +2434,7 @@
    :mx-rfc      {:validate mx-rfc?}
    :grid        {:validate grid?}
    :isan        {:validate isan?}
+   :upi         {:validate upi?}
    :th-moa      {:validate th-moa?}
    :th-pin      {:validate th-pin?}
    :th-tin      {:validate th-tin?}
@@ -2508,7 +2525,7 @@
   #{:ean13 :ean8 :upc :gtin14 :sscc :gln :iso6346 :upu-s10 :vin :imo :cas
     :nhs :npi :it-aic :eu-eic :eu-ecnumber :eu-excise :eu-nace :es-cae
     :es-cups :es-postalcode :at-postleitzahl :nl-brin :nl-postcode
-    :se-postnummer})
+    :se-postnummer :upi})
 
 (def ^:private research-types #{:orcid :isni})
 
@@ -2517,7 +2534,7 @@
     :dk-vat :fi-vat :se-vat :gr-vat :lu-vat :si-vat :ee-vat :hu-vat
     :mt-vat :sk-vat :lt-vat :cy-vat :ro-vat :es-vat :ie-vat :nl-vat
     :lv-vat :bg-vat :hr-vat :cz-vat :pt-vat :in-gstin :eu-oss :ch-vat
-    :no-mva :fo-vn :is-vsk :vatin :eu-vat})
+    :no-mva :fo-vn :is-vsk :om-vat :vatin :eu-vat})
 
 (defn- category-for [type]
   (cond

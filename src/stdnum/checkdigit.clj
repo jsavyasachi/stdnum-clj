@@ -73,3 +73,38 @@
   This is the LEI and IBAN style of checksum."
   [s]
   (boolean (and (string? s) (re-matches #"[0-9A-Z]+" s) (= 1 (mod97-10-remainder s)))))
+
+;; --- ISO 7064 Mod 37,36 and its Mod 31,30 variant ----------------------------
+(defn- iso7064-mod37-36-checksum ^long [^String s ^String alphabet]
+  (let [modulus (count alphabet)]
+    (reduce (fn [^long check c]
+              (let [value (.indexOf alphabet (int c))]
+                (if (neg? value)
+                  (reduced -1)
+                  (mod (+ (mod (* (if (zero? check) modulus check) 2)
+                                  (inc modulus))
+                           value)
+                       modulus))))
+            (quot modulus 2)
+            s)))
+
+(defn iso7064-mod37-36-check
+  "Return the ISO 7064 Mod 37,36 check character for `payload`.
+  An optional alphabet turns this into the corresponding Mod x+1,x variant."
+  ([^String payload]
+   (iso7064-mod37-36-check payload "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
+  ([^String payload ^String alphabet]
+   (let [modulus (count alphabet)
+         checksum (iso7064-mod37-36-checksum payload alphabet)
+         index (mod (- 1 (mod (* (if (zero? checksum) modulus checksum) 2)
+                                (inc modulus)))
+                    modulus)]
+     (str (.charAt alphabet index)))))
+
+(defn iso7064-mod37-36-valid?
+  "True if `s` has a valid ISO 7064 Mod 37,36 check character.
+  An optional alphabet turns this into the corresponding Mod x+1,x variant."
+  ([^String s]
+   (iso7064-mod37-36-valid? s "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
+  ([^String s ^String alphabet]
+   (= 1 (iso7064-mod37-36-checksum s alphabet))))
