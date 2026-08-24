@@ -37,6 +37,36 @@
   (testing "parse-map keys by AI string"
     (is (= "09521234543213" (get (gs1/parse-map "(01)09521234543213(10)ABC") "01")))))
 
+(deftest logistics-application-identifiers
+  (testing "consignment, shipment, and routing identifiers"
+    (is (gs1/valid? "(401)CONSIGNMENT-123"))
+    (is (gs1/valid? "(402)12345678901234567"))
+    (is (gs1/valid? "(403)ROUTE-SEA-01"))
+    (is (not (gs1/valid? "(402)1234567890123456A")))
+    (is (not (gs1/valid? "(401)"))))
+  (testing "logistics location GLN roles"
+    (is (gs1/valid? "(411)0614141000005"))
+    (is (gs1/valid? "(413)0614141000005"))
+    (is (gs1/valid? "(415)0614141000005"))
+    (is (gs1/valid? "(416)0614141000005"))
+    (is (gs1/valid? "(417)0614141000005"))
+    (is (not (gs1/valid? "(411)061414100000")))
+    (is (not (gs1/valid? "(413)06141410000A5"))))
+  (testing "ship-to postal codes"
+    (is (gs1/valid? "(420)94107"))
+    (is (gs1/valid? "(421)84094107"))
+    (is (not (gs1/valid? "(420)123456789012345678901")))
+    (is (not (gs1/valid? "(421)84A94107"))))
+  (testing "logistics dimensions and ITIP"
+    (is (gs1/valid? "(3321)000123"))
+    (is (gs1/valid? "(3332)000456"))
+    (is (gs1/valid? "(3363)000789"))
+    (is (gs1/valid? "(8001)01234567890123"))
+    (is (gs1/valid? "(8006)012345678901230105"))
+    (is (gs1/valid? "(8026)012345678901230105"))
+    (is (not (gs1/valid? "(3321)00012A")))
+    (is (not (gs1/valid? "(8006)01234567890123010")))))
+
 (deftest invalid-element-strings
   (testing "an unknown AI after a valid segment is not silently dropped"
     (is (= {:valid? false}
@@ -55,4 +85,7 @@
            (gs1/parse "(10)"))))
   (testing "non-numeric implied-decimal data returns an invalid result"
     (is (= {:valid? false}
-           (gs1/parse "(3103)ABCDEF")))))
+           (gs1/parse "(3103)ABCDEF"))))
+  (testing "numeric fixed-length data rejects alphabetic values"
+    (is (= {:valid? false}
+           (gs1/parse "(17)ABCDEF")))))
