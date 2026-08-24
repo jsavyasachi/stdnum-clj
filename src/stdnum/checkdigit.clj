@@ -11,10 +11,11 @@
       (luhn-check-digit \"7992739871\")       ;=> \"3\"
       (iso7064-mod11-2-check \"000000021825009\") ;=> \"7\"   (ORCID)"
   (:import [org.apache.commons.validator.routines.checkdigit
-            LuhnCheckDigit VerhoeffCheckDigit]))
+            LuhnCheckDigit VerhoeffCheckDigit EAN13CheckDigit]))
 
 (def ^:private ^LuhnCheckDigit luhn-cd (LuhnCheckDigit.))
 (def ^:private ^VerhoeffCheckDigit verhoeff-cd (VerhoeffCheckDigit.))
+(def ^:private ^EAN13CheckDigit ean13-cd (EAN13CheckDigit.))
 
 (defn- digits? [^String s] (and (string? s) (boolean (re-matches #"\d+" s))))
 
@@ -42,6 +43,11 @@
   "The Verhoeff check digit (a one-character string) for `payload`."
   [^String payload]
   (.calculate verhoeff-cd payload))
+
+(defn ean13-check-digit
+  "The EAN-13 check digit for a twelve-digit `payload`."
+  [^String payload]
+  (.calculate ean13-cd payload))
 
 ;; --- ISO 7064 Mod 11-2: ORCID, ISNI, ISBN-10 (check char may be X) ------------
 (defn iso7064-mod11-2-check
