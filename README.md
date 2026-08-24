@@ -81,6 +81,12 @@ Leiningen / Boot:
 ;; detect - which types consider a value valid
 (stdnum/detect "4111111111111111")  ;=> [:credit-card :luhn]
 
+;; batch operations - ordered results preserve duplicate inputs
+(stdnum/batch-valid? :credit-card ["4111111111111111" "bad"]) ;=> [true false]
+(stdnum/batch-parse :credit-card ["4111111111111111" "bad"])
+;=> [{:valid? true, ...} {:valid? false}]
+(stdnum/batch-detect ["4111111111111111" "bad"]) ;=> [[:credit-card :luhn] []]
+
 ;; metadata - inspect types and their cited valid examples
 (stdnum/type-category :de-vat)      ;=> :vat
 (stdnum/type-country :de-vat)       ;=> :de

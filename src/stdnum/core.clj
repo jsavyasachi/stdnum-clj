@@ -2845,6 +2845,38 @@
                                 (catch Exception _ false)))]
             type)))))
 
+(defn batch-valid?
+  "Return validation results for each value in `values`, in input order.
+  Malformed values produce `false`; an unknown `type` throws as with `valid?`."
+  [type values]
+  (entry type)
+  (mapv (fn [s]
+          (try (valid? type s)
+               (catch Exception _ false)))
+        values))
+
+(defn batch-parse
+  "Return one parse result for each value in `values`, in input order.
+  Malformed values produce `{:valid? false}`; an unknown `type` throws as with
+  `parse`."
+  [type values]
+  (entry type)
+  (mapv (fn [s]
+          (try (parse type s)
+               (catch Exception _ {:valid? false})))
+        values))
+
+(defn batch-detect
+  "Return detection results for each value in `values`, in input order.
+  Malformed values produce an empty vector; optional detection filters are
+  passed through to `detect`."
+  ([values] (batch-detect values {}))
+  ([values opts]
+   (mapv (fn [s]
+           (try (detect s opts)
+                (catch Exception _ [])))
+         values)))
+
 (defn card-network
   "The card network of `s` (`:visa` `:mastercard` `:amex` `:discover` `:diners`),
   or nil if `s` is not a recognized card number."
