@@ -26,6 +26,63 @@
     (is (= :amex (:network (stdnum/parse :credit-card "378282246310005"))))
     (is (false? (:valid? (stdnum/parse :credit-card "4111111111111112"))))))
 
+(deftest richer-wrapper-results
+  (testing "IBAN exposes iban4j's country and check-digit fields"
+    (let [p (stdnum/parse :iban "GB82WEST12345698765432")]
+      (is (= "GB" (:country-code p)))
+      (is (= "82" (:check-digit p)))
+      (is (= "82" (:check-digits p)))))
+  (testing "VPAY is recognized when commons-validator recognizes it"
+    (is (stdnum/valid? :credit-card "40240071000000007"))
+    (is (= :vpay (:network (stdnum/parse :credit-card "40240071000000007")))))
+  (testing "commons-validator ISBN and ISSN conversions are exposed"
+    (is (= "9780306406157" ((ns-resolve 'stdnum.core 'isbn->isbn13) "0306406152")))
+    (is (= "9770317847001" ((ns-resolve 'stdnum.core 'issn->ean13) "0317-8471" "00")))
+    (is (= "03178471" ((ns-resolve 'stdnum.core 'ean13->issn) "9770317847001")))))
+
+(deftest validation-diagnostics
+  (testing "detailed format and length failures"
+    (let [result (stdnum/explain :credit-card "4111-1111-1111-11x2")]
+      (is (false? (:valid? result)))
+      (is (= :format (:reason result)))
+      (is (= "X" (:offending result)))
+      (is (= 14 (:position result)))
+      (is (string? (:message result)))))
+  (testing "detailed checksum failures identify the check digit"
+    (let [result (stdnum/explain :credit-card "4111111111111112")]
+      (is (= {:valid? false
+              :type :credit-card
+              :normalized "4111111111111112"
+              :reason :checksum
+              :offending "2"
+              :position 15}
+             (select-keys result [:valid? :type :normalized :reason :offending :position])))
+      (is (re-find #"check digit" (:message result)))))
+  (testing "country-code failures are distinct for IBAN"
+    (let [result (stdnum/explain :iban "ZZ82WEST12345698765432")]
+      (is (= :country-code (:reason result)))
+      (is (= "ZZ" (:offending result)))
+      (is (= 0 (:position result)))))
+  (testing "structurally valid alphanumeric identifiers report checksum failures"
+    (is (= :checksum (:reason (stdnum/explain :isin "US0378331004"))))
+    (is (= :checksum (:reason (stdnum/explain :lei "5493001KJTIIGC8Y1R13")))))
+  (testing "short IBANs report length before checksum"
+    (is (= :length (:reason (stdnum/explain :iban "GB82")))))
+  (testing "a Luhn-valid but unsupported card range reports network"
+    (is (= :network (:reason (stdnum/explain :credit-card "0000000000000000")))))
+  (testing "valid values return structured success"
+    (is (= {:valid? true :type :isbn :normalized "0306406152"}
+           (select-keys (stdnum/explain :isbn "0306406152")
+                        [:valid? :type :normalized]))))
+  (testing "known but unsupported types use a generic result"
+    (let [result (stdnum/explain :th-tin "1234567890")]
+      (is (= :generic (:reason result)))
+      (is (false? (:valid? result)))
+      (is (string? (:message result)))))
+  (testing "unknown types retain the existing error contract"
+    (is (thrown? IllegalArgumentException
+                 (stdnum/explain :not-a-type "123")))))
+
 (deftest iban-and-bic
   (testing "IBAN validation + parse fields"
     (is (stdnum/valid? :iban "GB82 WEST 1234 5698 7654 32"))
@@ -57,6 +114,46 @@
   (testing "ISIN"
     (is (stdnum/valid? :isin "US0378331005"))
     (is (not (stdnum/valid? :isin "US0378331004")))))
+
+(deftest canonical-books-and-commerce
+  (testing "ISBN exposes both standard editions and canonicalizes the compact form"
+    (is (= "9780306406157" (:isbn13 (stdnum/parse :isbn "0306406152"))))
+    (is (= "0306406152" (:isbn10 (stdnum/parse :isbn "978-0-306-40615-7"))))
+    (is (= "9780306406157" (stdnum/format :isbn "978-0-306-40615-7"))))
+  (testing "EAN-family identifiers group digits in their standard display widths"
+    (is (= "4006381333931" (stdnum/format :ean13 "4006 3813 3393 1")))
+    (is (= {:valid? true :prefix "400" :body "638133393" :check-digit "1"}
+           (stdnum/parse :ean13 "4006381333931")))
+    (is (= "96385074" (stdnum/format :ean8 "96385074")))
+    (is (= "036000291452" (stdnum/format :upc "036000291452")))
+    (is (= "00012345600012" (stdnum/format :gtin14 "00012345600012")))))
+
+(deftest common-vat-format-and-parse
+  (doseq [[type value country number]
+          [[:de-vat "DE136695976" "DE" "136695976"]
+           [:fr-vat "FR40303265045" "FR" "40303265045"]
+           [:it-vat "IT00743110157" "IT" "00743110157"]
+           [:be-vat "BE0417497106" "BE" "0417497106"]
+           [:pl-vat "PL5260001246" "PL" "5260001246"]
+           [:gb-vat "GB980780684" "GB" "980780684"]]]
+    (testing (str type " has an explicit country and national number")
+      (is (= {:valid? true :country country :number number}
+             (stdnum/parse type value)))
+      (is (= value (stdnum/format type value))))))
+
+(deftest national-identifier-components
+  (testing "Brazilian documents expose their check-digit boundary"
+    (is (= {:valid? true :body "111444777" :check-digits "35"}
+           (stdnum/parse :br-cpf "111.444.777-35")))
+    (is (= {:valid? true :body "112223330001" :check-digits "81"}
+           (stdnum/parse :br-cnpj "11.222.333/0001-81"))))
+  (testing "UK NINO and Spanish personal IDs expose meaningful parts"
+    (is (= {:valid? true :prefix "AB" :number "123456" :suffix "C"}
+           (stdnum/parse :gb-nino "AB123456C")))
+    (is (= {:valid? true :number "12345678" :check-letter "Z"}
+           (stdnum/parse :es-dni "12345678Z")))
+    (is (= {:valid? true :prefix "X" :number "1234567" :check-letter "L"}
+           (stdnum/parse :es-nie "X1234567L")))))
 
 (deftest bank-routing-and-devices
   (testing "ABA US bank routing number"
@@ -682,3 +779,34 @@
   (testing "valid? never throws on bad data, only returns false"
     (is (false? (stdnum/valid? :iban "")))
     (is (false? (stdnum/valid? :credit-card "")))))
+
+(deftest oman-vat-and-upi
+  (testing "Oman VAT uses the upstream MOD 11 check character"
+    (is (stdnum/valid? :om-vat "OM1100006083"))
+    (is (not (stdnum/valid? :om-vat "OM1100006084"))))
+  (testing "UPI means ISO 4914 Unique Product Identifier"
+    (is (stdnum/valid? :upi "QZK12RNSP6P6"))
+    (is (not (stdnum/valid? :upi "QZK12RNSP6P7")))))
+
+(deftest batch-operations
+  (testing "batch-valid? preserves order and duplicate inputs"
+    (is (= [true false false true]
+           (stdnum/batch-valid? :credit-card
+                                 ["4111111111111111" "4111111111111112" nil
+                                  "4111111111111111"]))))
+  (testing "batch-parse returns one result per input, including malformed data"
+    (is (= [{:valid? true :network :visa :iin "411111" :last4 "1111"}
+            {:valid? false}
+            {:valid? false}]
+           (stdnum/batch-parse :credit-card
+                               ["4111111111111111" "4111111111111112" nil]))))
+  (testing "batch-detect preserves order and duplicate inputs"
+    (is (= [(stdnum/detect "4111111111111111") []
+            (stdnum/detect "4111111111111111")]
+           (stdnum/batch-detect ["4111111111111111" "nonsense"
+                                 "4111111111111111"]))))
+  (testing "batch operations retain unknown-type behavior"
+    (is (thrown? IllegalArgumentException
+                 (stdnum/batch-valid? :not-a-type ["x"])))
+    (is (thrown? IllegalArgumentException
+                 (stdnum/batch-parse :not-a-type ["x"])))))

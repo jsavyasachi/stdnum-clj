@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.33.0] - 2026-08-24
+
+### Added
+
+- Closed python-stdnum parity gaps with `:om-vat`, `:upi`, and the advanced
+  parity pin.
+- Exposed richer upstream parsing from iban4j and commons-validator, including
+  IBAN field extraction, VPAY, ISBN-10↔13, and ISSN/EAN conversions.
+- Added a structured validation `explain`/diagnostics API for common types.
+- Expanded canonical parse/format coverage for ISBN/EAN/UPC/GTIN and several
+  national VAT/ID formats.
+- Expanded the GS1-128 Application Identifier catalogue.
+- Made VIES lookups production-configurable with injectable transport,
+  timeout, retry/backoff, and rate-limit metadata.
+- Added batch validation, parse, and detect APIs.
+- Added a generative/property-based test suite using test.check.
+- Added an automated upstream-parity-watch CI workflow.
+
 ## [0.32.0] - 2026-08-17
 
 ### Changed

@@ -13,4 +13,5 @@ pom.xml.asc
 .parity/report.md
 target/
 .codex-runs/
+.worktrees/
 release-notes.md

@@ -43,13 +43,13 @@ keeps them under its EPL license.
 deps.edn:
 
 ```clojure
-net.clojars.savya/stdnum-clj {:mvn/version "0.32.0"}
+net.clojars.savya/stdnum-clj {:mvn/version "0.33.0"}
 ```
 
 Leiningen / Boot:
 
 ```clojure
-[net.clojars.savya/stdnum-clj "0.32.0"]
+[net.clojars.savya/stdnum-clj "0.33.0"]
 ```
 
 ## Usage
@@ -80,6 +80,12 @@ Leiningen / Boot:
 
 ;; detect - which types consider a value valid
 (stdnum/detect "4111111111111111")  ;=> [:credit-card :luhn]
+
+;; batch operations - ordered results preserve duplicate inputs
+(stdnum/batch-valid? :credit-card ["4111111111111111" "bad"]) ;=> [true false]
+(stdnum/batch-parse :credit-card ["4111111111111111" "bad"])
+;=> [{:valid? true, ...} {:valid? false}]
+(stdnum/batch-detect ["4111111111111111" "bad"]) ;=> [[:credit-card :luhn] []]
 
 ;; metadata - inspect types and their cited valid examples
 (stdnum/type-category :de-vat)      ;=> :vat
@@ -151,20 +157,20 @@ namespace is the only part of the library that does network I/O. It **requires J
 (`:br-cpf`, `:us-ssn`, `:de-vat`); full descriptions are on [cljdoc](https://cljdoc.org/d/net.clojars.savya/stdnum-clj).
 
 <details>
-<summary><b>All 257 types, by category</b></summary>
+<summary><b>All 259 types, by category</b></summary>
 
 | Category | Types |
 |----------|-------|
 | **Banking & cards** | `:credit-card` (+ network) · `:iban` · `:bic` · `:aba` · `:mx-clabe` · `:cz-bankaccount` · `:nz-bankaccount` · `:iso11649` · `:ar-cbu` · `:es-ccc` · `:be-ogm` · `:ch-esr` · `:no-kontonr` · `:eu-at02` |
 | **Securities** | `:isin` · `:lei` · `:cusip` · `:sedol` · `:de-wkn` · `:figi` · `:cfi` |
 | **Publishing / media / device** | `:isbn` · `:issn` · `:ismn` · `:iswc` · `:grid` · `:isan` · `:eu-banknote` · `:imei` · `:luhn` · `:isrc` · `:isil` · `:mac` · `:imsi` · `:meid` · `:bitcoin` |
-| **Commerce / logistics / vehicle / industry** | `:ean13` · `:ean8` · `:upc` · `:gtin14` · `:sscc` · `:gln` · `:iso6346` · `:upu-s10` · `:vin` · `:imo` · `:cas` · `:nhs` · `:npi` · `:it-aic` · `:eu-eic` · `:eu-ecnumber` · `:eu-excise` · `:eu-nace` · `:es-cae` · `:es-cups` · `:es-postalcode` · `:at-postleitzahl` · `:nl-brin` · `:nl-postcode` · `:se-postnummer` |
+| **Commerce / logistics / vehicle / industry** | `:ean13` · `:ean8` · `:upc` · `:upi` · `:gtin14` · `:sscc` · `:gln` · `:iso6346` · `:upu-s10` · `:vin` · `:imo` · `:cas` · `:nhs` · `:npi` · `:it-aic` · `:eu-eic` · `:eu-ecnumber` · `:eu-excise` · `:eu-nace` · `:es-cae` · `:es-cups` · `:es-postalcode` · `:at-postleitzahl` · `:nl-brin` · `:nl-postcode` · `:se-postnummer` |
 | **Research / name** | `:orcid` · `:isni` |
 | **National & tax IDs - Europe** | `:gb-nino` · `:es-dni` · `:es-nie` · `:es-nif` · `:es-referenciacatastral` · `:nl-bsn` · `:nl-identiteitskaartnummer` · `:nl-onderwijsnummer` · `:se-pnr` · `:no-org` · `:no-fodselsnummer` · `:pt-nif` · `:pt-cc` · `:cz-ico` · `:hr-oib` · `:it-cf` · `:ch-uid` · `:ch-ahv` · `:be-nn` · `:be-bis` · `:be-ssn` · `:be-eid` · `:fi-hetu` · `:fr-nir` · `:fr-nif` · `:fr-accise` · `:pl-pesel` · `:ie-pps` · `:ee-ik` · `:lt-asmens` · `:si-emso` · `:ro-cnp` · `:ro-cf` · `:ro-cui` · `:ro-onrc` · `:cz-rc` · `:sk-rc` · `:gr-amka` · `:bg-egn` · `:bg-pnf` · `:ru-inn` · `:ru-snils` · `:ua-edrpou` · `:ua-rntrc` · `:is-kennitala` · `:ru-ogrn` · `:rs-pib` · `:me-pib` · `:mk-edb` · `:pl-regon` · `:sk-ico` · `:ee-rk` · `:fr-siren` · `:fr-siret` · `:fr-rcs` · `:se-orgnr` · `:es-cif` · `:md-idno` · `:by-unp` · `:si-maticna` · `:ad-nrt` · `:al-nipt` · `:li-peid` · `:sm-coe` · `:gb-utr` · `:gb-upn` · `:dk-cvr` · `:dk-cpr` · `:fi-ytunnus` · `:fi-associationid` · `:fi-veronumero` · `:de-idnr` · `:de-handelsregisternummer` · `:de-leitweg` · `:de-stnr` · `:az-voen` · `:at-businessid` · `:at-tin` · `:at-vnr` · `:jmbg` |
 | **National & tax IDs - Americas** | `:us-ssn` · `:us-ein` · `:br-cpf` · `:br-cnpj` · `:ca-sin` · `:ca-bcphn` · `:ar-cuit` · `:ar-dni` · `:cl-rut` · `:co-nit` · `:pe-ruc` · `:pe-cui` · `:cr-cpf` · `:cr-cpj` · `:cr-cr` · `:ec-ced` · `:mx-curp` · `:ve-rif` · `:do-rnc` · `:do-cedula` · `:do-ncf` · `:uy-rut` · `:ec-ruc` · `:py-ruc` · `:gt-nit` · `:mx-rfc` · `:ca-bn` · `:cu-ni` · `:sv-nit` · `:us-itin` · `:us-atin` · `:us-ptin` · `:us-tin` |
 | **National & tax IDs - Asia-Pacific** | `:au-abn` · `:au-tfn` · `:in-pan` · `:in-aadhaar` · `:in-epic` · `:in-vid` · `:cn-ric` · `:jp-cn` · `:jp-in` · `:nz-ird` · `:sg-nric` · `:sg-uen` · `:hk-id` · `:kr-brn` · `:kr-rrn` · `:tw-gui` · `:cn-usci` · `:vn-mst` · `:au-acn` · `:nz-nzbn` · `:id-npwp` · `:id-nik` · `:th-moa` · `:th-pin` · `:th-tin` · `:kz-bin` · `:my-nric` · `:pk-cnic` |
 | **National & tax IDs - Africa & M. East** | `:za-id` · `:za-tin` · `:tr-tc` · `:il-idnr` · `:il-company` · `:tr-vkn` · `:mu-nid` · `:mz-nuit` · `:ke-pin` · `:dz-nif` · `:eg-tn` · `:gh-tin` · `:gn-nifp` · `:ma-ice` · `:tn-mf` · `:sn-ninea` |
-| **VAT / GST** (EU-27 complete) | `:de-vat` · `:fr-vat` · `:mc-tva` · `:it-vat` · `:be-vat` · `:pl-vat` · `:gb-vat` · `:at-vat` · `:dk-vat` · `:fi-vat` · `:se-vat` · `:gr-vat` · `:lu-vat` · `:si-vat` · `:ee-vat` · `:hu-vat` · `:mt-vat` · `:sk-vat` · `:lt-vat` · `:cy-vat` · `:ro-vat` · `:es-vat` · `:ie-vat` · `:nl-vat` · `:lv-vat` · `:bg-vat` · `:hr-vat` · `:cz-vat` · `:pt-vat` · `:in-gstin` · `:eu-oss` · `:ch-vat` · `:no-mva` · `:fo-vn` · `:is-vsk` · `:vatin` · `:eu-vat` |
+| **VAT / GST** (EU-27 complete) | `:de-vat` · `:fr-vat` · `:mc-tva` · `:it-vat` · `:be-vat` · `:pl-vat` · `:gb-vat` · `:at-vat` · `:dk-vat` · `:fi-vat` · `:se-vat` · `:gr-vat` · `:lu-vat` · `:si-vat` · `:ee-vat` · `:hu-vat` · `:mt-vat` · `:sk-vat` · `:lt-vat` · `:cy-vat` · `:ro-vat` · `:es-vat` · `:ie-vat` · `:nl-vat` · `:lv-vat` · `:bg-vat` · `:hr-vat` · `:cz-vat` · `:pt-vat` · `:in-gstin` · `:eu-oss` · `:ch-vat` · `:no-mva` · `:fo-vn` · `:is-vsk` · `:om-vat` · `:vatin` · `:eu-vat` |
 
 </details>
 

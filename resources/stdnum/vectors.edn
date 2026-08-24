@@ -89,6 +89,10 @@
  :in-pan      {:valid ["ABCPE1234F"] :invalid ["ABCDE1234F"] :source "India Income Tax PAN structure"}
  :in-aadhaar  {:valid ["234123412346"] :invalid ["234123412347"] :source "UIDAI Verhoeff example"}
  :in-gstin    {:valid ["27AAPFU0939F1ZV"] :invalid ["27AAPFU0939F1ZX"] :source "GSTN canonical example"}
+ :om-vat      {:valid ["OM1100006083"] :invalid ["OM1100006084"]
+               :source "python-stdnum 2.2 om.vat doctest vector; verified at parity commit 006192e59be8ed6e08fd680256868a6c31eb2ba9"}
+ :upi         {:valid ["QZK12RNSP6P6"] :invalid ["QZK12RNSP6P7"]
+               :source "python-stdnum 2.2 upi doctest vector; ISO 4914 Unique Product Identifier; verified at parity commit 006192e59be8ed6e08fd680256868a6c31eb2ba9"}
  :es-dni      {:valid ["12345678Z"] :invalid ["12345678A"] :source "Spain DNI mod-23 example"}
  :es-nie      {:valid ["X1234567L"] :invalid ["X1234567A"] :source "Spain NIE mod-23 example"}
  :es-nif      {:valid ["B64717838" "54362315K"] :invalid ["B64717839"]

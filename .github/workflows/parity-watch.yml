@@ -2,7 +2,7 @@ name: parity-watch
 
 on:
   schedule:
-    - cron: "17 6 * * 1"
+    - cron: '17 6 * * 1'
   workflow_dispatch:
 
 permissions:
@@ -14,28 +14,69 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: DeLaGuardo/setup-clojure@13.6.1
         with:
-          bb: 'latest'
+          persist-credentials: false
+          fetch-depth: 1
 
-      - name: Build parity report
-        run: bb .parity/parity_watch.clj
+      - name: Build upstream change report
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Ensure parity label
-        run: gh label create parity --color 5319e7 --description "python-stdnum parity" --force || true
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upsert parity issue
         run: |
-          n=$(gh issue list --search 'Upstream parity report in:title' --state open --json number --jq '.[0].number // empty')
-          if [ -z "$n" ]; then
-            gh issue create --title "Upstream parity report" --label parity --body-file .parity/report.md
-          else
-            gh issue edit "$n" --body-file .parity/report.md
+          set -euo pipefail
+
+          upstream='arthurdejong/python-stdnum'
+          pinned=$(tr -d '[:space:]' < .parity/upstream-sha)
+          latest=$(gh api "repos/$upstream/commits/master" --jq '.sha')
+          compare_file=$(mktemp)
+          trap 'rm -f "$compare_file"' EXIT
+
+          gh api "repos/$upstream/compare/$pinned...$latest" > "$compare_file"
+          ahead_by=$(jq -r '.ahead_by' "$compare_file")
+          latest_short=${latest:0:7}
+          pinned_short=${pinned:0:7}
+          shortlog=$(jq -r '.commits[] | "- `\(.sha[0:7])` \(.commit.message | split("\\n")[0])"' "$compare_file")
+
+          if [ -z "$shortlog" ]; then
+            shortlog='_none_'
           fi
+
+          cat > .parity-report.md <<EOF
+          # Upstream parity report
+
+          Repository: [arthurdejong/python-stdnum](https://github.com/arthurdejong/python-stdnum)
+
+          Recorded upstream pin: [\`$pinned_short\`](https://github.com/$upstream/commit/$pinned)
+          Latest upstream commit: [\`$latest_short\`](https://github.com/$upstream/commit/$latest)
+          Commits since pin: **$ahead_by**
+
+          ## Shortlog
+
+          $shortlog
+
+          This report is an upstream change summary only. It does not claim to
+          contain or generate a full Python source diff. Review relevant changes
+          before updating stdnum-clj or advancing \`.parity/upstream-sha\`.
+          EOF
+
+          printf 'latest=%s\ncommits_since_pin=%s\n' "$latest" "$ahead_by" >> "$GITHUB_STEP_SUMMARY"
+          cat .parity-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upsert deduplicated parity issue
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          title='Upstream parity report'
+          issue_number=$(gh issue list \
+            --state open \
+            --search "in:title $title" \
+            --json number,title \
+            --jq '.[] | select(.title == "Upstream parity report") | .number' \
+            | head -n 1)
+
+          if [ -n "$issue_number" ]; then
+            gh issue edit "$issue_number" --body-file .parity-report.md
+          else
+            gh issue create --title "$title" --body-file .parity-report.md
+          fi

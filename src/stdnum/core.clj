@@ -17,7 +17,8 @@
   (:refer-clojure :exclude [format])
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [stdnum.checkdigit :as cd])
   (:import [org.apache.commons.validator.routines
             CreditCardValidator IBANValidator ISBNValidator ISSNValidator ISINValidator]
            [org.apache.commons.validator.routines.checkdigit
@@ -35,9 +36,10 @@
 ;; The default CreditCardValidator omits Diners, so build one spanning every
 ;; network we report; per-network validators drive detection.
 (def ^:private card-flags
-  [[:visa CreditCardValidator/VISA] [:mastercard CreditCardValidator/MASTERCARD]
+  [[:visa CreditCardValidator/VISA]
+   [:mastercard CreditCardValidator/MASTERCARD]
    [:amex CreditCardValidator/AMEX] [:discover CreditCardValidator/DISCOVER]
-   [:diners CreditCardValidator/DINERS]])
+   [:diners CreditCardValidator/DINERS] [:vpay CreditCardValidator/VPAY]])
 
 (def ^:private ^CreditCardValidator all-cards
   (CreditCardValidator. (long (reduce bit-or 0 (map second card-flags)))))
@@ -58,9 +60,14 @@
 (defn- iban-valid? [^String n] (.isValid iban-validator n))
 (defn- iban-field [f] (try (f) (catch Exception _ nil)))  ; iban4j throws when a BBAN lacks a field
 (defn- iban-parse [^String n]
-  (let [i (Iban/valueOf n)]
+  (let [i (Iban/valueOf n)
+        country (str (.getCountryCode i))
+        check-digit (.getCheckDigit i)]
     (cond-> {:valid?    true
-             :country   (str (.getCountryCode i))
+             :country   country
+             :country-code country
+             :check-digit check-digit
+             :check-digits check-digit
              :bban      (.getBban i)
              :formatted (.toFormattedString i)}
       (iban-field #(.getBankCode i))      (assoc :bank-code (iban-field #(.getBankCode i)))
@@ -82,10 +89,40 @@
 (def ^:private ^ISSNValidator issn-validator (ISSNValidator/getInstance))
 (def ^:private ^ISINValidator isin-validator (ISINValidator/getInstance true))
 (defn- isbn-valid? [^String n] (.isValid isbn-validator n))
+(defn- isbn10-from-isbn13 ^String [^String n]
+  (when (and (= 13 (count n)) (str/starts-with? n "978"))
+    (let [body (subs n 3 12)
+          total (reduce + (map-indexed (fn [i c] (* (- (int c) 48) (- 10 i))) body))
+          check (mod (- 11 (mod total 11)) 11)]
+      (str body (if (= 10 check) "X" check)))))
+(defn- isbn-parse [^String n]
+  (let [isbn13 (if (= 10 (count n)) (.convertToISBN13 isbn-validator n) n)
+        isbn10 (if (= 10 (count n)) n (isbn10-from-isbn13 isbn13))]
+    (cond-> {:valid? true :isbn13 isbn13}
+      isbn10 (assoc :isbn10 isbn10))))
+(defn- isbn-format [^String n]
+  (if (= 10 (count n)) (.convertToISBN13 isbn-validator n) n))
 (defn- issn-hyphenate [^String n] (if (= 8 (count n)) (str (subs n 0 4) "-" (subs n 4)) n))
 (defn- issn-valid? [^String n] (.isValid issn-validator (issn-hyphenate n)))
 (defn- isin-valid? [^String n] (.isValid isin-validator n))
 (defn- isin-parse [^String n] {:valid? true :country (subs n 0 2) :nsin (subs n 2 11)})
+
+(defn isbn->isbn13
+  "Convert an ISBN-10 to ISBN-13 using commons-validator."
+  [^String isbn]
+  (.convertToISBN13 isbn-validator isbn))
+
+(defn issn->ean13
+  "Convert an ISSN to EAN-13 using commons-validator. `suffix` is its two-digit
+  publication variant suffix; it defaults to `\"00\"`."
+  ([^String issn] (issn->ean13 issn "00"))
+  ([^String issn ^String suffix]
+   (.convertToEAN13 issn-validator issn suffix)))
+
+(defn ean13->issn
+  "Extract the ISSN payload from an EAN-13 using commons-validator."
+  [^String ean13]
+  (.extractFromEAN13 issn-validator ean13))
 
 ;; --- check-digit primitives ---------------------------------------------------
 (def ^:private ^LuhnCheckDigit luhn-cd (LuhnCheckDigit.))
@@ -261,6 +298,8 @@
               (= (check-digit (subvec d 0 10) (range 11 1 -1)) (d 10))))))
 (defn- cpf-format [^String n]
   (str (subs n 0 3) "." (subs n 3 6) "." (subs n 6 9) "-" (subs n 9)))
+(defn- cpf-parse [^String n]
+  {:valid? true :body (subs n 0 9) :check-digits (subs n 9)})
 
 (def ^:private cnpj-w1 [5 4 3 2 9 8 7 6 5 4 3 2])
 (def ^:private cnpj-w2 [6 5 4 3 2 9 8 7 6 5 4 3 2])
@@ -271,6 +310,8 @@
               (= (check-digit (subvec d 0 13) cnpj-w2) (d 13))))))
 (defn- cnpj-format [^String n]
   (str (subs n 0 2) "." (subs n 2 5) "." (subs n 5 8) "/" (subs n 8 12) "-" (subs n 12)))
+(defn- cnpj-parse [^String n]
+  {:valid? true :body (subs n 0 12) :check-digits (subs n 12)})
 
 ;; securities identifiers (engine-backed check digits) ------------------------
 (def ^:private ^CUSIPCheckDigit cusip-cd (CUSIPCheckDigit.))
@@ -453,6 +494,10 @@
                 (let [p (case (.charAt n 0) \X "0" \Y "1" \Z "2")
                       v (Long/parseLong (str p (subs n 1 8)))]
                   (= (.charAt dni-letters (int (mod v 23))) (.charAt n 8))))))
+(defn- es-dni-parse [^String n]
+  {:valid? true :number (subs n 0 8) :check-letter (subs n 8)})
+(defn- es-nie-parse [^String n]
+  {:valid? true :prefix (subs n 0 1) :number (subs n 1 8) :check-letter (subs n 8)})
 ;; Spain VAT (NIF): a natural-person DNI, a foreigner NIE, or a legal-entity CIF
 ;; (entity letter + 7 digits + a control that is a digit for some entity types,
 ;; a letter for others - accept either so no valid number is rejected).
@@ -891,6 +936,12 @@
   (and (re-matches #"\d{8}" n)
        (let [d (digits-of n)]
          (= (mod (- 10 (mod (long (reduce + (map * (subvec d 0 7) [3 1 3 1 3 1 3]))) 10)) 10) (d 7)))))
+(defn- ean-parse [^String n]
+  {:valid? true :prefix (subs n 0 3) :body (subs n 3 (dec (count n)))
+   :check-digit (subs n (dec (count n)))})
+(defn- gtin14-parse [^String n]
+  {:valid? true :indicator (subs n 0 1) :body (subs n 1 13)
+   :check-digit (subs n 13)})
 (defn- ismn? [^String n]                              ; ISMN: 979-0 prefixed 13-digit EAN
   (and (re-matches #"9790\d{9}" n) (.isValid ean13-cd n)))
 
@@ -1388,6 +1439,14 @@
 (defn- gh-tin? [^String n]                            ; Ghana TIN: prefix + mod-11 check
   (and (re-matches #"[PCGQV]00[A-Z0-9]{8}" n)
        (= (int (gh-tin-check-digit n)) (int (.charAt n 10)))))
+(defn- om-vat-check-digit ^Character [^String n]
+  (let [weights [1 6 3 7 9]
+        s (reduce + (map (fn [w c] (* w (- (int c) 48))) weights (subs n 6 11)))
+        check (mod (inc s) 11)]
+    (if (= 10 check) \X (char (+ 48 check)))))
+(defn- om-vat? [^String n]                            ; Oman VAT: OM + 10 digits, weighted MOD 11
+  (and (re-matches #"OM\d{9}[0-9X]" n)
+       (= (om-vat-check-digit n) (.charAt n 11))))
 (defn- gn-nifp? [^String n]                           ; Guinea NIFp: 9-digit Luhn
   (boolean (and (re-matches #"\d{9}" n) (.isValid luhn-cd n))))
 (defn- ma-ice? [^String n]                            ; Morocco ICE: 15 digits, ISO 7064 MOD 97-10
@@ -1715,6 +1774,12 @@
                    (if (neg? idx) (reduced -1)
                      (mod (+ (mod (* (if (zero? c) 36 c) 2) 37) idx) 36))))
                18 s)))
+(def ^:private ^String upi-alphabet "0123456789BCDFGHJKLMNPQRSTVWXZ")
+(defn- upi? [^String n]                               ; ISO 4914 Unique Product Identifier, Mod 31,30
+  (and (= 12 (count n))
+       (str/starts-with? n "QZ")
+       (re-matches #"[0-9BCDFGHJKLMNPQRSTVWXZ]+" n)
+       (cd/iso7064-mod37-36-valid? n upi-alphabet)))
 (defn- grid? [^String n]                              ; GRid (Global Release Identifier): 18 alnum, ISO 7064 Mod 37,36
   (and (re-matches #"[0-9A-Z]{18}" n) (iso7064-mod37-36-valid? n)))
 (defn- isan? [^String n]                              ; ISAN (ISO 15706): root12+episode4 +check1 +version8 +check2, two Mod 37,36 checks
@@ -2208,6 +2273,9 @@
 (defn- nino-format [^String n]
   (str (subs n 0 2) " " (subs n 2 4) " " (subs n 4 6) " " (subs n 6 8)
        (when (> (count n) 8) (str " " (subs n 8)))))
+(defn- nino-parse [^String n]
+  (cond-> {:valid? true :prefix (subs n 0 2) :number (subs n 2 8)}
+    (> (count n) 8) (assoc :suffix (subs n 8))))
 (defn- aadhaar-format [^String n] (str (subs n 0 4) " " (subs n 4 8) " " (subs n 8 12)))
 (defn- ch-ahv-format [^String n]
   (str (subs n 0 3) "." (subs n 3 7) "." (subs n 7 11) "." (subs n 11 13)))
@@ -2228,11 +2296,18 @@
   (let [n (be-ogm-compact n)]
     (str "+++" (subs n 0 3) "/" (subs n 3 7) "/" (subs n 7 12) "+++")))
 
+;; VAT identifiers have country-specific national bodies, but the country
+;; prefix and the compact national number are stable presentation components.
+(defn- vat-parse [^String cc ^String n]
+  {:valid? true :country cc :number (strip-cc n cc)})
+(defn- vat-format [^String cc ^String n]
+  (str cc (strip-cc n cc)))
+
 (def ^:private registry
   {:credit-card {:validate card-valid? :parse card-parse :format card-format}
    :iban        {:validate iban-valid? :parse iban-parse :format iban-format}
    :bic         {:validate bic-valid? :parse bic-parse}
-   :isbn        {:validate isbn-valid?}
+   :isbn        {:validate isbn-valid? :parse isbn-parse :format isbn-format}
    :issn        {:validate issn-valid? :format issn-hyphenate}
    :isin        {:validate isin-valid? :parse isin-parse}
    :aba         {:validate aba-valid?}
@@ -2253,8 +2328,8 @@
    :eu-excise   {:validate eu-excise?}
    :isrc        {:validate isrc-valid? :parse isrc-parse :format isrc-format}
    :isil        {:validate isil-valid? :parse isil-parse}
-   :br-cpf      {:validate cpf-valid? :format cpf-format}
-   :br-cnpj     {:validate cnpj-valid? :format cnpj-format}
+   :br-cpf      {:validate cpf-valid? :parse cpf-parse :format cpf-format}
+   :br-cnpj     {:validate cnpj-valid? :parse cnpj-parse :format cnpj-format}
    :us-ssn      {:validate ssn-valid? :format ssn-format}
    :us-ein      {:validate ein-valid? :format ein-format}
    :us-itin     {:validate itin-valid? :parse taxpayer-parse :format ssn-format}
@@ -2264,28 +2339,28 @@
    :sn-ninea    {:validate sn-ninea?}
    :vatin       {:validate vatin?}
    :eu-vat      {:validate eu-vat?}
-   :de-vat      {:validate de-vat?}
+   :de-vat      {:validate de-vat? :parse #(vat-parse "DE" %) :format #(vat-format "DE" %)}
    :de-idnr     {:validate de-idnr?}
    :de-handelsregisternummer {:validate de-handelsregisternummer?}
    :de-leitweg  {:validate de-leitweg?}
    :de-stnr     {:validate de-stnr?}
-   :fr-vat      {:validate fr-vat?}
+   :fr-vat      {:validate fr-vat? :parse #(vat-parse "FR" %) :format #(vat-format "FR" %)}
    :fr-accise   {:validate fr-accise?}
    :fr-rcs      {:validate fr-rcs?}
    :mc-tva      {:validate mc-tva?}
-   :it-vat      {:validate it-vat?}
-   :be-vat      {:validate be-vat?}
-   :pl-vat      {:validate pl-vat?}
-   :gb-vat      {:validate gb-vat?}
-   :gb-nino     {:validate nino? :format nino-format}
+   :it-vat      {:validate it-vat? :parse #(vat-parse "IT" %) :format #(vat-format "IT" %)}
+   :be-vat      {:validate be-vat? :parse #(vat-parse "BE" %) :format #(vat-format "BE" %)}
+   :pl-vat      {:validate pl-vat? :parse #(vat-parse "PL" %) :format #(vat-format "PL" %)}
+   :gb-vat      {:validate gb-vat? :parse #(vat-parse "GB" %) :format #(vat-format "GB" %)}
+   :gb-nino     {:validate nino? :parse nino-parse :format nino-format}
    :gb-utr      {:validate gb-utr?}
    :gb-upn      {:validate gb-upn?}
    :ca-sin      {:validate ca-sin? :format triple3-format}
    :au-abn      {:validate au-abn? :format au-abn-format}
    :in-pan      {:validate in-pan? :parse in-pan-parse}
    :in-aadhaar  {:validate in-aadhaar? :format aadhaar-format}
-   :es-dni      {:validate es-dni?}
-   :es-nie      {:validate es-nie?}
+   :es-dni      {:validate es-dni? :parse es-dni-parse}
+   :es-nie      {:validate es-nie? :parse es-nie-parse}
    :es-nif      {:validate es-nif?}
    :es-cae      {:validate es-cae?}
    :es-cups     {:validate es-cups?}
@@ -2403,6 +2478,7 @@
    :dz-nif      {:validate dz-nif?}
    :eg-tn       {:validate eg-tn?}
    :gh-tin      {:validate gh-tin?}
+   :om-vat      {:validate om-vat?}
    :gn-nifp     {:validate gn-nifp?}
    :li-peid     {:validate li-peid?}
    :ma-ice      {:validate ma-ice?}
@@ -2418,6 +2494,7 @@
    :mx-rfc      {:validate mx-rfc?}
    :grid        {:validate grid?}
    :isan        {:validate isan?}
+   :upi         {:validate upi?}
    :th-moa      {:validate th-moa?}
    :th-pin      {:validate th-pin?}
    :th-tin      {:validate th-tin?}
@@ -2447,12 +2524,12 @@
    :sg-uen      {:validate sg-uen?}
    :hk-id       {:validate hk-id? :format hk-id-format}
    :kr-brn      {:validate kr-brn? :format kr-brn-format}
-   :ean13       {:validate ean13?}
-   :upc         {:validate upc?}
+   :ean13       {:validate ean13? :parse ean-parse}
+   :upc         {:validate upc? :parse ean-parse}
    :vin         {:validate vin? :parse vin-parse}
    :nhs         {:validate nhs? :format nhs-format}
    :npi         {:validate npi?}
-   :ean8        {:validate ean8?}
+   :ean8        {:validate ean8? :parse ean-parse}
    :ismn        {:validate ismn?}
    :cas         {:validate cas? :format cas-format}
    :imo         {:validate imo?}
@@ -2482,7 +2559,7 @@
    :bg-pnf      {:validate bg-pnf?}
    :orcid       {:validate orcid? :format orcid-format}
    :isni        {:validate orcid? :format isni-format}
-   :gtin14      {:validate gtin14?}
+   :gtin14      {:validate gtin14? :parse gtin14-parse}
    :sscc        {:validate sscc?}
    :gln         {:validate gln?}
    :mx-curp     {:validate mx-curp? :parse curp-parse}})
@@ -2508,7 +2585,7 @@
   #{:ean13 :ean8 :upc :gtin14 :sscc :gln :iso6346 :upu-s10 :vin :imo :cas
     :nhs :npi :it-aic :eu-eic :eu-ecnumber :eu-excise :eu-nace :es-cae
     :es-cups :es-postalcode :at-postleitzahl :nl-brin :nl-postcode
-    :se-postnummer})
+    :se-postnummer :upi})
 
 (def ^:private research-types #{:orcid :isni})
 
@@ -2517,7 +2594,7 @@
     :dk-vat :fi-vat :se-vat :gr-vat :lu-vat :si-vat :ee-vat :hu-vat
     :mt-vat :sk-vat :lt-vat :cy-vat :ro-vat :es-vat :ie-vat :nl-vat
     :lv-vat :bg-vat :hr-vat :cz-vat :pt-vat :in-gstin :eu-oss :ch-vat
-    :no-mva :fo-vn :is-vsk :vatin :eu-vat})
+    :no-mva :fo-vn :is-vsk :om-vat :vatin :eu-vat})
 
 (defn- category-for [type]
   (cond
@@ -2597,6 +2674,131 @@
   [s]
   (norm s))
 
+(def ^:private diagnostic-types
+  "Identifier types for which `explain` can distinguish common failures."
+  #{:credit-card :iban :isbn :issn :isin :aba :imei :luhn :mac :imsi :meid :lei})
+
+(defn- diagnostic-success [type n]
+  {:valid? true :type type :normalized n
+   :message (str (name type) " is valid")})
+
+(defn- diagnostic-failure [type n reason message & {:keys [offending position]}]
+  (cond-> {:valid? false :type type :normalized n :reason reason :message message}
+    (some? offending) (assoc :offending offending)
+    (some? position) (assoc :position position)))
+
+(defn- first-nonmatching [^String n pattern]
+  (some (fn [i]
+          (let [c (subs n i (inc i))]
+            (when-not (re-matches pattern c) [c i])))
+        (range (count n))))
+
+(defn- explain-digits [type n expected-lengths valid-fn]
+  (cond
+    (empty? n) (diagnostic-failure type n :format "The value must contain digits.")
+    (not (re-matches #"\d+" n))
+    (let [[offending position] (first-nonmatching n #"\d")]
+      (diagnostic-failure type n :format "The value contains a non-digit character."
+                          :offending offending :position position))
+    (not (contains? expected-lengths (count n)))
+    (diagnostic-failure type n :length
+                        (str "The value must contain " (clojure.string/join " or " expected-lengths)
+                             " digits.")
+                        :position (count n))
+    (not (valid-fn n))
+    (diagnostic-failure type n :checksum "The check digit is invalid."
+                        :offending (subs n (dec (count n)))
+                        :position (dec (count n)))
+    :else (diagnostic-success type n)))
+
+(defn- explain-pattern [type n character-pattern structure-pattern expected-lengths valid-fn]
+  (cond
+    (empty? n) (diagnostic-failure type n :format "The value has no identifier characters.")
+    (not (every? #(re-matches character-pattern (str %)) n))
+    (let [[offending position] (first-nonmatching n character-pattern)]
+      (diagnostic-failure type n :format "The value contains an invalid character."
+                          :offending offending :position position))
+    (not (contains? expected-lengths (count n)))
+    (diagnostic-failure type n :length
+                        (str "The value must contain " (clojure.string/join " or " expected-lengths)
+                             " characters.")
+                        :position (count n))
+    (not (re-matches structure-pattern n))
+    (diagnostic-failure type n :format "The value has an invalid structure.")
+    (not (valid-fn n))
+    (diagnostic-failure type n :checksum "The check digit is invalid."
+                        :offending (subs n (dec (count n)))
+                        :position (dec (count n)))
+    :else (diagnostic-success type n)))
+
+(defn- explain-diagnostic [type n]
+  (case type
+    :credit-card (cond
+                   (not (re-matches #"\d*" n))
+                   (let [[offending position] (first-nonmatching n #"\d")]
+                     (diagnostic-failure type n :format "The card number contains a non-digit character."
+                                         :offending offending :position position))
+                   (not (<= 13 (count n) 19))
+                   (diagnostic-failure type n :length "The card number must contain 13 to 19 digits."
+                                       :position (count n))
+                   (card-valid? n) (diagnostic-success type n)
+                   (or (.isValid luhn-cd n) (re-matches #"0+" n))
+                   (diagnostic-failure type n :network "The card number is not in a supported card network range.")
+                   :else (diagnostic-failure type n :checksum "The card check digit is invalid."
+                                             :offending (subs n (dec (count n)))
+                                             :position (dec (count n))))
+    :iban (cond
+            (not (re-matches #"[A-Z0-9]*" n))
+            (let [[offending position] (first-nonmatching n #"[A-Z0-9]")]
+              (diagnostic-failure type n :format "The IBAN contains an invalid character."
+                                  :offending offending :position position))
+            (or (< (count n) 2) (not (contains? @iso-country-codes (str/lower-case (subs n 0 2)))))
+            (diagnostic-failure type n :country-code "The IBAN country code is not recognized."
+                                :offending (subs n 0 (min 2 (count n))) :position 0)
+            (< (count n) 15) (diagnostic-failure type n :length "The IBAN is too short."
+                                                :position (count n))
+            (iban-valid? n) (diagnostic-success type n)
+            :else (diagnostic-failure type n :checksum "The IBAN check digits are invalid."
+                                      :offending (subs n 2 4) :position 2))
+    :isbn (explain-pattern type n #"[0-9X]" #"(?:\d{9}[\dX]|\d{13})" #{10 13} isbn-valid?)
+    :issn (explain-pattern type n #"[0-9X]" #"\d{7}[\dX]" #{8} issn-valid?)
+    :isin (explain-pattern type n #"[A-Z0-9]" #"[A-Z0-9]{12}" #{12} isin-valid?)
+    :aba (explain-digits type n #{9} aba-valid?)
+    :imei (explain-digits type n #{15} imei-valid?)
+    :luhn (explain-digits type n (set (range 1 1000)) luhn-valid?)
+    :mac (explain-pattern type n #"[0-9A-F]" #"[0-9A-F]{12}" #{12} mac-valid?)
+    :imsi (cond
+            (not (re-matches #"\d*" n))
+            (let [[offending position] (first-nonmatching n #"\d")]
+              (diagnostic-failure type n :format "The IMSI contains a non-digit character."
+                                  :offending offending :position position))
+            (not (<= 6 (count n) 15))
+            (diagnostic-failure type n :length "The IMSI must contain 6 to 15 digits."
+                                :position (count n))
+            (imsi-valid? n) (diagnostic-success type n)
+            :else (diagnostic-failure type n :country-code "The IMSI mobile country code is invalid."
+                                      :offending (subs n 0 3) :position 0))
+    :meid (explain-pattern type n #"[0-9A-F]" #"[0-9A-F]{14,15}" #{14 15} meid-valid?)
+    :lei (explain-pattern type n #"[A-Z0-9]" #"[A-Z0-9]{20}" #{20} lei-valid?)))
+
+(defn explain
+  "Return structured validation diagnostics for a known identifier type.
+
+  Results contain `:valid?`, `:type`, `:normalized`, and a human-readable
+  `:message`. Detailed types additionally return `:reason` (such as
+  `:format`, `:length`, `:checksum`, or `:country-code`) and, where known,
+  `:offending` and zero-based `:position`. Other known types return a generic
+  failure reason. Unknown types throw `IllegalArgumentException`, like `valid?`."
+  [type s]
+  (let [{:keys [validate]} (entry type)
+        n (input-for type s)]
+    (if (try (boolean (validate n)) (catch Exception _ false))
+      (diagnostic-success type n)
+      (if (diagnostic-types type)
+        (explain-diagnostic type n)
+        (diagnostic-failure type n :generic
+                            (str "Validation failed for " (name type) "; detailed diagnostics are unavailable."))))))
+
 (defn valid?
   "True if `s` is a valid identifier of `type`. Bad data returns false. An
   unknown `type` throws IllegalArgumentException."
@@ -2642,6 +2844,38 @@
                            (try (boolean (validate (input-for type s)))
                                 (catch Exception _ false)))]
             type)))))
+
+(defn batch-valid?
+  "Return validation results for each value in `values`, in input order.
+  Malformed values produce `false`; an unknown `type` throws as with `valid?`."
+  [type values]
+  (entry type)
+  (mapv (fn [s]
+          (try (valid? type s)
+               (catch Exception _ false)))
+        values))
+
+(defn batch-parse
+  "Return one parse result for each value in `values`, in input order.
+  Malformed values produce `{:valid? false}`; an unknown `type` throws as with
+  `parse`."
+  [type values]
+  (entry type)
+  (mapv (fn [s]
+          (try (parse type s)
+               (catch Exception _ {:valid? false})))
+        values))
+
+(defn batch-detect
+  "Return detection results for each value in `values`, in input order.
+  Malformed values produce an empty vector; optional detection filters are
+  passed through to `detect`."
+  ([values] (batch-detect values {}))
+  ([values opts]
+   (mapv (fn [s]
+           (try (detect s opts)
+                (catch Exception _ [])))
+         values)))
 
 (defn card-network
   "The card network of `s` (`:visa` `:mastercard` `:amex` `:discover` `:diners`),
