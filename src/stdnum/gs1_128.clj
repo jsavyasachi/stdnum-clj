@@ -20,18 +20,21 @@
 
 ;; Fixed-length and variable-length AIs (common subset of the GS1 General
 ;; Specifications). `:len` = fixed data length; `:max` = variable, up to N chars.
+;; The official GS1 AI browser and logistics label guidance define the entries
+;; below: https://ref.gs1.org/ai/?lang=en and
+;; https://www.gs1.org/standards/gs1-logistic-label-guideline/1-3
 (def ^:private ai-table
-  {"00"  {:label "SSCC" :len 18}
-   "01"  {:label "GTIN" :len 14}
-   "02"  {:label "CONTENT (GTIN)" :len 14}
+  {"00"  {:label "SSCC" :len 18 :numeric true}
+   "01"  {:label "GTIN" :len 14 :numeric true}
+   "02"  {:label "CONTENT (GTIN)" :len 14 :numeric true}
    "10"  {:label "BATCH/LOT" :max 20}
-   "11"  {:label "PROD DATE" :len 6}
-   "12"  {:label "DUE DATE" :len 6}
-   "13"  {:label "PACK DATE" :len 6}
-   "15"  {:label "BEST BEFORE" :len 6}
-   "16"  {:label "SELL BY" :len 6}
-   "17"  {:label "USE BY/EXPIRY" :len 6}
-   "20"  {:label "VARIANT" :len 2}
+   "11"  {:label "PROD DATE" :len 6 :numeric true}
+   "12"  {:label "DUE DATE" :len 6 :numeric true}
+   "13"  {:label "PACK DATE" :len 6 :numeric true}
+   "15"  {:label "BEST BEFORE" :len 6 :numeric true}
+   "16"  {:label "SELL BY" :len 6 :numeric true}
+   "17"  {:label "USE BY/EXPIRY" :len 6 :numeric true}
+   "20"  {:label "VARIANT" :len 2 :numeric true}
    "21"  {:label "SERIAL" :max 20}
    "22"  {:label "CPV" :max 20}
    "240" {:label "ADDITIONAL ID" :max 30}
@@ -39,17 +42,31 @@
    "30"  {:label "VAR. COUNT" :max 8}
    "37"  {:label "COUNT" :max 8}
    "400" {:label "ORDER NUMBER" :max 30}
-   "410" {:label "SHIP TO GLN" :len 13}
-   "412" {:label "PURCHASE FROM GLN" :len 13}
-   "414" {:label "LOC GLN" :len 13}
-   "8005" {:label "PRICE PER UNIT" :len 6}
-   "8018" {:label "GSRN" :len 18}})
+   "401" {:label "GINC" :max 30}
+   "402" {:label "GSIN" :len 17 :numeric true}
+   "403" {:label "ROUTE" :max 30}
+   "410" {:label "SHIP TO GLN" :len 13 :numeric true}
+   "411" {:label "BILL TO" :len 13 :numeric true}
+   "412" {:label "PURCHASE FROM GLN" :len 13 :numeric true}
+   "413" {:label "SHIP FOR LOC" :len 13 :numeric true}
+   "414" {:label "LOC GLN" :len 13 :numeric true}
+   "415" {:label "PAY TO" :len 13 :numeric true}
+   "416" {:label "PROD/SERV LOC" :len 13 :numeric true}
+   "417" {:label "PARTY" :len 13 :numeric true}
+   "420" {:label "SHIP TO POST" :max 20}
+   "421" {:label "SHIP TO POST" :max 12 :min 4 :numeric-prefix 3}
+   "8001" {:label "DIMENSIONS" :len 14 :numeric true}
+   "8005" {:label "PRICE PER UNIT" :len 6 :numeric true}
+   "8006" {:label "ITIP" :len 18 :numeric true}
+   "8018" {:label "GSRN" :len 18 :numeric true}
+   "8026" {:label "ITIP CONTENT" :len 18 :numeric true}})
 
 ;; Measure families: AI = 3-digit base + 1 decimal digit. Value is 6 digits.
 (def ^:private measure-bases
   {"310" "NET WEIGHT (kg)" "311" "LENGTH (m)" "312" "WIDTH (m)" "313" "DEPTH (m)"
    "314" "AREA (m^2)" "315" "NET VOLUME (l)" "316" "NET VOLUME (m^3)"
-   "330" "GROSS WEIGHT (kg)" "331" "LENGTH, GROSS (m)" "335" "GROSS VOLUME (l)"})
+   "330" "GROSS WEIGHT (kg)" "331" "LENGTH, GROSS (m)" "332" "WIDTH, LOG (m)"
+   "333" "HEIGHT, LOG (m)" "335" "GROSS VOLUME (l)" "336" "VOLUME, LOG (m^3)"})
 
 ;; Amount families: AI = 3-digit base + 1 decimal digit; value is variable.
 (def ^:private amount-bases
@@ -63,8 +80,8 @@
       (when (= 4 (count ai))
         (let [base (subs ai 0 3) dec (- (int (.charAt ai 3)) 48)]
           (cond
-            (measure-bases base) {:label (measure-bases base) :len 6 :decimals dec}
-            (amount-bases base)  {:label (amount-bases base) :max 15 :decimals dec})))))
+            (measure-bases base) {:label (measure-bases base) :len 6 :decimals dec :numeric true}
+            (amount-bases base)  {:label (amount-bases base) :max 15 :decimals dec :numeric true})))))
 
 (defn- with-decimals [seg {:keys [decimals]} ^String value]
   (if decimals
@@ -78,7 +95,11 @@
 (defn- valid-value? [spec ^String value]
   (and (pos? (count value))
        (not (str/includes? value (str fnc1)))
-       (or (nil? (:decimals spec)) (re-matches #"\d+" value))
+       (or (nil? (:min spec)) (<= (:min spec) (count value)))
+       (or (nil? (:numeric-prefix spec))
+           (and (>= (count value) (:numeric-prefix spec))
+                (re-matches #"\d+" (subs value 0 (:numeric-prefix spec)))))
+       (or (not (:numeric spec)) (re-matches #"\d+" value))
        (if-let [len (:len spec)]
          (= len (count value))
          (<= (count value) (:max spec)))))
