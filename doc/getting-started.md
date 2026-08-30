@@ -6,7 +6,7 @@
 
 Leiningen / Boot:
 ```clojure
-[net.clojars.savya/stdnum-clj "0.32.0"]
+[net.clojars.savya/stdnum-clj "0.33.0"]
 ```
 
 deps.edn:
