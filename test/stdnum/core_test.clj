@@ -196,7 +196,11 @@
     (is (= {:valid? true :encoding :base58check :type :p2sh}
            (stdnum/parse :bitcoin "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy")))
     (is (= {:valid? true :encoding :bech32 :type :segwit}
-           (stdnum/parse :bitcoin "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"))))
+           (stdnum/parse :bitcoin "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4")))
+    (is (= {:valid? true :encoding :bech32m :type :segwit}
+           (stdnum/parse :bitcoin "bc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqzk5jj0")))
+    (is (not (stdnum/valid? :bitcoin
+                            "bc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqh2y7hd"))))
   (testing "mixed-case Bech32 is rejected"
     (is (not (stdnum/valid? :bitcoin "bc1Qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4")))))
 

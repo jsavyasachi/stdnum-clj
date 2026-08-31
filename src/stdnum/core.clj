@@ -206,6 +206,7 @@
 (def ^:private ^String bech32-charset "qpzry9x8gf2tvdw0s3jn54khce6mua7l")
 (def ^:private bech32-values (zipmap bech32-charset (range)))
 (def ^:private bech32-gen [0x3b6a57b2 0x26508e6d 0x1ea119fa 0x3d4233dd 0x2a1462b3])
+(def ^:private bech32m-constant 0x2bc830a3)
 
 (defn- bech32-polymod ^long [values]
   (reduce (fn [^long chk ^long v]
@@ -231,13 +232,21 @@
                                    (conj acc v)
                                    (reduced nil)))
                                [] data)]
-            (when (and (= "bc" hrp) values
-                       (= 1 (bech32-polymod
-                             (concat (map #(bit-shift-right (int %) 5) hrp)
-                                     [0]
-                                     (map #(bit-and (int %) 31) hrp)
-                                     values))))
-              {:valid? true :encoding :bech32 :type :segwit})))))))
+            (let [check (when (and (= "bc" hrp) values)
+                          (bech32-polymod
+                           (concat (map #(bit-shift-right (int %) 5) hrp)
+                                   [0]
+                                   (map #(bit-and (int %) 31) hrp)
+                                   values)))
+                  version (first values)
+                  encoding (cond (= check 1) :bech32
+                                 (= check bech32m-constant) :bech32m
+                                 :else nil)]
+              (when (and encoding (<= version 16)
+                         (if (zero? version)
+                           (= encoding :bech32)
+                           (= encoding :bech32m)))
+                {:valid? true :encoding encoding :type :segwit}))))))))
 
 (defn- bitcoin-parse [^String n] (or (bitcoin-base58-parse n) (bech32-parse n)))
 (defn- bitcoin-valid? [^String n] (boolean (bitcoin-parse n)))
