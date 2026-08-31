@@ -614,6 +614,10 @@
     (is (stdnum/valid? :mx-curp "HEGG560427MVZRRL04"))
     (is (not (stdnum/valid? :mx-curp "HEGG560427MVZRRL05")))))
 
+(deftest ecuador-juridical-ruc-checks-check-digit
+  (is (not (stdnum/valid? :ec-ruc "0190000000001")))
+  (is (stdnum/valid? :ec-ruc "1790010937001")))
+
 (deftest parse-extraction
   (testing "Mexico CURP extracts birth date, gender, and issuing state"
     (let [p (stdnum/parse :mx-curp "HEGG560427MVZRRL04")]
