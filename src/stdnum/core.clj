@@ -231,22 +231,22 @@
                                  (if-let [v (bech32-values c)]
                                    (conj acc v)
                                    (reduced nil)))
-                               [] data)]
-            (let [check (when (and (= "bc" hrp) values)
-                          (bech32-polymod
-                           (concat (map #(bit-shift-right (int %) 5) hrp)
-                                   [0]
-                                   (map #(bit-and (int %) 31) hrp)
-                                   values)))
-                  version (first values)
-                  encoding (cond (= check 1) :bech32
-                                 (= check bech32m-constant) :bech32m
-                                 :else nil)]
-              (when (and encoding (<= version 16)
-                         (if (zero? version)
-                           (= encoding :bech32)
-                           (= encoding :bech32m)))
-                {:valid? true :encoding encoding :type :segwit}))))))))
+                               [] data)
+                check (when (and (= "bc" hrp) values)
+                        (bech32-polymod
+                         (concat (map #(bit-shift-right (int %) 5) hrp)
+                                 [0]
+                                 (map #(bit-and (int %) 31) hrp)
+                                 values)))
+                version (first values)
+                encoding (cond (= check 1) :bech32
+                               (= check bech32m-constant) :bech32m
+                               :else nil)]
+            (when (and encoding (<= version 16)
+                       (if (zero? version)
+                         (= encoding :bech32)
+                         (= encoding :bech32m)))
+              {:valid? true :encoding encoding :type :segwit})))))))
 
 (defn- bitcoin-parse [^String n] (or (bitcoin-base58-parse n) (bech32-parse n)))
 (defn- bitcoin-valid? [^String n] (boolean (bitcoin-parse n)))
