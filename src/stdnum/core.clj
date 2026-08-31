@@ -540,8 +540,15 @@
   (boolean (and (re-matches #"\d{17}[0-9X]" n)
                 (= (.charAt cn-check (int (mod (long (reduce + (map * (digits-of (subs n 0 17)) cn-weights))) 11)))
                    (.charAt n 17)))))
+(declare valid-date?)
+
 (defn- se-pnr? [^String n]                           ; Sweden personnummer: 10-digit Luhn
-  (boolean (and (re-matches #"\d{10}" n) (.isValid luhn-cd n))))
+  (boolean (and (re-matches #"\d{10}" n) (.isValid luhn-cd n)
+                (let [yy (Integer/parseInt (subs n 0 2))
+                      century (if (<= yy 26) 2000 1900)]
+                  (valid-date? (+ century yy)
+                               (Integer/parseInt (subs n 2 4))
+                               (Integer/parseInt (subs n 4 6)))))))
 
 (def ^:private clabe-weights (vec (take 17 (cycle [3 7 1]))))
 (defn- mx-clabe? [^String n]                         ; Mexico CLABE bank account: weighted mod 10
@@ -574,7 +581,12 @@
 (defn- es-ccc-parse [^String n]
   {:valid? true :bank (subs n 0 4) :branch (subs n 4 8) :account (subs n 10 20)})
 (defn- za-id? [^String n]                            ; South Africa ID: 13-digit Luhn
-  (boolean (and (re-matches #"\d{13}" n) (.isValid luhn-cd n))))
+  (boolean (and (re-matches #"\d{13}" n) (.isValid luhn-cd n)
+                (let [yy (Integer/parseInt (subs n 0 2))
+                      century (if (<= yy 26) 2000 1900)]
+                  (valid-date? (+ century yy)
+                               (Integer/parseInt (subs n 2 4))
+                               (Integer/parseInt (subs n 4 6)))))))
 (def ^:private no-org-weights [3 2 7 6 5 4 3 2])
 (defn- no-org? [^String n]                           ; Norway organisasjonsnummer: mod 11
   (and (re-matches #"\d{9}" n)
@@ -966,8 +978,14 @@
 (defn- pesel? [^String n]                             ; Poland PESEL: weighted mod 10
   (and (re-matches #"\d{11}" n)
        (let [d (digits-of n)]
-         (= (mod (- 10 (mod (long (reduce + (map * (subvec d 0 10) [1 3 7 9 1 3 7 9 1 3]))) 10)) 10)
-            (d 10)))))
+         (and (= (mod (- 10 (mod (long (reduce + (map * (subvec d 0 10) [1 3 7 9 1 3 7 9 1 3]))) 10)) 10)
+                 (d 10))
+              (let [mm (Integer/parseInt (subs n 2 4))
+                    month (inc (mod (dec mm) 20))
+                    year (+ (nth [1900 2000 2100 2200 1800] (quot mm 20))
+                            (Integer/parseInt (subs n 0 2)))]
+                (and (<= 1 (mod mm 20) 12)
+                     (valid-date? year month (Integer/parseInt (subs n 4 6)))))))))
 (defn- ar-cuit? [^String n]                           ; Argentina CUIT: weighted mod 11
   (and (re-matches #"\d{11}" n)
        (let [d (digits-of n)
@@ -1028,7 +1046,12 @@
              w (fn [ws] (mod (long (reduce + (map * (subvec d 0 10) ws))) 11))
              r (w [1 2 3 4 5 6 7 8 9 1])
              r (if (= r 10) (w [3 4 5 6 7 8 9 1 2 3]) r)]
-         (= (if (= r 10) 0 r) (d 10)))))
+         (and (<= 1 (d 0) 8)
+              (= (if (= r 10) 0 r) (d 10))
+              (valid-date? (+ 1800 (* 100 (quot (d 0) 2))
+                            (Integer/parseInt (subs n 1 3)))
+                           (Integer/parseInt (subs n 3 5))
+                           (Integer/parseInt (subs n 5 7)))))))
 
 (defn- valid-date? [^long year ^long month ^long day]
   (try (java.time.LocalDate/of year month day) true (catch Exception _ false)))
@@ -1038,7 +1061,11 @@
   (and (re-matches #"\d{13}" n)
        (let [d (digits-of n)
              m (- 11 (mod (long (reduce + (map * (subvec d 0 12) [7 6 5 4 3 2 7 6 5 4 3 2]))) 11))]
-         (= (if (>= m 10) 0 m) (d 12)))))
+         (and (= (if (>= m 10) 0 m) (d 12))
+              (valid-date? (+ (if (>= (Integer/parseInt (subs n 4 7)) 900) 1000 2000)
+                              (Integer/parseInt (subs n 4 7)))
+                           (Integer/parseInt (subs n 2 4))
+                           (Integer/parseInt (subs n 0 2)))))))
 
 (defn- si-emso? [^String n]                           ; Slovenia EMŠO: JMBG checksum + date
   (and (jmbg? n)
@@ -1187,7 +1214,13 @@
   (and (re-matches #"\d{10}" n)
        (let [d (digits-of n)
              r (mod (long (reduce + (map * (subvec d 0 9) [2 4 8 5 10 9 7 3 6]))) 11)]
-         (= (if (= r 10) 0 r) (d 9)))))
+         (and (= (if (= r 10) 0 r) (d 9))
+              (let [mm (Integer/parseInt (subs n 2 4))
+                    [century month] (cond (> mm 40) [2000 (- mm 40)]
+                                          (> mm 20) [1800 (- mm 20)]
+                                          :else [1900 mm])]
+                (valid-date? (+ century (Integer/parseInt (subs n 0 2)))
+                             month (Integer/parseInt (subs n 4 6))))))))
 (defn- bg-pnf? [^String n]                            ; Bulgaria PNF/LNCh: weighted mod 10
   (and (re-matches #"\d{10}" n)
        (let [d (digits-of n)]
@@ -2815,7 +2848,7 @@
   (let [{:keys [validate parse]} (entry type)
         n (input-for type s)]
     (if (try (boolean (validate n)) (catch Exception _ false))
-      (if parse (try (parse n) (catch Exception _ {:valid? true})) {:valid? true})
+      (if parse (try (parse n) (catch Exception _ {:valid? false})) {:valid? true})
       {:valid? false})))
 
 (defn format

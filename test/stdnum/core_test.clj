@@ -726,6 +726,18 @@
     (is (= {:valid? false} (stdnum/parse :mx-curp "HEGG560427MVZRRL05")))
     (is (= {:valid? false} (stdnum/parse :ee-ik "37605030298")))))
 
+(deftest date-bearing-identifiers-reject-impossible-dates
+  (testing "checksum-valid identifiers still require valid embedded dates"
+    (doseq [[type value] [[:ee-ik "00000000000"]
+                          [:pl-pesel "00000000000"]
+                          [:jmbg "0000000000000"]
+                          [:bg-egn "0000000000"]
+                          [:se-pnr "0000000018"]
+                          [:za-id "0000000000018"]]]
+      (is (not (stdnum/valid? type value)) (str type " must reject " value))
+      (is (= {:valid? false} (stdnum/parse type value))
+          (str type " parse must report invalid data")))))
+
 (deftest canonical-format
   (testing "ORCID / ISNI group into fours (hyphen vs space, per convention)"
     (is (= "0000-0002-1825-0097" (stdnum/format :orcid "0000000218250097")))
