@@ -50,8 +50,14 @@
   [^String body]
   (let [m (json/read-str body :key-fn keyword)
         errs (:errorWrappers m)]
-    (if (or (seq errs) (false? (:actionSucceed m)))
+    (cond
+      (or (seq errs) (false? (:actionSucceed m)))
       {:error (or (:error (first errs)) "VIES_ERROR") :raw m}
+
+      (not (contains? m :valid))
+      {:error "VIES_INVALID_RESPONSE" :raw m}
+
+      :else
       {:valid?       (boolean (:valid m))
        :country      (:countryCode m)
        :vat-number   (:vatNumber m)

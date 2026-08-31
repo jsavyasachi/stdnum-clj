@@ -22,6 +22,10 @@
   (testing "a member-state error becomes :error, not :valid? false (validity unknown)"
     (let [r (vies/parse-response "{\"actionSucceed\":false,\"errorWrappers\":[{\"error\":\"MS_UNAVAILABLE\"}]}")]
       (is (= "MS_UNAVAILABLE" (:error r)))
+      (is (not (contains? r :valid?)))))
+  (testing "a response without an explicit validity field is an error"
+    (let [r (vies/parse-response "{}")]
+      (is (:error r))
       (is (not (contains? r :valid?))))))
 
 (deftest configurable-transport-and-request
@@ -80,6 +84,14 @@
     (is (= "VIES returned HTTP 400" (:error r)))
     (is (= 1 @calls))
     (is (empty? @delays))))
+
+(deftest non-success-response-with-empty-json-is-unknown
+  (let [r (vies/check "DE136695976"
+                      {:max-retries 0
+                       :transport (fn [_] {:status 503 :headers {} :body "{}"})})]
+    (is (:error r))
+    (is (not (contains? r :valid?)))
+    (is (= 503 (:status r)))))
 
 (deftest retries-transport-exceptions
   (let [calls (atom 0)
