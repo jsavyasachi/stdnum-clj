@@ -68,6 +68,8 @@
     (is (not (gs1/valid? "(8006)01234567890123010")))))
 
 (deftest invalid-element-strings
+  (testing "raw application identifiers must be numeric"
+    (is (= {:valid? false} (gs1/parse "310A000123"))))
   (testing "an unknown AI after a valid segment is not silently dropped"
     (is (= {:valid? false}
            (gs1/parse "010952123454321399ABC"))))

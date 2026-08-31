@@ -78,10 +78,11 @@
   [^String ai]
   (or (ai-table ai)
       (when (= 4 (count ai))
-        (let [base (subs ai 0 3) dec (- (int (.charAt ai 3)) 48)]
+        (when (Character/isDigit (.charAt ai 3))
+          (let [base (subs ai 0 3) dec (- (int (.charAt ai 3)) 48)]
           (cond
             (measure-bases base) {:label (measure-bases base) :len 6 :decimals dec :numeric true}
-            (amount-bases base)  {:label (amount-bases base) :max 15 :decimals dec :numeric true})))))
+            (amount-bases base)  {:label (amount-bases base) :max 15 :decimals dec :numeric true}))))))
 
 (defn- with-decimals [seg {:keys [decimals]} ^String value]
   (if decimals
