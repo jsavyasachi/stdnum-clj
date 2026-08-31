@@ -2,6 +2,31 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.34.0] - 2026-08-30
+
+### Fixed
+
+- Bech32m Bitcoin addresses, including Taproot `bc1p...` addresses, are now
+  recognized. Witness v0 still requires Bech32 and witness v1+ requires
+  Bech32m, so mismatched checksums remain invalid.
+- Date-bearing national identifiers now validate their embedded date and
+  discriminator. This rejects impossible identities previously accepted by
+  checksum-only validation for Estonia, Poland, Montenegro, Bulgaria, Sweden,
+  and South Africa. Callers relying on those false positives must provide
+  structurally valid dates and discriminators.
+- GS1 Application Identifiers must be numeric on the raw parsing path.
+- GS1 391 and 393 currency-bearing amount fields now separate the leading ISO
+  4217 currency code from the amount, including full-length amounts.
+- VIES service failures now return an error with validity unknown instead of a
+  definitive invalid result. Callers must handle service errors separately
+  from invalid VAT numbers.
+
+### Changed
+
+- Breaking: `parse` no longer converts parser failures into `{:valid? true}`.
+  Callers must handle parser failures as invalid or unknown results according
+  to the returned error information.
+
 ## [0.33.0] - 2026-08-24
 
 ### Added
