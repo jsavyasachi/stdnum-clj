@@ -1424,6 +1424,8 @@
            (= t 6)  (let [r (mod (long (reduce + (map * (subvec d 0 8) [3 2 7 6 5 4 3 2]))) 11)
                           c (if (zero? r) 0 (- 11 r))]
                       (and (< c 10) (= c (d 8)) (not= "0000" (subs n 9))))
+           ;; Juridical RUC check digits are deliberately not validated: SRI registry
+           ;; numbers show the published algorithm is not always computable (issue #497).
            (= t 9)  (not= "000" (subs n 10))
            :else false))))
 (defn- py-ruc? [^String n]                            ; Paraguay RUC: base + check digit, weighted mod 11 (>=10 -> 0)
