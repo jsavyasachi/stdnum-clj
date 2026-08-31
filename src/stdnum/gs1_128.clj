@@ -82,28 +82,33 @@
           (let [base (subs ai 0 3) dec (- (int (.charAt ai 3)) 48)]
           (cond
             (measure-bases base) {:label (measure-bases base) :len 6 :decimals dec :numeric true}
-            (amount-bases base)  {:label (amount-bases base) :max 15 :decimals dec :numeric true}))))))
+            (amount-bases base)  (cond-> {:label (amount-bases base) :max 15 :decimals dec :numeric true}
+                                   (#{"391" "393"} base) (assoc :currency true))))))))
 
-(defn- with-decimals [seg {:keys [decimals]} ^String value]
+(defn- with-decimals [seg {:keys [decimals currency]} ^String value]
   (if decimals
-    (assoc seg :decimals decimals
-           :decimal-value (/ (double (Long/parseLong value)) (Math/pow 10 decimals)))
+    (let [amount (if currency (subs value 3) value)]
+      (cond-> (assoc seg :decimals decimals
+                     :decimal-value (/ (double (Long/parseLong amount)) (Math/pow 10 decimals)))
+        currency (assoc :currency (subs value 0 3))))
     seg))
 
 (defn- segment [^String ai spec ^String value]
   (with-decimals {:ai ai :label (:label spec "UNKNOWN") :value value} spec value))
 
 (defn- valid-value? [spec ^String value]
-  (and (pos? (count value))
+  (let [amount (if (:currency spec) (subs value (min 3 (count value))) value)]
+    (and (pos? (count value))
        (not (str/includes? value (str fnc1)))
-       (or (nil? (:min spec)) (<= (:min spec) (count value)))
+       (or (nil? (:currency spec)) (and (>= (count value) 3) (re-matches #"\d{3}" (subs value 0 3))))
+       (or (nil? (:min spec)) (<= (:min spec) (count amount)))
        (or (nil? (:numeric-prefix spec))
-           (and (>= (count value) (:numeric-prefix spec))
-                (re-matches #"\d+" (subs value 0 (:numeric-prefix spec)))))
-       (or (not (:numeric spec)) (re-matches #"\d+" value))
+           (and (>= (count amount) (:numeric-prefix spec))
+                (re-matches #"\d+" (subs amount 0 (:numeric-prefix spec)))))
+       (or (not (:numeric spec)) (re-matches #"\d+" amount))
        (if-let [len (:len spec)]
-         (= len (count value))
-         (<= (count value) (:max spec)))))
+         (= len (count amount))
+         (<= (count amount) (:max spec))))))
 
 (defn- parse-parens [^String s]
   (when (re-matches #"(?:\(\d{2,4}\)[^()]*)+" s)

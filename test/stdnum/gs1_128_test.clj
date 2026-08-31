@@ -21,7 +21,12 @@
     (let [a (first (gs1/parse "(3922)0399"))]
       (is (= "3922" (:ai a)))
       (is (= 2 (:decimals a)))
-      (is (= 3.99 (:decimal-value a))))))
+      (is (= 3.99 (:decimal-value a)))))
+  (testing "currency-bearing amounts separate currency from the amount"
+    (let [a (first (gs1/parse "(3912)8401234"))]
+      (is (= "840" (:currency a)))
+      (is (= 12.34 (:decimal-value a))))
+    (is (gs1/valid? "(3912)84012345678901234"))))
 
 (def ^:private fnc1 (str (char 29)))                  ; ASCII group separator
 
