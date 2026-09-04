@@ -24,12 +24,12 @@
                 :version version
                 :basis @basis
                 :src-dirs ["src"]
-                :scm {:url "https://github.com/jsavyasachi/stdnum-clj"
-                      :connection "scm:git:https://github.com/jsavyasachi/stdnum-clj.git"
-                      :developerConnection "scm:git:ssh://git@github.com/jsavyasachi/stdnum-clj.git"
+                :scm {:url "https://github.com/savyalabs/stdnum-clj"
+                      :connection "scm:git:https://github.com/savyalabs/stdnum-clj.git"
+                      :developerConnection "scm:git:ssh://git@github.com/savyalabs/stdnum-clj.git"
                       :tag (str "v" version)}
                 :pom-data [[:description "Unified validation, parsing, and formatting of standard identifier numbers (credit cards, IBAN/BIC, ISBN, ISIN, bank routing, and more) for Clojure - an idiomatic facade over Apache Commons Validator and iban4j."]
-                           [:url "https://github.com/jsavyasachi/stdnum-clj"]
+                           [:url "https://github.com/savyalabs/stdnum-clj"]
                            [:licenses
                             [:license
                              [:name "Eclipse Public License 2.0"]

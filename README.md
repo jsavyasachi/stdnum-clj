@@ -2,7 +2,7 @@
 
 [![Clojars Project](https://img.shields.io/clojars/v/net.clojars.savya/stdnum-clj.svg)](https://clojars.org/net.clojars.savya/stdnum-clj)
 [![cljdoc](https://cljdoc.org/badge/net.clojars.savya/stdnum-clj)](https://cljdoc.org/d/net.clojars.savya/stdnum-clj)
-[![test](https://github.com/jsavyasachi/stdnum-clj/actions/workflows/test.yml/badge.svg)](https://github.com/jsavyasachi/stdnum-clj/actions/workflows/test.yml)
+[![test](https://github.com/savyalabs/stdnum-clj/actions/workflows/test.yml/badge.svg)](https://github.com/savyalabs/stdnum-clj/actions/workflows/test.yml)
 
 One small API to validate, parse, and format 250+ standard identifier numbers in Clojure.
 It covers IBAN/BIC, credit cards, ISBN/ISSN/ISIN, and national ID, VAT/GST, and tax
